@@ -6,4 +6,4 @@ import en from "./en.json";
 
 const t = createLocalized(de, "de", { en });
 
-console.log(ReactDOM.renderToString(<div>{t.bar.baz()}</div>));
+console.log(ReactDOM.renderToString(<div>{t["bar.baz"]}</div>));

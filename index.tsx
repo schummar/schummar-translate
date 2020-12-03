@@ -4,15 +4,22 @@ type Dict = { [key: string]: Dict | string };
 
 type FlatDict = { [key: string]: string };
 
-type Value = {
-  (...values: any[]): ReactNode;
-  fallback(fallback: string): Value;
-  toString(): string;
+type FlatKeys<T extends Record<string, any>> = keyof {
+  [K in keyof T as K extends string
+    ? T[K] extends Record<string, any>
+      ? `${K}.${FlatKeys<T[K]>}`
+      : K
+    : never]: 1;
 };
+type DeepValue<T, K> = K extends `${infer first}.${infer rest}`
+  ? first extends keyof T
+    ? DeepValue<T[first], rest>
+    : never
+  : K extends keyof T
+  ? T[K]
+  : never;
 
-type Transformed<T extends Dict> = {
-  [key in keyof T]: T[key] extends Dict ? Transformed<T[key]> : Value;
-};
+type FlattenDict<D extends Dict> = { [K in FlatKeys<D>]: DeepValue<D, K> };
 
 type Options = {
   mainDict: FlatDict;
@@ -76,7 +83,7 @@ export function createLocalized<T extends Dict>(
   mainDict: T,
   mainDictName: string,
   dicts: { [key: string]: Partial<T> }
-): Transformed<T> {
+): FlattenDict<T> {
   const flatMainDict = flattenDict(mainDict);
   const flatDicts = mapValues(dicts as { [key: string]: Dict }, flattenDict);
 
