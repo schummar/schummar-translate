@@ -1,9 +1,17 @@
-import React from "react";
-import ReactDOM from "react-dom/server";
-import { createLocalized } from "..";
-import de from "./de";
-import en from "./en";
+import React from 'react';
+import ReactDOM from 'react-dom/server';
+import de from './de';
+import en from './en';
+import { createTranslator } from '../src/translator';
+import { LocaleContext } from '../src/context';
 
-const t = createLocalized(de, "de", { en });
+const { translate, translateFallback } = createTranslator({ sourceDictionary: de, sourceLocale: 'de', dicts: { en: en as any } });
+const context = { locale: 'en' };
 
-console.log(ReactDOM.renderToString(<div>{t["hiddenMenu.reloadPage"]}</div>));
+console.log(
+  ReactDOM.renderToString(
+    <LocaleContext.Provider value={context}>
+      <div>{translate('amountConfig.emptyCrate.title')}</div>
+    </LocaleContext.Provider>,
+  ),
+);
