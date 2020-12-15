@@ -1,6 +1,6 @@
 import { DeepPartial, Dict, FlatDict, Merge } from './types';
 
-function mergeImpl(a: any, b: any): object {
+function mergeImpl(a: any, b: any) {
   const result = { ...a };
 
   for (const key in b) {

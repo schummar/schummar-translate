@@ -2,7 +2,10 @@ import React from 'react';
 import { Translator } from './translator';
 import { Dict, TranslationProps } from './types';
 
-export default function Translation<D extends Dict>({ translator, ...props }: { translator: Translator<D> } & TranslationProps<D>) {
+export default function Translation<D extends Dict>({
+  translator,
+  ...props
+}: { translator: Translator<D> } & TranslationProps<D>): JSX.Element {
   const translate = translator.useTranslate(props.locale);
   const text = translate(props);
 

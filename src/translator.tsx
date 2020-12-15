@@ -40,10 +40,7 @@ export class Translator<D extends Dict> {
   }
 
   private useDicts(locale?: string) {
-    const { locale: contextLocale } = useContext(TranslationContext);
     const [dicts, setDicts] = useState<FlatDict[]>([this.sourceDict]);
-
-    locale ??= contextLocale;
 
     useEffect(() => {
       if (!locale) return;
@@ -64,12 +61,14 @@ export class Translator<D extends Dict> {
     return dicts;
   }
 
-  useTranslate(locale?: string) {
+  useTranslate(locale?: string): (props: TranslationProps<D>) => string | string[] {
+    const { locale: contextLocale } = useContext(TranslationContext);
+    locale ??= contextLocale;
     const dicts = this.useDicts(locale);
 
     return useCallback(
       (props: TranslationProps<D>) => {
-        return translate(dicts, props);
+        return translate(dicts, { locale, ...props });
       },
       [dicts],
     );

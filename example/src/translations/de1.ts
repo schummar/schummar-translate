@@ -1,6 +1,6 @@
 export default {
-  flatKey: 'flacher Wert',
+  flatKey: 'flacher Wert {answer}',
   nestedKey: {
-    nestedKey: ['mehrzeiliger Wert 1', 'mehrzeiliger Wert 2'],
+    nestedKey: ['mehrzeiliger Wert 1 {foo, date}', 'mehrzeiliger Wert 2 {bar}'],
   },
 };

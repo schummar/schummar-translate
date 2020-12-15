@@ -1,5 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers
+
 ////////////////////////////////////////////////////////////////////////////////
 export type MaybePromise<T> = T | Promise<T>;
 
@@ -38,9 +39,6 @@ export type Options<D extends Dict> = {
   dicts: { [locale: string]: DeepPartial<D> } | ((locale: string) => MaybePromise<DeepPartial<D> | undefined>);
 };
 
-export type Values = string | number | boolean | { [variable: string]: string | number | boolean };
+export type Values = Record<string, string | number | boolean | Date | null | undefined>;
 
 export type TranslationProps<D extends Dict = Dict> = { id: FlatKeys<D>; values?: Values; fallback?: string; locale?: string };
-
-type Input = { a: { b: 'b'; c: { d: 'd' } } };
-type Y = FlattenDict<Input>;
