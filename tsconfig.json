@@ -9,7 +9,9 @@
     "downlevelIteration": true,
     "target": "ES5",
     "outDir": "dist",
-    "declaration": true
+    "declaration": true,
+    "sourceMap": true,
+    "noUncheckedIndexedAccess": true
   },
   "include": ["src"],
   "exclude": ["node_modules"]

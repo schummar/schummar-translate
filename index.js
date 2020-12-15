@@ -1,1 +1,1 @@
-export * from './dist/translator';
+export * from './dist';

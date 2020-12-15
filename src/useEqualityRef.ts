@@ -1,10 +1,10 @@
 import eq from 'fast-deep-equal';
 import { useRef } from 'react';
 
-export default function useDeepDeps(...deps: any[]) {
+export default function useEqualityRef(...deps: any[]) {
   const ref = useRef(deps);
 
-  if (ref.current !== deps && !eq(ref.current, deps)) {
+  if (!eq(ref.current, deps)) {
     ref.current = deps;
   }
 

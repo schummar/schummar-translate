@@ -5,7 +5,7 @@ export default function translate<D extends Dict>(dicts: FlatDict[] | undefined,
 
   const dict = dicts.find((dict) => id in dict);
   const template = dict?.[id];
-  console.log('t', id, dicts, template);
+  // console.log('t', id, dicts, template);
   if (!template) return '';
 
   return template;

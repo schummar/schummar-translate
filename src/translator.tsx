@@ -1,54 +1,56 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
-import { LocaleContext } from './context';
+import { flattenDict } from './helpers';
 import translate from './translate';
-import { DeepPartial, Dict, FlatDict, FlatKeys, Options, TranslationProps, Values } from './types';
-import React from 'react';
-
-const browserLocale = typeof window === 'object' && 'navigator' in window ? window.navigator.language : undefined;
-
-function flatten(dict: DeepPartial<Dict>, path = ''): FlatDict {
-  const flat: FlatDict = {};
-
-  for (const key in dict) {
-    const newPath = path ? `${path}.${key}` : key;
-    const value = dict[key];
-    if (value === undefined) continue;
-    else if (value instanceof Array || !(value instanceof Object)) flat[newPath] = value;
-    else Object.assign(flat, flatten(value, newPath));
-  }
-
-  return flat;
-}
+import { TranslationContext } from './translationContext';
+import { DeepPartial, Dict, FlatDict, MaybePromise, Options, TranslationProps } from './types';
 
 export class Translator<D extends Dict> {
-  constructor(private options: Options<D>) {}
+  constructor(private options: Options<D>) {
+    this.sourceDict = flattenDict(options.sourceDictionary);
+  }
 
-  private dicts: { [locale: string]: FlatDict | Promise<FlatDict> } = {};
+  private sourceDict: FlatDict;
+  private dicts: { [locale: string]: Promise<FlatDict> } = {};
 
-  private load(locale: string) {
-    let dict;
-    if (locale === this.options.sourceLocale) dict = this.options.sourceDictionary;
-    else if (this.options.dicts instanceof Function) dict = this.options.dicts(locale);
-    else dict = this.options.dicts[locale];
+  private load(locale: string): MaybePromise<FlatDict> {
+    if (locale === this.options.sourceLocale) return this.sourceDict;
 
-    if (dict instanceof Promise) return dict.then(flatten);
-    return flatten(dict);
+    const fromCache = this.dicts[locale];
+    if (fromCache) return fromCache;
+
+    let dict: MaybePromise<D | DeepPartial<D> | undefined>;
+
+    if (this.options.dicts instanceof Function) {
+      dict = this.options.dicts(locale);
+    } else {
+      dict = this.options.dicts[locale];
+    }
+
+    const promise = Promise.resolve(dict).then((dict) => {
+      if (!dict) {
+        console.warn('Missing dict:', locale);
+        return {};
+      }
+
+      return flattenDict(dict);
+    });
+
+    this.dicts[locale] = promise;
+    return promise;
   }
 
   private useDicts(locale?: string) {
-    const { locale: contextLocale } = useContext(LocaleContext);
-    const [dicts, setDicts] = useState<FlatDict[]>([(this.load(this.options.sourceLocale) as unknown) as FlatDict]);
+    const { locale: contextLocale } = useContext(TranslationContext);
+    const [dicts, setDicts] = useState<FlatDict[]>([this.sourceDict]);
 
-    locale ??= contextLocale ?? browserLocale;
+    locale ??= contextLocale;
 
     useEffect(() => {
       if (!locale) return;
       let cancel = false;
 
       const orderedLocales = [...new Set([locale].concat(this.options.fallbackLocale ?? [], this.options.sourceLocale))];
-      const orderedDicts = orderedLocales.map((locale) => {
-        return (this.dicts[locale] ??= this.load(locale));
-      });
+      const orderedDicts = orderedLocales.map((locale) => this.load(locale));
 
       Promise.all(orderedDicts).then((orderedDicts) => {
         if (!cancel) setDicts(orderedDicts);
@@ -69,27 +71,7 @@ export class Translator<D extends Dict> {
       (props: TranslationProps<D>) => {
         return translate(dicts, props);
       },
-      [locale],
+      [dicts],
     );
   }
-}
-
-export function createTranslator<D extends Dict>(options: Options<D>) {
-  const translator = new Translator(options);
-
-  return {
-    translator,
-    translate: (id: FlatKeys<D>, values?: Values) => <Translate translator={translator} id={id} values={values} />,
-    translateFallback: (id: FlatKeys<D>, fallback: string, values?: Values) => (
-      <Translate translator={translator} id={id} values={values} fallback={fallback} />
-    ),
-  };
-}
-
-export default function Translate<D extends Dict>({ translator, ...props }: { translator: Translator<D> } & TranslationProps<D>) {
-  const translate = translator.useTranslate(props.locale);
-  const text = translate(props);
-  console.log('-1', props);
-
-  return <>{text instanceof Array ? text.map((paragraph, index) => <p key={index}>{paragraph}</p>) : text}</>;
 }
