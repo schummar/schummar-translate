@@ -1,6 +1,8 @@
 import { IntlMessageFormat } from 'intl-messageformat';
 import { Dict, FlatDict, TranslationProps } from './types';
 
+const cache = new Map<string, IntlMessageFormat>();
+
 export default function translate<D extends Dict>(
   dicts: FlatDict[] | undefined,
   { id, values, fallback, locale }: TranslationProps<D>,
@@ -15,9 +17,17 @@ export default function translate<D extends Dict>(
     return [id];
   }
 
-  console.log(locale);
   return (template instanceof Array ? template : [template]).map((template) => {
-    const s = new IntlMessageFormat(template, locale).format(values) as string;
-    return s;
+    try {
+      const key = `${locale}:${template}`;
+      let f = cache.get(key);
+      if (!f) cache.set(key, (f = new IntlMessageFormat(template, locale)));
+
+      const msg = f.format(values);
+      if (msg instanceof Array) return msg.join(' ');
+      return String(msg);
+    } catch (e) {
+      return `Wrong message format in ${locale}: ${template}`;
+    }
   });
 }
