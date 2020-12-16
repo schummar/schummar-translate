@@ -27,7 +27,7 @@ export default function translate<D extends Dict>(
       if (msg instanceof Array) return msg.join(' ');
       return String(msg);
     } catch (e) {
-      return `Wrong message format in ${locale}: ${template}`;
+      return `Wrong format: ${String(e)}`;
     }
   });
 }

@@ -30,9 +30,9 @@ function Content({ setLocale }: { setLocale: (locale: string) => void }) {
           </span>
         ))}
       </div>
-      <div>{t('flatKey', { count: 1 })}</div>
+      <div>{t('flatKey', { count: 1, no: 'adfhsd', one: 'sadjkash', other: new Date() })}</div>
       <div>{t('anotherKey')}</div>
-      <div>{t('nestedKey.nestedKey', { foo: new Date(), bar: 'def' })}</div>
+      <div>{t('nestedKey.nestedKey', { foo: new Date() })}</div>
       <div>{t('nestedKey.anotherNestedKey')}</div>
     </div>
   );
