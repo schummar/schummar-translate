@@ -7,5 +7,5 @@ import en2 from './translations/en2';
 export const { t, translator } = createTranslator({
   sourceLocale: 'en',
   sourceDictionary: mergeDicts(en1, en2),
-  dicts: { de: mergeDicts(de1, de2) },
+  dicts: {},
 });

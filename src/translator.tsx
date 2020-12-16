@@ -2,7 +2,7 @@ import { useCallback, useContext, useEffect, useState } from 'react';
 import { flattenDict } from './helpers';
 import translate from './translate';
 import { TranslationContext } from './translationContext';
-import { DeepPartial, Dict, FlatDict, MaybePromise, Options, TranslationProps } from './types';
+import { PartialDict, Dict, FlatDict, MaybePromise, Options, TranslationProps } from './types';
 
 export class Translator<D extends Dict> {
   constructor(private options: Options<D>) {
@@ -18,7 +18,7 @@ export class Translator<D extends Dict> {
     const fromCache = this.dicts[locale];
     if (fromCache) return fromCache;
 
-    let dict: MaybePromise<D | DeepPartial<D> | undefined>;
+    let dict: MaybePromise<D | PartialDict<D> | undefined>;
 
     if (this.options.dicts instanceof Function) {
       dict = this.options.dicts(locale);

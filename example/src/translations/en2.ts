@@ -3,4 +3,4 @@ export default {
   nestedKey: {
     anotherNestedKey: 'another nested value',
   },
-};
+} as const;
