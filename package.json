@@ -14,7 +14,7 @@
     "lint": "run-p lint:*",
     "lint:eslint": "eslint src",
     "lint:tsc": "tsc --noEmit",
-    "postinstall": "npm --prefix example i",
+    "prestart": "npm --prefix example i",
     "prepublishOnly": "run-s lint build"
   },
   "keywords": [],
