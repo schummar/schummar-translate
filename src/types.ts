@@ -25,15 +25,15 @@ export type FlattenDict<T extends Record<string, any>> = { [K in FlatKeys<T>]: D
 
 /** Make all nested properties optional */
 export type PartialDict<T extends Dict> = {
-  [K in keyof T]: DeepPartial<T[K]>;
+  [K in keyof T]?: DeepPartial<T[K]>;
 };
-type DeepPartial<T> = T extends Dict ? { [K in keyof T]?: DeepPartial<T[K]> } : string | string[] | readonly string[];
+type DeepPartial<T> = T extends Dict ? { [K in keyof T]?: DeepPartial<T[K]> } : string;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Public types
 ////////////////////////////////////////////////////////////////////////////////
-export type Dict = { [id: string]: Dict | string | string[] | readonly string[] };
-export type FlatDict = { [id: string]: string | string[] | readonly string[] };
+export type Dict = { [id: string]: Dict | string };
+export type FlatDict = { [id: string]: string };
 
 export type Options<D extends Dict> = {
   sourceDictionary: D;
@@ -42,6 +42,4 @@ export type Options<D extends Dict> = {
   dicts: { [locale: string]: PartialDict<D> } | ((locale: string) => MaybePromise<PartialDict<D> | undefined>);
 };
 
-export type Values = Record<string, string | number | boolean | Date | null | undefined>;
-
-export type TranslationProps<D extends Dict = Dict> = { id: FlatKeys<D>; values?: Values; fallback?: string; locale?: string };
+export type TranslationProps<D extends Dict = Dict> = { id: FlatKeys<D>; values?: any; fallback?: string; locale?: string };

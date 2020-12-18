@@ -24,8 +24,8 @@ export function flattenDict<D extends PartialDict<Dict>>(dict: D, path = ''): Fl
   for (const [key, value] of Object.entries(dict)) {
     const newPath = path ? `${path}.${key}` : key;
     if (value === undefined) continue;
-    if (value instanceof Array || !(value instanceof Object)) flat[newPath] = value;
-    else Object.assign(flat, flattenDict(value as PartialDict<Dict>, newPath));
+    if (value instanceof Object) Object.assign(flat, flattenDict(value as PartialDict<Dict>, newPath));
+    else flat[newPath] = value;
   }
 
   return flat;

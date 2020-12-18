@@ -56,7 +56,7 @@ export class Translator<D extends Dict> {
       return () => {
         cancel = true;
       };
-    }, [locale]);
+    }, [this, locale]);
 
     return dicts;
   }

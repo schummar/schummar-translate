@@ -32,7 +32,7 @@ type ParseArgument<T extends string> = T extends `${infer Name},${infer Format},
 
 type TupleParseArgument<T extends string[]> = T extends [infer First, ...infer Rest]
   ? ParseArgument<Str<First>> & TupleParseArgument<TupleStr<Rest>>
-  : {};
+  : unknown;
 
 type ArgumentType<T extends string> = T extends 'plural' ? number : T extends 'date' ? Date : Value;
 
