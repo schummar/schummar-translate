@@ -14,16 +14,16 @@
     "lint": "run-p lint:*",
     "lint:eslint": "eslint src",
     "lint:tsc": "tsc --noEmit",
-    "prestart": "npm --prefix example i",
     "prepublishOnly": "run-s lint build"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "peerDependencies": {
-    "react": "^16.8.0"
+    "react": ">=16.8.0"
   },
   "devDependencies": {
+    "@types/node": "^12.19.9",
     "@types/react": "^17.0.0",
     "@typescript-eslint/eslint-plugin": "^4.10.0",
     "@typescript-eslint/parser": "^4.10.0",
@@ -32,10 +32,15 @@
     "prettier": "^2.2.1",
     "rimraf": "^3.0.2",
     "ts-node-dev": "^1.1.1",
+    "type-fest": "^0.13.1",
     "typescript": "^4.1.3"
   },
   "dependencies": {
+    "@types/react-dom": "^17.0.0",
     "fast-deep-equal": "^3.1.3",
     "intl-messageformat": "^9.3.20"
-  }
+  },
+  "workspaces": [
+    "example"
+  ]
 }
