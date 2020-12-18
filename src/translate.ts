@@ -6,15 +6,16 @@ const cache = new Map<string, IntlMessageFormat>();
 export default function translate<D extends Dict>(
   dicts: FlatDict[] | undefined,
   { id, values, fallback, locale }: TranslationProps<D>,
-): string | string[] {
+): string {
   if (!dicts) return '';
 
   const dict = dicts.find((dict) => id in dict);
   const template = dict?.[id];
+
   if (!template) {
-    if (fallback !== undefined) return [fallback];
+    if (fallback !== undefined) return fallback;
     console.warn(`Missing translation: "${id}"`);
-    return [id];
+    return id;
   }
 
   const key = `${locale}:${template}`;

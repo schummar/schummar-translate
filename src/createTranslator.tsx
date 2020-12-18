@@ -6,8 +6,8 @@ import { DeepValue, Dict, FlatKeys, Options } from './types';
 
 type Values<D extends Dict, K extends string> = GetICUArgs<DeepValue<D, K>>;
 type Args<D extends Dict, K extends string> = Record<string, never> extends Values<D, K>
-  ? [] | [Record<string, never> | undefined] | [Record<string, never> | undefined, string | undefined]
-  : [Values<D, K>] | [Values<D, K>, string | undefined];
+  ? [] | [values: Record<string, any> | undefined] | [values: Record<string, any> | undefined, fallback: string | undefined]
+  : [values: Values<D, K>] | [values: Values<D, K>, fallback: string | undefined];
 
 export function createTranslator<D extends Dict>(
   options: Options<D>,
