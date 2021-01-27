@@ -4,7 +4,7 @@ import de2 from './translations/de2';
 import en1 from './translations/en1';
 import en2 from './translations/en2';
 
-export const { t } = createTranslator({
+export const { t, useTranslate, useTranslation, useFormatter, useFormat } = createTranslator({
   sourceLocale: 'en',
   sourceDictionary: mergeDicts(en1, en2),
   dicts: { de: mergeDicts(de1, de2) },

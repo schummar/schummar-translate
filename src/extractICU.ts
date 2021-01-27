@@ -34,6 +34,6 @@ type TupleParseArgument<T extends string[]> = T extends [infer First, ...infer R
   ? ParseArgument<Str<First>> & TupleParseArgument<TupleStr<Rest>>
   : unknown;
 
-type ArgumentType<T extends string> = T extends 'plural' ? number : T extends 'date' ? Date : Value;
+type ArgumentType<T extends string> = T extends 'plural' ? number : T extends 'date' ? Date : T extends 'number' ? number : Value;
 
 export type GetICUArgs<T> = T extends string ? TupleParseArgument<FindBlock<T>> : never;

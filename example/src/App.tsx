@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useState } from 'react';
 import { TranslationContext } from '../..';
 import './App.css';
-import { t } from './translator';
+import { t, useFormatter } from './translator';
 
 function App() {
   const [locale, setLocale] = useState(
@@ -20,6 +20,7 @@ export default App;
 
 function Content({ setLocale }: { setLocale: (locale: string) => void }) {
   const { locale } = useContext(TranslationContext);
+  const formatter = useFormatter();
 
   return (
     <div>
@@ -34,6 +35,9 @@ function Content({ setLocale }: { setLocale: (locale: string) => void }) {
       <div>{t('anotherKey')}</div>
       <div>{t('nestedKey.nestedKey', { foo: new Date() })}</div>
       <div>{t('nestedKey.anotherNestedKey')}</div>
+      <div>{formatter('{price, number, ::currency/EUR}', { price: 100 })}</div>
+      <div>{formatter('{amount, number, ::.0000}', { amount: 1.23 })}</div>
+      <div>{formatter('{date, date, ::yyyyMMddHHmm}', { date: new Date() })}</div>
     </div>
   );
 }
