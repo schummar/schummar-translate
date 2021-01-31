@@ -3,5 +3,6 @@ export default {
   nestedKey: {
     nestedKey: 'value 1 {foo, date}',
   },
+  partial: 'this is a partial',
   // big: '{count, plural, =0 {0} =0 {0} =0 {0} =0 {0} =0 {0} =0 {0} =0 {0} =0 {0} =0 {0} =0 {0} =0 {0} =0 {0} =0 {0} }',
 } as const;

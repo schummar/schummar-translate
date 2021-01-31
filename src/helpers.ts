@@ -1,4 +1,5 @@
-import { PartialDict, Dict, FlatDict, Merge } from './types';
+import { useEffect, useState } from 'react';
+import { Dict, FlatDict, MaybePromise, Merge, PartialDict } from './types';
 
 function mergeImpl(a: any, b: any) {
   const result = { ...a };
@@ -29,4 +30,21 @@ export function flattenDict<D extends PartialDict<Dict>>(dict: D, path = ''): Fl
   }
 
   return flat;
+}
+
+export function useMaybePromise<T>(promise: MaybePromise<T>): T | undefined {
+  const [value, setValue] = useState(promise);
+
+  useEffect(() => {
+    let canceled = false;
+    Promise.resolve(promise).then((value) => {
+      if (!canceled) setValue(value);
+    });
+
+    return () => {
+      canceled = true;
+    };
+  }, [promise]);
+
+  return value instanceof Promise ? undefined : value;
 }

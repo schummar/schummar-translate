@@ -39,7 +39,9 @@ export type Options<D extends Dict> = {
   sourceDictionary: D;
   sourceLocale: string;
   fallbackLocale?: string | string[];
-  dicts: { [locale: string]: PartialDict<D> } | ((locale: string) => MaybePromise<PartialDict<D> | undefined>);
+  dicts:
+    | { [locale: string]: PartialDict<D> | (() => MaybePromise<PartialDict<D>>) }
+    | ((locale: string) => MaybePromise<PartialDict<D> | null>);
 };
 
 export type TranslationProps<D extends Dict = Dict> = { id: FlatKeys<D>; values?: any; fallback?: string; locale?: string };
