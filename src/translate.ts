@@ -1,9 +1,13 @@
 import { IntlMessageFormat } from 'intl-messageformat';
-import { Dict, FlatDict, TranslationProps } from './types';
+import { ReactNode } from 'react';
+import { FlatDict } from './types';
 
 const cache = new Map<string, IntlMessageFormat>();
 
-export function translate<D extends Dict>(dicts: FlatDict[] | undefined, { id, values, fallback, locale }: TranslationProps<D>): string {
+export function translate<F extends ReactNode>(
+  dicts: FlatDict[] | undefined,
+  { id, values, fallback, locale }: { id: string; values?: any; fallback?: F; locale?: string },
+): string | F {
   if (!dicts) return '';
 
   const dict = dicts.find((dict) => id in dict);

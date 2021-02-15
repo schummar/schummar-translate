@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useState } from 'react';
 import { TranslationContext } from '../..';
 import './App.css';
-import { f, fDate, fMoney, t, useFormat } from './translator';
+import { f, fDate, fMoney, t, tFallback, useFormat } from './translator';
 
 function App() {
   const [locale, setLocale] = useState(
@@ -32,6 +32,7 @@ function Content({ setLocale }: { setLocale: (locale: string) => void }) {
         ))}
       </div>
       <div>{t('flatKey', { count: 5, no: 'NO', one: 'ONE', other: new Date() })}</div>
+      <div>{tFallback('foo', { fallback: <b>bar</b> })}</div>
       <div>{t('anotherKey')}</div>
       <div>{t('nestedKey.nestedKey', { foo: new Date() })}</div>
       <div>{t('nestedKey.anotherNestedKey')}</div>

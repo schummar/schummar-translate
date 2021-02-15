@@ -1,6 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers
-
 ////////////////////////////////////////////////////////////////////////////////
 export type MaybePromise<T> = T | Promise<T>;
 
@@ -43,5 +42,3 @@ export type Options<D extends Dict> = {
     | { [locale: string]: PartialDict<D> | (() => MaybePromise<PartialDict<D>>) }
     | ((locale: string) => MaybePromise<PartialDict<D> | null>);
 };
-
-export type TranslationProps<D extends Dict = Dict> = { id: FlatKeys<D>; values?: any; fallback?: string; locale?: string };
