@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useState } from 'react';
-import { TranslationContext } from '../..';
+import { TranslationContext } from '../../react';
 import './App.css';
 import { f, fDate, fMoney, t, tFallback, useFormat } from './translator';
 

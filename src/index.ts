@@ -1,2 +1,2 @@
-export * from './helpers';
+export * from './mergeDicts';
 export * from './translator';

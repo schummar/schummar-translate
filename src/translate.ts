@@ -1,10 +1,9 @@
 import { IntlMessageFormat } from 'intl-messageformat';
-import { ReactNode } from 'react';
 import { FlatDict } from './types';
 
 const cache = new Map<string, IntlMessageFormat>();
 
-export function translate<F extends ReactNode>(
+export function translate<F>(
   dicts: FlatDict[] | undefined,
   { id, values, fallback, locale }: { id: string; values?: any; fallback?: F; locale?: string },
 ): string | F {

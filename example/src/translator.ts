@@ -1,4 +1,4 @@
-import { createTranslator, mergeDicts } from '../..';
+import { createTranslator, mergeDicts } from '../../react';
 import de1 from './translations/de1';
 import de2 from './translations/de2';
 import en1 from './translations/en1';

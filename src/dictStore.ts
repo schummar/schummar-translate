@@ -1,4 +1,4 @@
-import { flattenDict } from './helpers';
+import { flattenDict } from './flattenDict';
 import { Dict, FlatDict, MaybePromise, Options } from './types';
 
 export class DictStore<D extends Dict> {
