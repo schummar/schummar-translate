@@ -20,7 +20,9 @@ export class DictStore<D extends Dict> {
       else dict = getter;
     }
 
-    return (this.dicts[locale] = Promise.resolve(dict).then((dict) => (dict ? flattenDict(dict) : null)));
+    return (this.dicts[locale] = Promise.resolve(dict).then((dict) => {
+      return (this.dicts[locale] = dict ? flattenDict(dict) : null);
+    }));
   }
 
   load(...locales: string[]): MaybePromise<FlatDict[]> {
@@ -29,7 +31,6 @@ export class DictStore<D extends Dict> {
       return dicts.filter(Boolean) as FlatDict[];
     }
 
-    if (dicts.every((dict) => !(dict instanceof Promise))) return dicts.filter(Boolean) as FlatDict[];
     return Promise.all(dicts.map((dict) => Promise.resolve(dict))).then((dicts) => dicts.filter(Boolean) as FlatDict[]);
   }
 }
