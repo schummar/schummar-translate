@@ -12,16 +12,16 @@ type FormatArgs<T extends string> = Record<string, never> extends GetICUArgs<T> 
 export function createTranslator<D extends Dict>(
   options: Options<D>,
 ): {
-  useTranslateFallback: (
+  getTranslateFallback: (
     overrideLocale?: string,
   ) => Promise<(id: string, args: { values?: Record<string, any>; fallback: string }) => string>;
-  useTranslate: (overrideLocale?: string) => Promise<<K extends FlatKeys<D>>(id: K, ...args: TranslateArgs<D, K>) => string>;
-  useFormat: (locale?: string) => <T extends string>(template: T, ...args: FormatArgs<T>) => string;
+  getTranslate: (overrideLocale?: string) => Promise<<K extends FlatKeys<D>>(id: K, ...args: TranslateArgs<D, K>) => string>;
+  getFormat: (locale?: string) => <T extends string>(template: T, ...args: FormatArgs<T>) => string;
 } {
   const store = new DictStore(options);
   const { sourceLocale, fallbackLocale = [] } = options;
 
-  const useTranslateFallback = async (overrideLocale?: string) => {
+  const getTranslateFallback = async (overrideLocale?: string) => {
     const locale = overrideLocale ?? sourceLocale;
     const localeFallbackOrder = [locale, ...fallbackLocale, sourceLocale];
     const dicts = await store.load(...new Set(localeFallbackOrder));
@@ -31,15 +31,15 @@ export function createTranslator<D extends Dict>(
     };
   };
 
-  const useTranslate = async (overrideLocale?: string) => {
-    const translate = await useTranslateFallback(overrideLocale);
+  const getTranslate = async (overrideLocale?: string) => {
+    const translate = await getTranslateFallback(overrideLocale);
 
     return <K extends FlatKeys<D>>(id: K, ...[values]: TranslateArgs<D, K>) => {
       return translate(id, { values: values as any });
     };
   };
 
-  const useFormat = (overrideLocale?: string) => {
+  const getFormat = (overrideLocale?: string) => {
     const locale = overrideLocale ?? sourceLocale;
 
     return <T extends string>(template: T, ...[values]: FormatArgs<T>) => {
@@ -48,8 +48,8 @@ export function createTranslator<D extends Dict>(
   };
 
   return {
-    useTranslateFallback,
-    useTranslate,
-    useFormat,
+    getTranslateFallback,
+    getTranslate,
+    getFormat,
   };
 }
