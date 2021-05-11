@@ -29,6 +29,7 @@ export class DictStore<D extends Dict> {
       return dicts.filter(Boolean) as FlatDict[];
     }
 
+    if (dicts.every((dict) => !(dict instanceof Promise))) return dicts.filter(Boolean) as FlatDict[];
     return Promise.all(dicts.map((dict) => Promise.resolve(dict))).then((dicts) => dicts.filter(Boolean) as FlatDict[]);
   }
 }
