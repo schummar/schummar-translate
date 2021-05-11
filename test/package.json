@@ -1,0 +1,11 @@
+{
+  "ava": {
+    "extensions": [
+      "ts",
+      "tsx"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  }
+}

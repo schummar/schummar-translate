@@ -1,24 +1,46 @@
 {
   "name": "schummar-translate",
   "repository": "schummar/schummar-translate",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "",
-  "main": "index.js",
+  "type": "module",
+  "sideEffects": false,
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./react": {
+      "import": "./dist/esm/react/index.js",
+      "require": "./dist/cjs/react/index.js"
+    }
+  },
+  "author": {
+    "name": "Marco Schumacher",
+    "email": "marco@schumacher.dev"
+  },
+  "license": "ISC",
   "scripts": {
     "start": "run-p start:*",
     "start:compile": "tsc --watch",
     "start:example": "npm --prefix example start",
-    "build": "run-s build:*",
+    "build": "npm-run-all -s build:clean -p build:compile:*",
     "build:clean": "rimraf dist/**",
-    "build:compile": "tsc",
+    "build:compile:esm": "tsc",
+    "build:compile:cjs": "tsc -p tsconfig-cjs.json && echo '{\"type\":\"commonjs\"}' > dist/cjs/package.json",
     "lint": "run-p lint:*",
     "lint:eslint": "eslint src",
     "lint:tsc": "tsc --noEmit",
-    "prepublishOnly": "run-s lint build"
+    "prepublishOnly": "run-s lint build",
+    "test": "cd test && ava",
+    "test-watch": "cd test && ava --watch",
+    "coverage": "nyc --include src --all npm run test"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "dependencies": {
+    "intl-messageformat": "^9.6.13"
+  },
   "peerDependencies": {
     "@types/react": "^17.0.5",
     "react": "^17.0.2"
@@ -34,21 +56,24 @@
   "devDependencies": {
     "@types/node": "^15.0.2",
     "@types/react": "*",
-    "@typescript-eslint/eslint-plugin": "^4.22.1",
-    "@typescript-eslint/parser": "^4.22.1",
-    "eslint": "^7.25.0",
+    "@typescript-eslint/eslint-plugin": "^4.23.0",
+    "@typescript-eslint/parser": "^4.23.0",
+    "ava": "^3.15.0",
+    "eslint": "^7.26.0",
     "npm-run-all": "^4.1.5",
-    "prettier": "^2.2.1",
+    "prettier": "^2.3.0",
     "react": "*",
     "rimraf": "^3.0.2",
     "ts-node-dev": "^1.1.6",
     "type-fest": "^0.13.1",
     "typescript": "^4.2.4"
   },
-  "dependencies": {
-    "intl-messageformat": "^9.6.12"
-  },
   "workspaces": [
     "example"
+  ],
+  "files": [
+    "dist",
+    "react.d.ts",
+    "react.js"
   ]
 }
