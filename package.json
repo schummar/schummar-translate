@@ -1,7 +1,7 @@
 {
   "name": "schummar-translate",
   "repository": "schummar/schummar-translate",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "",
   "type": "module",
   "sideEffects": false,
@@ -54,7 +54,7 @@
     }
   },
   "devDependencies": {
-    "@types/node": "^15.0.2",
+    "@types/node": "^15.0.3",
     "@types/react": "*",
     "@typescript-eslint/eslint-plugin": "^4.23.0",
     "@typescript-eslint/parser": "^4.23.0",
@@ -65,7 +65,7 @@
     "react": "*",
     "rimraf": "^3.0.2",
     "ts-node-dev": "^1.1.6",
-    "type-fest": "^0.13.1",
+    "type-fest": "0.13.1",
     "typescript": "^4.2.4"
   },
   "workspaces": [

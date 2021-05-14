@@ -1,39 +1,46 @@
-type Str<T> = T extends string ? T : never;
-
-type TupleStr<T> = T extends string[] ? T : never;
-
 type Value = string | number | boolean | Date;
 
-type Trim<T extends string> = T extends ` ${infer Rest}` ? Trim<Rest> : T extends `${infer Rest} ` ? Trim<Rest> : T;
+type Whitespace = ' ' | '\t' | '\n' | '\r';
 
-type FindBlock<T extends string> = T extends `${infer Left}{${infer Right}` //find first {
-  ? Left extends `${any}}${any}` // If preceeded by },
-    ? [] // then invalid string, return empty result
-    : ReadBlock<'', Right, ''> // else read block
+/** Remove leading and tailing whitespace */
+type Trim<T> = T extends `${Whitespace}${infer Rest}`
+  ? Trim<Rest>
+  : T extends `${infer Rest}${Whitespace}`
+  ? Trim<Rest>
+  : T extends string
+  ? T
+  : never;
+
+/** Returns an array of top level blocks */
+type FindBlocks<Text> = Text extends `${string}{${infer Right}` //find first {
+  ? ReadBlock<'', Right, ''> extends [infer Block, infer Tail]
+    ? [Block, ...FindBlocks<Tail>] // read block and find next block for tail
+    : never
   : []; // no {, return empty result
 
-type TupleFindBlock<T extends string[]> = T extends [infer First, ...infer Rest]
-  ? [...FindBlock<Str<First>>, ...TupleFindBlock<TupleStr<Rest>>]
-  : [];
+/** Find blocks for each tuple entry */
+type TupleFindBlocks<T> = T extends [infer First, ...infer Rest] ? [...FindBlocks<First>, ...TupleFindBlocks<Rest>] : [];
 
-type ReadBlock<Prefix extends string, Block extends string, Depth extends string> = Block extends `${infer L1}}${infer R1}` // find first }
+/** Read tail until the currently open block is closed. Return the block content and rest of tail */
+type ReadBlock<Block extends string, Tail extends string, Depth extends string> = Tail extends `${infer L1}}${infer R1}` // find first }
   ? L1 extends `${infer L2}{${infer R2}` // if preceeded by {, this opens a nested block
-    ? ReadBlock<`${Prefix}${L2}{`, `${R2}}${R1}`, `${Depth}+`> // then continue search right of this {
+    ? ReadBlock<`${Block}${L2}{`, `${R2}}${R1}`, `${Depth}+`> // then continue search right of this {
     : Depth extends `+${infer Rest}` // else if depth > 0
-    ? ReadBlock<`${Prefix}${L1}}`, R1, Rest> // then finished nested block, continue search right of first }
-    : [`${Prefix}${L1}`, ...FindBlock<R1>] // else return full block and search for next
+    ? ReadBlock<`${Block}${L1}}`, R1, Rest> // then finished nested block, continue search right of first }
+    : [`${Block}${L1}`, R1] // else return full block and search for next
   : []; // no }, return emptry result
 
-type ParseArgument<T extends string> = T extends `${infer Name},${infer Format},${infer Rest}`
-  ? { [K in Trim<Name>]: ArgumentType<Trim<Format>> } & TupleParseArgument<TupleFindBlock<FindBlock<Rest>>>
-  : T extends `${infer Name},${infer Format}`
-  ? { [K in Trim<Name>]: ArgumentType<Trim<Format>> }
-  : { [K in Trim<T>]: Value };
+/** Parse block, return variables with types and recursively find nested blocks within */
+type ParseBlock<Block> = Block extends `${infer Name},${infer Format},${infer Rest}`
+  ? { [K in Trim<Name>]: VariableType<Trim<Format>> } & TupleParseBlock<TupleFindBlocks<FindBlocks<Rest>>>
+  : Block extends `${infer Name},${infer Format}`
+  ? { [K in Trim<Name>]: VariableType<Trim<Format>> }
+  : { [K in Trim<Block>]: Value };
 
-type TupleParseArgument<T extends string[]> = T extends [infer First, ...infer Rest]
-  ? ParseArgument<Str<First>> & TupleParseArgument<TupleStr<Rest>>
-  : unknown;
+/** Parse block for each tuple entry */
+type TupleParseBlock<T> = T extends [infer First, ...infer Rest] ? ParseBlock<First> & TupleParseBlock<Rest> : unknown;
 
-type ArgumentType<T extends string> = T extends 'number' | 'plural' ? number : T extends 'date' ? Date : Value;
+type VariableType<T extends string> = T extends 'number' | 'plural' | 'selectordinal' ? number : T extends 'date' | 'time' ? Date : Value;
 
-export type GetICUArgs<T> = T extends string ? TupleParseArgument<FindBlock<T>> : never;
+/** Calculates an object type with all variables and their types in the given ICU format string */
+export type GetICUArgs<T> = T extends string ? TupleParseBlock<FindBlocks<T>> : never;
