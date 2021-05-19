@@ -8,6 +8,7 @@ export function translate<F>(
   { id, values, fallback, locale }: { id: string; values?: any; fallback?: F; locale?: string },
 ): string | F {
   if (!dicts) return '';
+  if (fallback !== undefined) dicts = dicts.slice(0, 1);
 
   const dict = dicts.find((dict) => id in dict);
   const template = dict?.[id];
