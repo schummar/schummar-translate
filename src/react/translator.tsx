@@ -43,7 +43,7 @@ export function createTranslator<D extends Dict>(
     const localeFallbackOrder = [locale, ...fallbackLocale];
     const dicts = useFuture(async () => store.load(...new Set(localeFallbackOrder)), [locale]);
 
-    const t: TranslateUnknown<UseTranslatorOptions, string | null> = (id, ...[values, options]) => {
+    const t: TranslateUnknown<UseTranslatorOptions, string> = (id, ...[values, options]) => {
       const fallback = options?.fallback ?? fallbackDefault;
       const placeholder = options?.placeholder ?? placeholderDefault;
       return translate({ dicts, sourceDict: store.sourceDict, id, values, fallback, placeholder, locale, warn });
@@ -53,7 +53,7 @@ export function createTranslator<D extends Dict>(
       return format(template, values as any, locale);
     };
 
-    return Object.assign(t as TranslateKnown<D, UseTranslatorOptions, string | null>, {
+    return Object.assign(t as TranslateKnown<D, UseTranslatorOptions, string>, {
       unknown: t,
       format: f,
     });

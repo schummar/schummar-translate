@@ -7,8 +7,8 @@ export type UseTranslatorOptions = {
   placeholder?: string;
 };
 
-export type UseTranslator<D extends Dict> = (locale?: string) => TranslateKnown<D, UseTranslatorOptions, string | null> & {
-  unknown: TranslateUnknown<UseTranslatorOptions, string | null>;
+export type UseTranslator<D extends Dict> = (locale?: string) => TranslateKnown<D, UseTranslatorOptions, string> & {
+  unknown: TranslateUnknown<UseTranslatorOptions, string>;
   format: Format<string>;
 };
 

@@ -1,7 +1,7 @@
 {
   "name": "schummar-translate",
   "repository": "schummar/schummar-translate",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "",
   "type": "module",
   "sideEffects": false,
@@ -39,7 +39,7 @@
     "coverage": "nyc --include src --all npm run test"
   },
   "dependencies": {
-    "intl-messageformat": "^9.6.13"
+    "intl-messageformat": "^9.6.16"
   },
   "peerDependencies": {
     "@types/react": "^17.0.5",
@@ -55,12 +55,12 @@
   },
   "devDependencies": {
     "@testing-library/react": "^11.2.7",
-    "@types/node": "^15.0.3",
+    "@types/node": "^15.6.1",
     "@types/react": "*",
-    "@typescript-eslint/eslint-plugin": "^4.23.0",
-    "@typescript-eslint/parser": "^4.23.0",
+    "@typescript-eslint/eslint-plugin": "^4.25.0",
+    "@typescript-eslint/parser": "^4.25.0",
     "ava": "^3.15.0",
-    "eslint": "^7.26.0",
+    "eslint": "^7.27.0",
     "global-jsdom": "^8.1.0",
     "npm-run-all": "^4.1.5",
     "nyc": "^15.1.0",
@@ -68,12 +68,8 @@
     "react": "*",
     "rimraf": "^3.0.2",
     "ts-node-dev": "^1.1.6",
-    "type-fest": "0.13.1",
-    "typescript": "^4.2.4"
+    "typescript": "^4.3.2"
   },
-  "workspaces": [
-    "example"
-  ],
   "files": [
     "dist",
     "react.d.ts",

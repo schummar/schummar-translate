@@ -21,13 +21,13 @@ export function translate<F = never>({
   placeholder?: F | ((id: string, sourceTranslation: string) => F);
   locale: string;
   warn?: (locale: string, id: string) => void;
-}): string | null | F {
+}): string | F {
   if (!dicts) {
     if (placeholder instanceof Function) {
       const sourceTranslation = translate<string>({ dicts: [sourceDict], sourceDict, id, values, locale });
       return placeholder(id, sourceTranslation as string);
     }
-    return placeholder ?? null;
+    return placeholder ?? '';
   }
 
   if (fallback !== undefined) {
