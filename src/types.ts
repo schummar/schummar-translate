@@ -8,19 +8,19 @@ export type Merge<T> = T extends [infer A, ...infer Rest] ? (Rest extends [any, 
 
 type Str<T> = T extends string ? T : never;
 
-export type FlatKeys<T extends Record<string, any>> = Str<
+export type FlatKeys<T extends Record<string, unknown>> = Str<
   keyof {
-    [K in Str<keyof T> as T[K] extends Record<string, any> ? `${K}.${FlatKeys<T[K]>}` : K]: 1;
+    [K in Str<keyof T> as T[K] extends Record<string, unknown> ? `${K}.${FlatKeys<T[K]>}` : K]: 1;
   }
 >;
 
-export type DeepValue<T extends Record<string, any>, K extends string> = K extends `${infer Head}.${infer Rest}`
+export type DeepValue<T extends Record<string, unknown>, K extends string> = K extends `${infer Head}.${infer Rest}`
   ? T[Head] extends Dict
     ? DeepValue<T[Head], Rest>
     : never
   : T[K];
 
-export type FlattenDict<T extends Record<string, any>> = { [K in FlatKeys<T>]: DeepValue<T, K> };
+export type FlattenDict<T extends Record<string, unknown>> = { [K in FlatKeys<T>]: DeepValue<T, K> };
 
 /** Make all nested properties optional */
 export type PartialDict<T extends Dict> = {
@@ -38,7 +38,9 @@ export type Options<D extends Dict> = {
   sourceDictionary: D;
   sourceLocale: string;
   fallbackLocale?: string | string[];
-  dicts:
+  dicts?:
     | { [locale: string]: PartialDict<D> | (() => MaybePromise<PartialDict<D>>) }
     | ((locale: string) => MaybePromise<PartialDict<D> | null>);
+  fallback?: string | ((id: string, sourceTranslation: string) => string);
+  warn?: (locale: string, id: string) => void;
 };

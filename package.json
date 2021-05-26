@@ -1,7 +1,7 @@
 {
   "name": "schummar-translate",
   "repository": "schummar/schummar-translate",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "",
   "type": "module",
   "sideEffects": false,
@@ -24,7 +24,7 @@
   "license": "ISC",
   "scripts": {
     "start": "run-p start:*",
-    "start:compile": "tsc --watch",
+    "start:compile": "tsc -p tsconfig-cjs.json --watch",
     "start:example": "npm --prefix example start",
     "build": "npm-run-all -s build:clean -p build:compile:*",
     "build:clean": "rimraf dist/**",
@@ -33,7 +33,7 @@
     "lint": "run-p lint:*",
     "lint:eslint": "eslint src",
     "lint:tsc": "tsc --noEmit",
-    "prepublishOnly": "run-s lint build",
+    "prepublishOnly": "run-s test lint build",
     "test": "cd test && ava",
     "test-watch": "cd test && ava --watch",
     "coverage": "nyc --include src --all npm run test"
@@ -54,13 +54,16 @@
     }
   },
   "devDependencies": {
+    "@testing-library/react": "^11.2.7",
     "@types/node": "^15.0.3",
     "@types/react": "*",
     "@typescript-eslint/eslint-plugin": "^4.23.0",
     "@typescript-eslint/parser": "^4.23.0",
     "ava": "^3.15.0",
     "eslint": "^7.26.0",
+    "global-jsdom": "^8.1.0",
     "npm-run-all": "^4.1.5",
+    "nyc": "^15.1.0",
     "prettier": "^2.3.0",
     "react": "*",
     "rimraf": "^3.0.2",

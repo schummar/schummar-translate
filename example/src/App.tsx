@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useState } from 'react';
 import { TranslationContext } from '../../react';
 import './App.css';
-import { f, fDate, fMoney, t, tFallback, useFormat } from './translator';
+import { fDate, fMoney, t, useTranslator } from './translator';
 
 function App() {
   const [locale, setLocale] = useState(
@@ -20,7 +20,7 @@ export default App;
 
 function Content({ setLocale }: { setLocale: (locale: string) => void }) {
   const { locale } = useContext(TranslationContext);
-  const formatter = useFormat();
+  const translator = useTranslator();
 
   return (
     <div>
@@ -32,15 +32,15 @@ function Content({ setLocale }: { setLocale: (locale: string) => void }) {
         ))}
       </div>
       <div>{t('flatKey', { count: 5, no: 'NO', one: 'ONE', other: new Date() })}</div>
-      <div>{tFallback('foo', { fallback: <b>bar</b> })}</div>
+      <div>{t.unknown('foo', undefined, { fallback: <b>bar</b> })}</div>
       <div>{t('anotherKey')}</div>
       <div>{t('nestedKey.nestedKey', { foo: new Date() })}</div>
       <div>{t('nestedKey.anotherNestedKey')}</div>
-      <div>{formatter('{price, number, ::currency/EUR}', { price: 100 })}</div>
+      <div>{translator.format('{price, number, ::currency/EUR}', { price: 100 })}</div>
       <div>{fMoney(100)}</div>
-      <div>{formatter('{amount, number, ::.0000}', { amount: 1.23 })}</div>
-      <div>{formatter('{date, date, ::yyyyMMddHHmm}', { date: new Date() })}</div>
-      <div>{f('{date, date, ::yyyyMMddHHmm}', { date: new Date() })}</div>
+      <div>{translator.format('{amount, number, ::.0000}', { amount: 1.23 })}</div>
+      <div>{translator.format('{date, date, ::yyyyMMddHHmm}', { date: new Date() })}</div>
+      <div>{t.format('{date, date, ::yyyyMMddHHmm}', { date: new Date() })}</div>
       <div>{fDate(new Date())}</div>
     </div>
   );

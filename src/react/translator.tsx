@@ -1,117 +1,103 @@
-import React, { createContext, ReactNode, useCallback, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
+import { createTranslator as superCreateTranslator } from '..';
 import { DictStore } from '../dictStore';
-import { GetICUArgs } from '../extractICU';
+import { Format, GetTranslator, TranslateKnown, TranslateUnknown } from '../internalTypes';
 import { format, translate } from '../translate';
-import { DeepValue, Dict, FlatKeys, Options } from '../types';
-import { useMaybePromise } from './useMaybePromise';
-
-type TranslateArgs<D extends Dict, K extends string> = Record<string, never> extends GetICUArgs<DeepValue<D, K>>
-  ? []
-  : [values: GetICUArgs<DeepValue<D, K>>];
-
-type FormatArgs<T extends string> = Record<string, never> extends GetICUArgs<T> ? [] : [values: GetICUArgs<T>];
+import { Dict } from '../types';
+import { Translator, TranslatorOptions, UseTranslator, UseTranslatorOptions } from './internalTypes';
+import { OptionsReact } from './types';
+import { useFuture } from './useFuture';
 
 export const TranslationContext = createContext({
   locale: typeof window === 'object' && 'navigator' in window ? window.navigator.language.slice(0, 2) : undefined,
 });
 
+export const TranslationContextProvider = ({ locale, children }: { locale?: string; children?: React.ReactNode }): JSX.Element => {
+  const value = useMemo(() => ({ locale }), [locale]);
+  return <TranslationContext.Provider value={value}>{children}</TranslationContext.Provider>;
+};
+
 export function createTranslator<D extends Dict>(
-  options: Options<D>,
+  options: OptionsReact<D>,
 ): {
-  useTranslateFallback: (overrideLocale?: string) => (id: string, args: { values?: Record<string, any>; fallback: string }) => string;
-  tFallback: (id: string, args: { values?: Record<string, any>; fallback: ReactNode }) => JSX.Element;
-
-  useTranslate: (overrideLocale?: string) => <K extends FlatKeys<D>>(id: K, ...args: TranslateArgs<D, K>) => string;
-  t: <K extends FlatKeys<D>>(id: K, ...args: TranslateArgs<D, K>) => JSX.Element;
-
-  useFormat: (locale?: string) => <T extends string>(template: T, ...args: FormatArgs<T>) => string;
-  f: <T extends string>(template: T, ...[values]: FormatArgs<T>) => JSX.Element;
+  getTranslator: GetTranslator<D>;
+  useTranslator: UseTranslator<D>;
+  t: Translator<D>;
 } {
   const store = new DictStore(options);
-  const { sourceLocale, fallbackLocale = [] } = options;
+  const {
+    sourceLocale,
+    fallbackLocale = [],
+    fallback: fallbackDefault,
+    fallbackElement,
+    placeholder: placeholderDefault,
+    placeholderElement,
+    warn,
+  } = options;
 
-  const useTranslateFallback = (overrideLocale?: string) => {
+  const { getTranslator } = superCreateTranslator(options);
+
+  const useTranslator: UseTranslator<D> = (overrideLocale) => {
     const contextLocale = useContext(TranslationContext).locale;
     const locale = overrideLocale ?? contextLocale ?? sourceLocale;
+    const localeFallbackOrder = [locale, ...fallbackLocale];
+    const dicts = useFuture(async () => store.load(...new Set(localeFallbackOrder)), [locale]);
 
-    const dictsPromise = useMemo(() => {
-      const localeFallbackOrder = [locale, ...fallbackLocale, sourceLocale];
-      return store.load(...new Set(localeFallbackOrder));
-    }, [locale]);
-    const dicts = useMaybePromise(dictsPromise);
+    const t: TranslateUnknown<UseTranslatorOptions, string | null> = (id, ...[values, options]) => {
+      const fallback = options?.fallback ?? fallbackDefault;
+      const placeholder = options?.placeholder ?? placeholderDefault;
+      return translate({ dicts, sourceDict: store.sourceDict, id, values, fallback, placeholder, locale, warn });
+    };
 
-    return useCallback(
-      <F extends ReactNode>(id: string, args: { values?: Record<string, any>; fallback?: F }) => {
-        return translate(dicts, { locale, id, ...args });
-      },
-      [dicts, locale],
-    );
+    const f: Format<string> = (template, ...[values]) => {
+      return format(template, values as any, locale);
+    };
+
+    return Object.assign(t as TranslateKnown<D, UseTranslatorOptions, string | null>, {
+      unknown: t,
+      format: f,
+    });
   };
 
-  const Translate = ({ id, values, fallback }: { id: string; values?: Record<string, any>; fallback?: ReactNode }) => {
-    const translate = useTranslateFallback();
-    const text = translate(id, { values, fallback });
+  const TranslatorComponent = ({ id, values, options }: { id: string; values?: Record<string, unknown>; options?: TranslatorOptions }) => {
+    const contextLocale = useContext(TranslationContext).locale;
+    const locale = options?.locale ?? contextLocale ?? sourceLocale;
+    const localeFallbackOrder = [locale, ...fallbackLocale];
+    const dicts = useFuture(async () => store.load(...new Set(localeFallbackOrder)), [locale]);
+
+    if (id === 'flatKey') console.log(id, options, contextLocale, localeFallbackOrder, dicts);
+
+    const fallback = options?.fallback ?? fallbackElement ?? fallbackDefault;
+    const placeholder = options?.placeholder ?? placeholderElement ?? placeholderDefault;
+    const text = translate({ dicts, sourceDict: store.sourceDict, id, values, fallback, placeholder, locale, warn });
+
     return <>{text}</>;
   };
 
-  const tFallback = (id: string, args: { values?: Record<string, any>; fallback: ReactNode }) => {
-    return <Translate id={id} {...args} />;
+  const createTranslatorComponent: TranslateUnknown<TranslatorOptions, React.ReactNode> = (id, ...[values, options]) => {
+    return <TranslatorComponent {...{ id, values, options }} />;
   };
 
-  const useTranslate = (overrideLocale?: string) => {
-    const translate = useTranslateFallback(overrideLocale);
-
-    return useCallback(
-      <K extends FlatKeys<D>>(id: K, ...[values]: TranslateArgs<D, K>) => {
-        return translate(id, { values: values as any });
-      },
-      [translate],
-    );
-  };
-
-  const t = <K extends FlatKeys<D>>(id: K, ...[values]: TranslateArgs<D, K>) => {
-    return <Translate id={id} values={values as any} />;
-  };
-
-  const useFormat = (overrideLocale?: string) => {
+  const FormatComponent = ({ template, values }: { template: string; values?: Record<string, unknown> }) => {
     const contextLocale = useContext(TranslationContext).locale;
-    const locale = overrideLocale ?? contextLocale ?? sourceLocale;
+    const locale = contextLocale ?? sourceLocale;
+    const text = format(template, values, locale);
 
-    return useCallback(
-      <T extends string>(template: T, ...[values]: FormatArgs<T>) => {
-        return format(template, values as any, locale);
-      },
-      [locale],
-    );
-  };
-
-  const Format = <T extends string>({
-    template,
-    values,
-    overrideLocale,
-  }: {
-    template: T;
-    values: Record<string, never> extends GetICUArgs<T> ? never : GetICUArgs<T>;
-    overrideLocale?: string;
-  }) => {
-    const format = useFormat(overrideLocale);
-    const args = values ? [values] : ([] as any);
-    const text = format(template, ...args);
     return <>{text}</>;
   };
 
-  const f = <T extends string>(template: T, ...[values]: FormatArgs<T>) => {
-    return <Format template={template} values={values as any} />;
+  const createFormatComponent: Format<React.ReactNode> = (template, ...[values]) => {
+    return <FormatComponent {...{ template, values: values as any }} />;
   };
+
+  const t: Translator<D> = Object.assign(createTranslatorComponent as TranslateKnown<D, TranslatorOptions, React.ReactNode>, {
+    unknown: createTranslatorComponent,
+    format: createFormatComponent,
+  });
 
   return {
-    useTranslateFallback,
-    tFallback,
-
-    useTranslate,
+    getTranslator,
+    useTranslator,
     t,
-
-    useFormat,
-    f,
   };
 }

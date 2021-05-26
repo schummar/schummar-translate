@@ -5,7 +5,9 @@
       "tsx"
     ],
     "require": [
-      "ts-node/register"
+      "ts-node/register",
+      "global-jsdom/register",
+      "./_setup.ts"
     ]
   }
 }
