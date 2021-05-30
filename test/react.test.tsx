@@ -85,6 +85,8 @@ forCases(
   t.is(div.textContent, 'key3:en 1 one 1st 1/1/2000 12:00 AM');
 
   fireEvent.click(div);
+  t.is(div.textContent, '...');
+
   await wait(1);
   t.is(div.textContent, 'key3:de 1 eins 1te 1.1.2000 00:00');
 });
@@ -96,6 +98,8 @@ forCases('key4')('missing key global fallback', async (t, div) => {
   t.is(div.textContent, 'key4:en');
 
   fireEvent.click(div);
+  t.is(div.textContent, '.......');
+
   await wait(1);
   t.is(div.textContent, '-');
 });
@@ -107,6 +111,8 @@ forCases('key4', undefined, { fallback: '--' })('missing key local fallback', as
   t.is(div.textContent, 'key4:en');
 
   fireEvent.click(div);
+  t.is(div.textContent, '.......');
+
   await wait(1);
   t.is(div.textContent, '--');
 });

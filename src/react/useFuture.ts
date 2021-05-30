@@ -4,6 +4,8 @@ export function useFuture<T>(run: () => Promise<T>, deps: DependencyList = []): 
   const [value, setValue] = useState<T>();
 
   useEffect(() => {
+    setValue(undefined);
+
     let canceled = false;
     run().then((value) => {
       if (!canceled) setValue(value);
