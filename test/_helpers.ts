@@ -26,3 +26,5 @@ export const dictDe2 = {
   },
 };
 export const dictDe = mergeDicts(dictDe1, dictDe2);
+
+export const dictEs = {};

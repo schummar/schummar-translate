@@ -41,7 +41,7 @@ export function createTranslator<D extends Dict>(
     const contextLocale = useContext(TranslationContext).locale;
     const locale = overrideLocale ?? contextLocale ?? sourceLocale;
     const localeFallbackOrder = [locale, ...fallbackLocale];
-    const dicts = useFuture(async () => store.load(...new Set(localeFallbackOrder)), [locale]);
+    const dicts = useFuture(() => store.load(...new Set(localeFallbackOrder)), [locale]);
 
     const t: TranslateUnknown<UseTranslatorOptions, string> = (id, ...[values, options]) => {
       const fallback = options?.fallback ?? fallbackDefault;
@@ -63,7 +63,7 @@ export function createTranslator<D extends Dict>(
     const contextLocale = useContext(TranslationContext).locale;
     const locale = options?.locale ?? contextLocale ?? sourceLocale;
     const localeFallbackOrder = [locale, ...fallbackLocale];
-    const dicts = useFuture(async () => store.load(...new Set(localeFallbackOrder)), [locale]);
+    const dicts = useFuture(() => store.load(...new Set(localeFallbackOrder)), [locale]);
 
     if (id === 'flatKey') console.log(id, options, contextLocale, localeFallbackOrder, dicts);
 
