@@ -13,7 +13,7 @@ Given a translation file like this:
 // en.ts
 export default {
   welcomeMessage: 'Hi, {name}',
-  currentTime: 'It is now {t, time, short}',
+  currentTime: 'It is now {time, time, short}',
 } as const;
 ```
 
