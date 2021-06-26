@@ -1,12 +1,14 @@
 # schummar-translate
+
 TypeScript powered translation library for React and Node.js.
 
 [![](https://badgen.net/npm/v/schummar-translate)](https://www.npmjs.com/package/schummar-translate)
 [![](https://badgen.net/bundlephobia/minzip/schummar-translate)](https://bundlephobia.com/package/schummar-translate)
 
-
 # Example
+
 Given a translation file like this:
+
 ```ts
 // en.ts
 export default {
@@ -15,17 +17,19 @@ export default {
 } as const;
 ```
 
-schummar-translate is able to provide type checking and autocomplete for both translation keys and parameters in ICU format:
+schummar-translate is able to provide type checking and autocomplete/IntelliSense for both translation keys and parameters in ICU format:
 ![example](https://user-images.githubusercontent.com/2988557/123524539-45a3cd00-d6cb-11eb-9f02-6884b405dc75.gif)
 
-
 # Getting started
+
 Install `schummar-translate`.
+
 ```bash
 npm install schummar-translate
 ```
 
 ## Create and export a translator instance
+
 ```ts
 // translate.ts
 import { createTranslator, TranslationContextProvider } from 'schummar-translate/react';
@@ -35,21 +39,22 @@ import de from './de.ts';
 export const { t } = createTranslator({
   sourceDictionary: en,
   sourceLocale: 'en',
-  dicts: { de }
-})
+  dicts: { de },
+});
 ```
 
 ## Use it everywhere in your app
+
 ```tsx
 import { t } from './translate';
 
 export App() {
   const [locale, setLocale] = useState('en');
-  
+
   const toggleLocale = () => {
     setLocale((locale) => (locale === 'en' ? 'de' : 'en'));
   }
-  
+
   return (
     <TranslationContextProvider locale={locale}>
       <div onClick={toggleLocale}>
@@ -60,9 +65,10 @@ export App() {
 }
 ```
 
-
 # API
+
 ### createTranslator
+
 ```ts
 function createTranslator(options: Options): ReturnValue;
 
@@ -78,21 +84,22 @@ type Options = {
   fallbackElement?: React.ReactNode | ((id: string, sourceTranslation: string) => React.ReactNode);
   placeholder?: string | ((id: string, sourceTranslation: string) => string);
   placeholderElement?: React.ReactNode | ((id: string, sourceTranslation: string) => React.ReactNode);
-}
+};
 
 type ReturnValue = {
   getTranslator: GetTranslator;
   useTranslator: UseTranslator;
   t: ReactTranslator;
-}
+};
 ```
+
 The are two versions of this function, depending on the used import. When importing `'schummar-translate'`, it creates a translator without React support (and therefore without the dependency on React). Then the last three parameters do not apply and the return value only contains `getTranslator`. When importing `'schummar-translate/react'` React support and the last three parameters are included.
 
 - `createTranslator` creates and provides all the other functions and uses the passed in `sourceDictionary` to type them.
 - `sourceDictionary` takes the source dictionary as seen above.
 - `sourceLocale` is the locale of the source dictionary as [ISO-639-1 code](https://de.wikipedia.org/wiki/Liste_der_ISO-639-1-Codes).
 - `fallbackLocale` provides a locale that will be used as fallback if a translation key is not available for some locale.
-- `dicts` provides all languages except the source language. It can either be an object with the locales as key and a dictionary or promise of a dictionary as value. Or it can be a function returning a dictionary or promise of a dictionary for a given locale. The last can be used to lazy load locales (expect source locale), for example with dynamic imports: ``dicts: (locale: string) => import(`./langs/${locale}`).then(mod => mod.default)``
+- `dicts` provides all languages except the source language. It can either be an object with the locales as key and a dictionary or promise of a dictionary as value. Or it can be a function returning a dictionary or promise of a dictionary for a given locale. The last can be used to lazy load locales (expect source locale), for example with dynamic imports: `` dicts: (locale: string) => import(`./langs/${locale}`).then(mod => mod.default) ``
 - `warn` lets you display warnings (e.g. to `console.warn`) when a translation key is missing in the active locale and no fallback is used.
 - `fallback` lets you define you a static or dynamic string that will be displayed whenever a translation key is missing for the active locale.
 - `fallbackElement` the same as `fallback` but also allows to pass a `ReactNode` to display more complex (e.g styled) fallbacks for translations embedded in JSX.
@@ -102,6 +109,7 @@ The are two versions of this function, depending on the used import. When import
 The return value is meant to be exported so the provided functions can be used everywhere in your app: `export const { getTranslator, useTranslator, t } = createTranslator({ ... })`
 
 ### t
+
 ```ts
 function t(id: K, values: V, options?: Options): ReactNode;
 
@@ -109,7 +117,7 @@ type Options = {
   locale?: string;
   fallback?: React.ReactNode;
   placeholder?: React.ReactNode;
-}
+};
 ```
 
 - `locale` allows to override the active locale. If not defined, the active locale is used as provided with `TranslationContextProvider`.
@@ -121,6 +129,7 @@ type Options = {
 Of course if you don't like the minimally named `t` you can rename it in the export: `export const { getTranslator, useTranslator, t: translate } = ...`
 
 ### t.unknown
+
 ```ts
 function t.unknown(id: string, values?: Record<string, unknown>, options?: Options): ReactNode;
 
@@ -135,9 +144,10 @@ type Options = {
 - `fallback` allows to override the fallback that was passed to `createTranslator` for just this instance.
 - `placeholder` allows to override the placeholder that was passed to `createTranslator` for just this instance.
 
-`t.unknown` does exactly the same as `t` but without type checking. This can be useful if if the translation is not necessarily available. E.g. ``t.unknown(`types.${currentType`, undefined, { fallback: currentType })``.
+`t.unknown` does exactly the same as `t` but without type checking. This can be useful if if the translation is not necessarily available. E.g. `` t.unknown(`types.${currentType`, undefined, { fallback: currentType }) ``.
 
 ### t.format
+
 ```ts
 function t.format(template: string, values: V): ReactNode;
 ```
@@ -145,15 +155,19 @@ function t.format(template: string, values: V): ReactNode;
 `t.format` can be used to format something using ICU. E.g. `t.format('{d, date, short}', { d: new Date() })`.
 
 ### useTranslator
+
 ```ts
 function useTranslator(locale?: string): HookTranslator;
 ```
+
 ...
 
 ### getTranslator
+
 ```ts
 function getTranslator(locale: string): Translator;
 ```
+
 ...
 
 Docs are currently WIP ;-)

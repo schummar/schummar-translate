@@ -1,8 +1,19 @@
 {
   "name": "schummar-translate",
   "repository": "schummar/schummar-translate",
-  "version": "0.0.18",
-  "description": "",
+  "version": "0.0.19",
+  "description": "TypeScript powered translation library for React and Node.js.",
+  "keywords": [
+    "typescript",
+    "react",
+    "node",
+    "translation",
+    "i18n",
+    "localization",
+    "type checking",
+    "autocomplete",
+    "IntelliSense"
+  ],
   "type": "module",
   "sideEffects": false,
   "main": "dist/cjs/index.js",
