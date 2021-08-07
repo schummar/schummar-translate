@@ -21,11 +21,13 @@
   "exports": {
     ".": {
       "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/esm/index.js"
     },
     "./react": {
       "import": "./dist/esm/react/index.js",
-      "require": "./dist/cjs/react/index.js"
+      "require": "./dist/cjs/react/index.js",
+      "default": "./dist/esm/react/index.js"
     }
   },
   "author": {
