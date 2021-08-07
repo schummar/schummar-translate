@@ -12,13 +12,13 @@ export type UseTranslator<D extends Dict> = (locale?: string) => TranslateKnown<
   format: Format<string>;
 };
 
-export type TranslatorOptions = {
+export type ReactTranslatorOptions = {
   locale?: string;
   fallback?: React.ReactNode;
   placeholder?: React.ReactNode;
 };
 
-export type Translator<D extends Dict> = TranslateKnown<D, TranslatorOptions, React.ReactNode> & {
-  unknown: TranslateUnknown<TranslatorOptions, React.ReactNode>;
+export type ReactTranslator<D extends Dict> = TranslateKnown<D, ReactTranslatorOptions, React.ReactNode> & {
+  unknown: TranslateUnknown<ReactTranslatorOptions, React.ReactNode>;
   format: Format<React.ReactNode>;
 };

@@ -4,7 +4,7 @@ import { DictStore } from '../dictStore';
 import { Format, GetTranslator, TranslateKnown, TranslateUnknown } from '../internalTypes';
 import { format, translate } from '../translate';
 import { Dict } from '../types';
-import { Translator, TranslatorOptions, UseTranslator, UseTranslatorOptions } from './internalTypes';
+import { ReactTranslator, ReactTranslatorOptions, UseTranslator, UseTranslatorOptions } from './internalTypes';
 import { OptionsReact } from './types';
 import { useFuture } from './useFuture';
 
@@ -22,7 +22,7 @@ export function createTranslator<D extends Dict>(
 ): {
   getTranslator: GetTranslator<D>;
   useTranslator: UseTranslator<D>;
-  t: Translator<D>;
+  t: ReactTranslator<D>;
 } {
   const store = new DictStore(options);
   const {
@@ -59,7 +59,15 @@ export function createTranslator<D extends Dict>(
     });
   };
 
-  const TranslatorComponent = ({ id, values, options }: { id: string; values?: Record<string, unknown>; options?: TranslatorOptions }) => {
+  const TranslatorComponent = ({
+    id,
+    values,
+    options,
+  }: {
+    id: string;
+    values?: Record<string, unknown>;
+    options?: ReactTranslatorOptions;
+  }) => {
     const contextLocale = useContext(TranslationContext).locale;
     const locale = options?.locale ?? contextLocale ?? sourceLocale;
     const localeFallbackOrder = [locale, ...fallbackLocale];
@@ -74,7 +82,7 @@ export function createTranslator<D extends Dict>(
     return <>{text}</>;
   };
 
-  const createTranslatorComponent: TranslateUnknown<TranslatorOptions, React.ReactNode> = (id, ...[values, options]) => {
+  const createTranslatorComponent: TranslateUnknown<ReactTranslatorOptions, React.ReactNode> = (id, ...[values, options]) => {
     return <TranslatorComponent {...{ id, values, options }} />;
   };
 
@@ -90,7 +98,7 @@ export function createTranslator<D extends Dict>(
     return <FormatComponent {...{ template, values: values as any }} />;
   };
 
-  const t: Translator<D> = Object.assign(createTranslatorComponent as TranslateKnown<D, TranslatorOptions, React.ReactNode>, {
+  const t: ReactTranslator<D> = Object.assign(createTranslatorComponent as TranslateKnown<D, ReactTranslatorOptions, React.ReactNode>, {
     unknown: createTranslatorComponent,
     format: createFormatComponent,
   });
