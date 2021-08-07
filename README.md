@@ -36,7 +36,7 @@ import { createTranslator, TranslationContextProvider } from 'schummar-translate
 import en from './en.ts';
 import de from './de.ts';
 
-export const { t } = createTranslator({
+export const { t, useTranslator, getTranslator } = createTranslator({
   sourceDictionary: en,
   sourceLocale: 'en',
   dicts: { de },
@@ -99,7 +99,7 @@ The are two versions of this function, depending on the used import. When import
 - `sourceDictionary` takes the source dictionary as seen above.
 - `sourceLocale` is the locale of the source dictionary as [ISO-639-1 code](https://de.wikipedia.org/wiki/Liste_der_ISO-639-1-Codes).
 - `fallbackLocale` provides a locale that will be used as fallback if a translation key is not available for some locale.
-- `dicts` provides all languages except the source language. It can either be an object with the locales as key and a dictionary or promise of a dictionary as value. Or it can be a function returning a dictionary or promise of a dictionary for a given locale. The last can be used to lazy load locales (expect source locale), for example with dynamic imports: `` dicts: (locale: string) => import(`./langs/${locale}`).then(mod => mod.default) ``
+- `dicts` provides all languages except the source language. It can either be an object with the locales as key and a dictionary or promise of a dictionary as value. Or it can be a function returning a dictionary or promise of a dictionary for a given locale. The last can be used to lazy load locales (expect source locale), for example with dynamic imports: `` dicts: (locale: string) => import(`./langs/${locale}`).then(mod => mod.default) `` or getting it from a cdn via `fetch`.
 - `warn` lets you display warnings (e.g. to `console.warn`) when a translation key is missing in the active locale and no fallback is used.
 - `fallback` lets you define you a static or dynamic string that will be displayed whenever a translation key is missing for the active locale.
 - `fallbackElement` the same as `fallback` but also allows to pass a `ReactNode` to display more complex (e.g styled) fallbacks for translations embedded in JSX.
@@ -158,16 +158,37 @@ function t.format(template: string, values: V): ReactNode;
 
 ```ts
 function useTranslator(locale?: string): HookTranslator;
+
+type HookTranslator = {
+  (id: K, values: V, options?: Options): string;
+  unknow: (id: string, values?: Record<string, unknown>, options?: Options): string;
+  format: (template: string, values: V): string;
+}
+
+type Options = {
+  fallback?: string;
+  placeholder?: string;
+}
 ```
 
-...
+React hook that returns a translator that works very similarly to `t`, but being a hook itself, it does not need internal hooks and therefore returns a string instead of a ReactNode. That is useful in case you need to pass strings somewhere, e.g. as options to a select component etc.
+For more details see [t](#t), [t.unknown](#tunknown) and [t.format](#tformat).
 
 ### getTranslator
 
 ```ts
-function getTranslator(locale: string): Translator;
+function getTranslator(locale: string): Promise<Translator>;
+
+type Translator = {
+  (id: K, values: V, options?: Options): string;
+  unknow: (id: string, values?: Record<string, unknown>, options?: Options): string;
+  format: (template: string, values: V): string;
+}
+
+type Options = {
+  fallback?: string;
+}
 ```
 
-...
-
-Docs are currently WIP ;-)
+Returns a promise of a translator object. That method can be used in the backend or in the frontend outside of React components. It loads the necessary locales first then resolves the promise. The resulting translator is again very similar to `t` but obviously returning string and not ReactNode.
+For more details see [t](#t), [t.unknown](#tunknown) and [t.format](#tformat).
