@@ -29,7 +29,7 @@ type DeepPartial<T> = T extends Dict ? { [K in keyof T]?: DeepPartial<T[K]> } : 
 export type Dict = { [id: string]: Dict | string };
 export type FlatDict = { [id: string]: string };
 
-export type Options<D extends Dict> = {
+export type CreateTranslatorOptions<D extends Dict> = {
   sourceDictionary: D;
   sourceLocale: string;
   fallbackLocale?: string | string[];

@@ -1,10 +1,10 @@
 import { DictStore } from './dictStore';
 import { Format, GetTranslator, GetTranslatorOptions, TranslateKnown, TranslateUnknown } from './internalTypes';
 import { format, translate } from './translate';
-import { Dict, Options } from './types';
+import { Dict, CreateTranslatorOptions } from './types';
 
 export function createTranslator<D extends Dict>(
-  options: Options<D>,
+  options: CreateTranslatorOptions<D>,
 ): {
   getTranslator: GetTranslator<D>;
 } {

@@ -1,10 +1,10 @@
 import { flattenDict } from './flattenDict';
-import { Dict, FlatDict, MaybePromise, Options } from './types';
+import { Dict, FlatDict, MaybePromise, CreateTranslatorOptions } from './types';
 
 export class DictStore<D extends Dict> {
   sourceDict: FlatDict;
 
-  constructor(public options: Options<D>) {
+  constructor(public options: CreateTranslatorOptions<D>) {
     this.sourceDict = flattenDict(options.sourceDictionary);
   }
 

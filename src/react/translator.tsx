@@ -5,7 +5,7 @@ import { Format, GetTranslator, TranslateKnown, TranslateUnknown } from '../inte
 import { format, translate } from '../translate';
 import { Dict } from '../types';
 import { ReactTranslator, ReactTranslatorOptions, UseTranslator, UseTranslatorOptions } from './internalTypes';
-import { OptionsReact } from './types';
+import { ReactCreateTranslatorOptions } from './types';
 import { useFuture } from './useFuture';
 
 export const TranslationContext = createContext({
@@ -18,7 +18,7 @@ export const TranslationContextProvider = ({ locale, children }: { locale?: stri
 };
 
 export function createTranslator<D extends Dict>(
-  options: OptionsReact<D>,
+  options: ReactCreateTranslatorOptions<D>,
 ): {
   getTranslator: GetTranslator<D>;
   useTranslator: UseTranslator<D>;
