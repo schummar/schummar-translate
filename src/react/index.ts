@@ -1,3 +1,4 @@
 export { mergeDicts } from '../mergeDicts';
-export { CreateTranslatorOptions } from '../types';
-export { TranslationContext, TranslationContextProvider, createTranslator } from './translator';
+export * from '../types';
+export { createTranslator, TranslationContext, TranslationContextProvider } from './translator';
+export * from './types';

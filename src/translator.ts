@@ -1,17 +1,22 @@
 import { DictStore } from './dictStore';
-import { Format, GetTranslator, GetTranslatorOptions, TranslateKnown, TranslateUnknown } from './internalTypes';
 import { format, translate } from './translate';
-import { Dict, CreateTranslatorOptions } from './types';
+import {
+  CreateTranslatorOptions,
+  CreateTranslatorResult,
+  Dict,
+  FlattenDict,
+  Format,
+  GetTranslator,
+  GetTranslatorOptions,
+  TranslateKnown,
+  TranslateUnknown,
+} from './types';
 
-export function createTranslator<D extends Dict>(
-  options: CreateTranslatorOptions<D>,
-): {
-  getTranslator: GetTranslator<D>;
-} {
+export function createTranslator<D extends Dict>(options: CreateTranslatorOptions<D>): CreateTranslatorResult<FlattenDict<D>> {
   const store = new DictStore(options);
   const { fallbackLocale = [], fallback: globalFallback, warn } = options;
 
-  const getTranslator: GetTranslator<D> = async (locale: string) => {
+  const getTranslator: GetTranslator<FlattenDict<D>> = async (locale: string) => {
     const localeFallbackOrder = [locale, ...fallbackLocale];
     const dicts = await store.load(...new Set(localeFallbackOrder));
 
@@ -24,7 +29,7 @@ export function createTranslator<D extends Dict>(
       return format(template, values as any, locale);
     };
 
-    return Object.assign(t as TranslateKnown<D, GetTranslatorOptions, string>, {
+    return Object.assign(t as TranslateKnown<FlattenDict<D>, GetTranslatorOptions, string>, {
       unknown: t,
       format: f,
     });

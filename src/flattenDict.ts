@@ -1,12 +1,12 @@
-import { Dict, FlatDict, PartialDict } from './types';
+import { Dict, FlattenDict } from './types';
 
-export function flattenDict<D extends PartialDict<Dict>>(dict: D, path = ''): FlatDict {
-  const flat: FlatDict = {};
+export function flattenDict<D extends Dict>(dict: D, path = ''): FlattenDict<D> {
+  const flat: any = {};
 
   for (const [key, value] of Object.entries(dict)) {
     const newPath = path ? `${path}.${key}` : key;
     if (value === undefined) continue;
-    if (value instanceof Object) Object.assign(flat, flattenDict(value as PartialDict<Dict>, newPath));
+    if (value instanceof Object) Object.assign(flat, flattenDict(value, newPath));
     else flat[newPath] = value;
   }
 

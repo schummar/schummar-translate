@@ -1,10 +1,15 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import anyTest, { ExecutionContext, TestInterface } from 'ava';
 import React, { useState } from 'react';
-import { Values } from '../src/internalTypes';
-import { createTranslator, TranslationContextProvider } from '../src/react';
-import { UseTranslatorOptions } from '../src/react/internalTypes';
-import { DeepValue, FlatKeys, MaybePromise } from '../src/types';
+import {
+  createTranslator,
+  DeepValue,
+  FlatKeys,
+  MaybePromise,
+  TranslationContextProvider,
+  UseTranslatorOptions,
+  Values,
+} from '../src/react';
 import { dictDe, dictEn, dictEs, wait } from './_helpers';
 
 const test = anyTest as TestInterface<ReturnType<typeof createTranslator>>;

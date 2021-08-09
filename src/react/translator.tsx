@@ -1,11 +1,16 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import { createTranslator as superCreateTranslator } from '..';
 import { DictStore } from '../dictStore';
-import { Format, GetTranslator, TranslateKnown, TranslateUnknown } from '../internalTypes';
 import { format, translate } from '../translate';
-import { Dict } from '../types';
-import { ReactTranslator, ReactTranslatorOptions, UseTranslator, UseTranslatorOptions } from './internalTypes';
-import { ReactCreateTranslatorOptions } from './types';
+import { Dict, FlattenDict, Format, TranslateKnown, TranslateUnknown } from '../types';
+import {
+  ReactCreateTranslatorOptions,
+  ReactCreateTranslatorResult,
+  ReactTranslator,
+  ReactTranslatorOptions,
+  UseTranslator,
+  UseTranslatorOptions,
+} from './types';
 import { useFuture } from './useFuture';
 
 export const TranslationContext = createContext({
@@ -17,13 +22,7 @@ export const TranslationContextProvider = ({ locale, children }: { locale?: stri
   return <TranslationContext.Provider value={value}>{children}</TranslationContext.Provider>;
 };
 
-export function createTranslator<D extends Dict>(
-  options: ReactCreateTranslatorOptions<D>,
-): {
-  getTranslator: GetTranslator<D>;
-  useTranslator: UseTranslator<D>;
-  t: ReactTranslator<D>;
-} {
+export function createTranslator<D extends Dict>(options: ReactCreateTranslatorOptions<D>): ReactCreateTranslatorResult<FlattenDict<D>> {
   const store = new DictStore(options);
   const {
     sourceLocale,
@@ -37,7 +36,7 @@ export function createTranslator<D extends Dict>(
 
   const { getTranslator } = superCreateTranslator(options);
 
-  const useTranslator: UseTranslator<D> = (overrideLocale) => {
+  const useTranslator: UseTranslator<FlattenDict<D>> = (overrideLocale) => {
     const contextLocale = useContext(TranslationContext).locale;
     const locale = overrideLocale ?? contextLocale ?? sourceLocale;
     const localeFallbackOrder = [locale, ...fallbackLocale];
@@ -53,7 +52,7 @@ export function createTranslator<D extends Dict>(
       return format(template, values as any, locale);
     };
 
-    return Object.assign(t as TranslateKnown<D, UseTranslatorOptions, string>, {
+    return Object.assign(t as TranslateKnown<FlattenDict<D>, UseTranslatorOptions, string>, {
       unknown: t,
       format: f,
     });
@@ -98,10 +97,13 @@ export function createTranslator<D extends Dict>(
     return <FormatComponent {...{ template, values: values as any }} />;
   };
 
-  const t: ReactTranslator<D> = Object.assign(createTranslatorComponent as TranslateKnown<D, ReactTranslatorOptions, React.ReactNode>, {
-    unknown: createTranslatorComponent,
-    format: createFormatComponent,
-  });
+  const t: ReactTranslator<FlattenDict<D>> = Object.assign(
+    createTranslatorComponent as TranslateKnown<FlattenDict<D>, ReactTranslatorOptions, React.ReactNode>,
+    {
+      unknown: createTranslatorComponent,
+      format: createFormatComponent,
+    },
+  );
 
   return {
     getTranslator,
