@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.1.1](https://www.github.com/schummar/schummar-translate/compare/v1.1.0...v1.1.1) (2021-08-12)
+
+
+### Bug Fixes
+
+* unified dict store for React translator. ([aa81192](https://www.github.com/schummar/schummar-translate/commit/aa8119279d4133bc61e590a9c9e4e7632bb27389))
+
 ## [1.1.0](https://www.github.com/schummar/schummar-translate/compare/v1.0.2...v1.1.0) (2021-08-09)
 
 
