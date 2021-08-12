@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://www.github.com/schummar/schummar-translate/compare/v1.1.1...v1.2.0) (2021-08-12)
+
+
+### Features
+
+* Dictionary values can be arrays. ([82d538c](https://www.github.com/schummar/schummar-translate/commit/82d538c3ef425d3a35546a811b402ce7acf16982))
+
 ### [1.1.1](https://www.github.com/schummar/schummar-translate/compare/v1.1.0...v1.1.1) (2021-08-12)
 
 
