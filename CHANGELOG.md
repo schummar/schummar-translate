@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.2.1](https://www.github.com/schummar/schummar-translate/compare/v1.2.0...v1.2.1) (2021-08-12)
+
+
+### Bug Fixes
+
+* Added missing array docs. ([a8306fe](https://www.github.com/schummar/schummar-translate/commit/a8306fea23976bf08fac6e0999b45a19d789a6b9))
+
 ## [1.2.0](https://www.github.com/schummar/schummar-translate/compare/v1.1.1...v1.2.0) (2021-08-12)
 
 
