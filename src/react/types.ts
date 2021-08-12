@@ -18,7 +18,7 @@ export type UseTranslatorOptions = {
   placeholder?: string;
 };
 
-export type UseTranslator<D extends FlatDict> = (locale?: string) => TranslateKnown<D, UseTranslatorOptions, string> & {
+export type UseTranslator<D extends FlatDict> = (locale?: string) => TranslateKnown<D, UseTranslatorOptions, string, readonly string[]> & {
   unknown: TranslateUnknown<UseTranslatorOptions, string>;
   format: Format<string>;
 };
@@ -27,9 +27,10 @@ export type ReactTranslatorOptions = {
   locale?: string;
   fallback?: React.ReactNode;
   placeholder?: React.ReactNode;
+  component?: React.ElementType;
 };
 
-export type ReactTranslator<D extends FlatDict> = TranslateKnown<D, ReactTranslatorOptions, React.ReactNode> & {
+export type ReactTranslator<D extends FlatDict> = TranslateKnown<D, ReactTranslatorOptions, React.ReactNode, React.ReactNode> & {
   unknown: TranslateUnknown<ReactTranslatorOptions, React.ReactNode>;
   format: Format<React.ReactNode>;
 };

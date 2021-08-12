@@ -23,14 +23,14 @@ export const getTranslator =
 
     const t: TranslateUnknown<GetTranslatorOptions, string> = (id, ...[values, options]) => {
       const fallback = options?.fallback ?? globalFallback;
-      return translate({ dicts, sourceDict: store.sourceDict, id, values, fallback, locale, warn }) as string;
+      return translate({ dicts, sourceDict: store.sourceDict, id, values, fallback, locale, warn });
     };
 
     const f: Format<string> = (template, ...[values]) => {
       return format(template, values as any, locale);
     };
 
-    return Object.assign(t as TranslateKnown<FlattenDict<D>, GetTranslatorOptions, string>, {
+    return Object.assign(t as unknown as TranslateKnown<FlattenDict<D>, GetTranslatorOptions, string, readonly string[]>, {
       unknown: t,
       format: f,
     });

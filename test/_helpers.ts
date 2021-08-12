@@ -7,6 +7,7 @@ export const wait = async (ticks = 1): Promise<void> => {
 export const dictEn1 = {
   key1: 'key1:en',
   nested: { key2: 'key2:en {value2}' },
+  arr: ['one {pOne}', 'two {pTwo}'],
 } as const;
 export const dictEn2 = {
   nested: {
@@ -19,6 +20,7 @@ export const dictEn = mergeDicts(dictEn1, dictEn2);
 export const dictDe1 = {
   key1: 'key1:de',
   nested: { key2: 'key2:de {value2}' },
+  arr: ['eins {pOne}', 'zwei {pTwo}'],
 };
 export const dictDe2 = {
   nested: {

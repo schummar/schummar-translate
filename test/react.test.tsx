@@ -12,16 +12,18 @@ import {
 } from '../src/react';
 import { dictDe, dictEn, dictEs, wait } from './_helpers';
 
-const test = anyTest as TestInterface<ReturnType<typeof createTranslator>>;
-
-test.beforeEach((t) => {
-  t.context = createTranslator({
+const createContext = () =>
+  createTranslator({
     sourceDictionary: dictEn,
     sourceLocale: 'en',
     dicts: { de: dictDe, es: dictEs },
     fallback: () => '-',
     placeholder: (_id, st) => st.replace(/./g, '.'),
   });
+const test = anyTest as TestInterface<ReturnType<typeof createContext>>;
+
+test.beforeEach((t) => {
+  t.context = createContext();
 });
 
 function App({ children }: { children?: React.ReactNode }) {
@@ -45,7 +47,8 @@ const forCases =
       test.serial(`${name} with ${i === 0 ? 'translator' : 'hook'}`, (t) => {
         function WithHook() {
           const _t = t.context.useTranslator();
-          return <>{_t(id, ...([values, options] as any))}</>;
+          const value = _t(id, ...([values, options] as any));
+          return <>{value instanceof Array ? value.join('') : value}</>;
         }
 
         let element;
@@ -152,4 +155,34 @@ test.serial('format with hook', async (t) => {
 
   fireEvent.click(div);
   t.is(div.textContent, '1.1.2000');
+});
+
+test.serial('arr with component', async (t) => {
+  render(<App>{t.context.t('arr', { pOne: 'p1', pTwo: 'p2' }, { component: 'div' })}</App>);
+  const div = screen.getByTestId('div');
+  t.is(div.innerHTML, '<div>one p1</div><div>two p2</div>');
+
+  fireEvent.click(div);
+  await wait(1);
+  t.is(div.innerHTML, '<div>eins p1</div><div>zwei p2</div>');
+});
+
+test.serial('arr with hook', async (t) => {
+  function WithHook() {
+    const _t = t.context.useTranslator();
+    const arr = _t('arr', { pOne: 'p1', pTwo: 'p2' });
+    return <>{arr[arr.length - 1]}</>;
+  }
+
+  render(
+    <App>
+      <WithHook />
+    </App>,
+  );
+  const div = screen.getByTestId('div');
+  t.is(div.innerHTML, 'two p2');
+
+  fireEvent.click(div);
+  await wait(1);
+  t.is(div.innerHTML, 'zwei p2');
 });

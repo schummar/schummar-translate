@@ -62,3 +62,11 @@ test('warn', async (t) => {
   const en = await getTranslator('en');
   t.is(en.unknown('missingKey'), 'missingKey');
 });
+
+test('array', async (t) => {
+  const en = await getTranslator('en');
+  const de = await getTranslator('de');
+
+  t.deepEqual(en('arr', { pOne: 'p1', pTwo: 'p2' }), ['one p1', 'two p2']);
+  t.deepEqual(de('arr', { pOne: 'p1', pTwo: 'p2' }), ['eins p1', 'zwei p2']);
+});

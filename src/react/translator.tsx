@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, Fragment, useContext, useMemo } from 'react';
 import { DictStore } from '../dictStore';
 import { format, translate } from '../translate';
 import { getTranslator } from '../translator';
@@ -50,7 +50,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
       return format(template, values as any, locale);
     };
 
-    return Object.assign(t as TranslateKnown<FlattenDict<D>, UseTranslatorOptions, string>, {
+    return Object.assign(t as unknown as TranslateKnown<FlattenDict<D>, UseTranslatorOptions, string, readonly string[]>, {
       unknown: t,
       format: f,
     });
@@ -75,8 +75,16 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     const fallback = options?.fallback ?? fallbackElement ?? fallbackDefault;
     const placeholder = options?.placeholder ?? placeholderElement ?? placeholderDefault;
     const text = translate({ dicts, sourceDict: store.sourceDict, id, values, fallback, placeholder, locale, warn });
+    const textArray = text instanceof Array ? text : [text];
+    const Component = options?.component ?? Fragment;
 
-    return <>{text}</>;
+    return (
+      <>
+        {textArray.map((line, index) => (
+          <Component key={index}>{line}</Component>
+        ))}
+      </>
+    );
   };
 
   const createTranslatorComponent: TranslateUnknown<ReactTranslatorOptions, React.ReactNode> = (id, ...[values, options]) => {
@@ -96,7 +104,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
   };
 
   const t: ReactTranslator<FlattenDict<D>> = Object.assign(
-    createTranslatorComponent as TranslateKnown<FlattenDict<D>, ReactTranslatorOptions, React.ReactNode>,
+    createTranslatorComponent as TranslateKnown<FlattenDict<D>, ReactTranslatorOptions, React.ReactNode, React.ReactNode>,
     {
       unknown: createTranslatorComponent,
       format: createFormatComponent,

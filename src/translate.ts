@@ -1,4 +1,5 @@
 import { IntlMessageFormat } from 'intl-messageformat';
+import { mapPotentialArray } from './mapPotentialArray';
 import { FlatDict } from './types';
 
 const cache = new Map<string, IntlMessageFormat>();
@@ -21,13 +22,14 @@ export function translate<F = never>({
   placeholder?: F | ((id: string, sourceTranslation: string) => F);
   locale: string;
   warn?: (locale: string, id: string) => void;
-}): string | F {
+}): string | F | (string | F)[] | F {
   if (!dicts) {
-    if (placeholder instanceof Function) {
-      const sourceTranslation = translate<string>({ dicts: [sourceDict], sourceDict, id, values, locale });
-      return placeholder(id, sourceTranslation as string);
-    }
-    return placeholder ?? '';
+    return mapPotentialArray(translate<string>({ dicts: [sourceDict], sourceDict, id, values, locale }), (sourceTranslation) => {
+      if (placeholder instanceof Function) {
+        return placeholder(id, sourceTranslation);
+      }
+      return placeholder ?? '';
+    });
   }
 
   if (fallback !== undefined) {
@@ -48,7 +50,7 @@ export function translate<F = never>({
     return id;
   }
 
-  return format(template, values, locale);
+  return mapPotentialArray(template, (template) => format(template, values, locale));
 }
 
 export function format(template: string, values?: Record<string, unknown>, locale?: string): string {
