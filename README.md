@@ -117,12 +117,14 @@ type Options = {
   locale?: string;
   fallback?: React.ReactNode;
   placeholder?: React.ReactNode;
+  component?: React.ElementType;
 };
 ```
 
 - `locale` allows to override the active locale. If not defined, the active locale is used as provided with `TranslationContextProvider`.
 - `fallback` allows to override the fallback that was passed to `createTranslator` for just this instance.
 - `placeholder` allows to override the placeholder that was passed to `createTranslator` for just this instance.
+- `component` let's you define a component that will wrap the translated string. E.g. `component: 'div'` will result in `<div>YOUR TEXT</div>`
 
 `t` can be used to translate string withing JSX: `<div>{t('foo', { value: 42 })}</div>`. `id` has to be a flattened key from the source dictionary. `values` has to be an object containing the ICU paramters used in the string in the source dictionary. If there are no parameters, `values` is optional.
 
@@ -160,8 +162,8 @@ function t.format(template: string, values: V): ReactNode;
 function useTranslator(locale?: string): HookTranslator;
 
 type HookTranslator = {
-  (id: K, values: V, options?: Options): string;
-  unknow: (id: string, values?: Record<string, unknown>, options?: Options): string;
+  (id: K, values: V, options?: Options): string | string[];
+  unknow: (id: string, values?: Record<string, unknown>, options?: Options): string | string[];
   format: (template: string, values: V): string;
 }
 
@@ -172,6 +174,7 @@ type Options = {
 ```
 
 React hook that returns a translator that works very similarly to `t`, but being a hook itself, it does not need internal hooks and therefore returns a string instead of a ReactNode. That is useful in case you need to pass strings somewhere, e.g. as options to a select component etc.
+If the dictionary value is an array, an array of translated string will be returned.
 For more details see [t](#t), [t.unknown](#tunknown) and [t.format](#tformat).
 
 ### getTranslator
@@ -180,8 +183,8 @@ For more details see [t](#t), [t.unknown](#tunknown) and [t.format](#tformat).
 function getTranslator(locale: string): Promise<Translator>;
 
 type Translator = {
-  (id: K, values: V, options?: Options): string;
-  unknow: (id: string, values?: Record<string, unknown>, options?: Options): string;
+  (id: K, values: V, options?: Options): string | string[];
+  unknow: (id: string, values?: Record<string, unknown>, options?: Options): string | string[];
   format: (template: string, values: V): string;
 }
 
@@ -191,4 +194,5 @@ type Options = {
 ```
 
 Returns a promise of a translator object. That method can be used in the backend or in the frontend outside of React components. It loads the necessary locales first then resolves the promise. The resulting translator is again very similar to `t` but obviously returning string and not ReactNode.
+If the dictionary value is an array, an array of translated string will be returned.
 For more details see [t](#t), [t.unknown](#tunknown) and [t.format](#tformat).
