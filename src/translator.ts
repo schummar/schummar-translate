@@ -12,11 +12,12 @@ import {
   TranslateUnknown,
 } from './types';
 
-export function createTranslator<D extends Dict>(options: CreateTranslatorOptions<D>): CreateTranslatorResult<FlattenDict<D>> {
-  const store = new DictStore(options);
-  const { fallbackLocale = [], fallback: globalFallback, warn } = options;
-
-  const getTranslator: GetTranslator<FlattenDict<D>> = async (locale: string) => {
+export const getTranslator =
+  <D extends Dict>(
+    store: DictStore<D>,
+    { fallbackLocale = [], fallback: globalFallback, warn }: CreateTranslatorOptions<D>,
+  ): GetTranslator<FlattenDict<D>> =>
+  async (locale: string) => {
     const localeFallbackOrder = [locale, ...fallbackLocale];
     const dicts = await store.load(...new Set(localeFallbackOrder));
 
@@ -35,7 +36,10 @@ export function createTranslator<D extends Dict>(options: CreateTranslatorOption
     });
   };
 
+export function createTranslator<D extends Dict>(options: CreateTranslatorOptions<D>): CreateTranslatorResult<FlattenDict<D>> {
+  const store = new DictStore(options);
+
   return {
-    getTranslator,
+    getTranslator: getTranslator(store, options),
   };
 }

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useMemo } from 'react';
-import { createTranslator as superCreateTranslator } from '..';
 import { DictStore } from '../dictStore';
 import { format, translate } from '../translate';
+import { getTranslator } from '../translator';
 import { Dict, FlattenDict, Format, TranslateKnown, TranslateUnknown } from '../types';
 import {
   ReactCreateTranslatorOptions,
@@ -33,8 +33,6 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     placeholderElement,
     warn,
   } = options;
-
-  const { getTranslator } = superCreateTranslator(options);
 
   const useTranslator: UseTranslator<FlattenDict<D>> = (overrideLocale) => {
     const contextLocale = useContext(TranslationContext).locale;
@@ -106,7 +104,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
   );
 
   return {
-    getTranslator,
+    getTranslator: getTranslator(store, options),
     useTranslator,
     t,
   };
