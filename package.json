@@ -34,7 +34,7 @@
     "name": "Marco Schumacher",
     "email": "marco@schumacher.dev"
   },
-  "license": "ISC",
+  "license": "MIT",
   "scripts": {
     "start": "run-p start:*",
     "start:compile": "tsc -p tsconfig-cjs.json --watch",
