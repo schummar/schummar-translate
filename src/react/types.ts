@@ -18,9 +18,7 @@ export type UseTranslatorOptions = {
   placeholder?: string;
 };
 
-export type UseTranslator<D extends FlatDict> = (
-  locale?: string,
-) => TranslateKnown<D, UseTranslatorOptions, string, readonly string[]> & {
+export type UseTranslator<D extends FlatDict> = (locale?: string) => TranslateKnown<D, UseTranslatorOptions, string, readonly string[]> & {
   unknown: TranslateUnknown<UseTranslatorOptions, string>;
   format: Format<string>;
   locale: string;

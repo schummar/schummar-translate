@@ -51,7 +51,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
         return format(template, values as any, locale);
       };
 
-      return Object.assign((t as unknown) as TranslateKnown<FlattenDict<D>, UseTranslatorOptions, string, readonly string[]>, {
+      return Object.assign(t as unknown as TranslateKnown<FlattenDict<D>, UseTranslatorOptions, string, readonly string[]>, {
         unknown: t,
         format: f,
         locale,
@@ -76,16 +76,10 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     const fallback = options?.fallback ?? fallbackElement ?? fallbackDefault;
     const placeholder = options?.placeholder ?? placeholderElement ?? placeholderDefault;
 
-    const text = useMemo(() => translate({ dicts, sourceDict: store.sourceDict, id, values, fallback, placeholder, locale, warn }), [
-      dicts,
-      store.sourceDict,
-      id,
-      values,
-      fallback,
-      placeholder,
-      locale,
-      warn,
-    ]);
+    const text = useMemo(
+      () => translate({ dicts, sourceDict: store.sourceDict, id, values, fallback, placeholder, locale, warn }),
+      [dicts, store.sourceDict, id, values, fallback, placeholder, locale, warn],
+    );
     const textArray = text instanceof Array ? text : [text];
     const Component = options?.component ?? Fragment;
 
