@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { CreateTranslatorOptions, Dict, FlatDict, Format, GetTranslator, TranslateKnown, TranslateUnknown } from '../types';
 
 export type ReactCreateTranslatorOptions<D extends Dict> = CreateTranslatorOptions<D> & {
-  fallbackElement?: React.ReactNode | ((id: string, sourceTranslation: string) => React.ReactNode);
+  fallbackElement?: ReactNode | ((id: string, sourceTranslation: string) => ReactNode);
   placeholder?: string | ((id: string, sourceTranslation: string) => string);
-  placeholderElement?: React.ReactNode | ((id: string, sourceTranslation: string) => React.ReactNode);
+  placeholderElement?: ReactNode | ((id: string, sourceTranslation: string) => ReactNode);
 };
 
 export type ReactCreateTranslatorResult<D extends FlatDict> = {
@@ -18,19 +18,23 @@ export type UseTranslatorOptions = {
   placeholder?: string;
 };
 
-export type UseTranslator<D extends FlatDict> = (locale?: string) => TranslateKnown<D, UseTranslatorOptions, string, readonly string[]> & {
+export type UseTranslator<D extends FlatDict> = (
+  locale?: string,
+) => TranslateKnown<D, UseTranslatorOptions, string, readonly string[]> & {
   unknown: TranslateUnknown<UseTranslatorOptions, string>;
   format: Format<string>;
+  locale: string;
 };
 
 export type ReactTranslatorOptions = {
   locale?: string;
-  fallback?: React.ReactNode;
-  placeholder?: React.ReactNode;
+  fallback?: ReactNode;
+  placeholder?: ReactNode;
   component?: React.ElementType;
 };
 
-export type ReactTranslator<D extends FlatDict> = TranslateKnown<D, ReactTranslatorOptions, React.ReactNode, React.ReactNode> & {
-  unknown: TranslateUnknown<ReactTranslatorOptions, React.ReactNode>;
-  format: Format<React.ReactNode>;
+export type ReactTranslator<D extends FlatDict> = TranslateKnown<D, ReactTranslatorOptions, ReactNode, ReactNode> & {
+  unknown: TranslateUnknown<ReactTranslatorOptions, ReactNode>;
+  format: Format<ReactNode>;
+  render: (render: (locale: string) => ReactNode) => ReactNode;
 };

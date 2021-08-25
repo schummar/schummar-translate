@@ -156,6 +156,15 @@ function t.format(template: string, values: V): ReactNode;
 
 `t.format` can be used to format something using ICU. E.g. `t.format('{d, date, short}', { d: new Date() })`.
 
+### t.render
+
+```ts
+function f.render(renderFn: (locale: string) => ReactNode): ReactNode;
+```
+
+`t.render` can be used to pass the current locale to some other component and will abviously update automatically when the locale changes.
+A common example will be to use the Intl api like: `t.render(locale => new Intl.DateTimeFormat(locale).format(new Date()))`.
+
 ### useTranslator
 
 ```ts
@@ -165,6 +174,7 @@ type HookTranslator = {
   (id: K, values: V, options?: Options): string | string[];
   unknow: (id: string, values?: Record<string, unknown>, options?: Options): string | string[];
   format: (template: string, values: V): string;
+  locale: string;
 }
 
 type Options = {
@@ -186,6 +196,7 @@ type Translator = {
   (id: K, values: V, options?: Options): string | string[];
   unknow: (id: string, values?: Record<string, unknown>, options?: Options): string | string[];
   format: (template: string, values: V): string;
+  locale: string;
 }
 
 type Options = {

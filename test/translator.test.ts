@@ -70,3 +70,11 @@ test('array', async (t) => {
   t.deepEqual(en('arr', { pOne: 'p1', pTwo: 'p2' }), ['one p1', 'two p2']);
   t.deepEqual(de('arr', { pOne: 'p1', pTwo: 'p2' }), ['eins p1', 'zwei p2']);
 });
+
+test('locale', async (t) => {
+  const en = await getTranslator('en');
+  const de = await getTranslator('de');
+
+  t.is(en.locale, 'en');
+  t.is(de.locale, 'de');
+});

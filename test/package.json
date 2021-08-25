@@ -6,8 +6,7 @@
     ],
     "require": [
       "ts-node/register",
-      "global-jsdom/register",
-      "./_setup.ts"
+      "global-jsdom/register"
     ]
   }
 }

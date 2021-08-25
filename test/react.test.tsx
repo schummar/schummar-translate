@@ -26,13 +26,13 @@ test.beforeEach((t) => {
   t.context = createContext();
 });
 
-function App({ children }: { children?: React.ReactNode }) {
-  const [locale, setLocale] = useState('en');
-  const toggleLocale = () => setLocale((l) => (l === 'en' ? 'de' : l === 'de' ? 'es' : 'en'));
+function App({ id, locales = ['en', 'de', 'es'], children }: { id: string; locales?: string[]; children?: React.ReactNode }) {
+  const [locale, setLocale] = useState(locales[0]);
+  const toggleLocale = () => setLocale((l) => locales[(l ? locales.indexOf(l) + 1 : 0) % locales.length]);
 
   return (
     <TranslationContextProvider locale={locale}>
-      <div data-testid="div" onClick={toggleLocale}>
+      <div data-testid={id} onClick={toggleLocale}>
         {children}
       </div>
     </TranslationContextProvider>
@@ -40,30 +40,31 @@ function App({ children }: { children?: React.ReactNode }) {
 }
 
 type D = typeof dictEn;
-const forCases =
-  <K extends FlatKeys<D>>(id: K, ...[values, options]: Values<DeepValue<D, K>, UseTranslatorOptions>) =>
-  (name: string, fn: (t: ExecutionContext, div: HTMLElement) => MaybePromise<void>) => {
-    for (let i = 0; i < 2; i++) {
-      test.serial(`${name} with ${i === 0 ? 'translator' : 'hook'}`, (t) => {
-        function WithHook() {
-          const _t = t.context.useTranslator();
-          const value = _t(id, ...([values, options] as any));
-          return <>{value instanceof Array ? value.join('') : value}</>;
-        }
+const forCases = <K extends FlatKeys<D>>(id: K, ...[values, options]: Values<DeepValue<D, K>, UseTranslatorOptions>) => (
+  name: string,
+  fn: (t: ExecutionContext, div: HTMLElement) => MaybePromise<void>,
+) => {
+  for (let i = 0; i < 2; i++) {
+    test(`${name} with ${i === 0 ? 'translator' : 'hook'}`, (t) => {
+      function WithHook() {
+        const _t = t.context.useTranslator();
+        const value = _t(id, ...([values, options] as any));
+        return <>{value instanceof Array ? value.join('') : value}</>;
+      }
 
-        let element;
-        if (i === 0) {
-          element = t.context.t(id, ...([values, options] as any));
-        } else {
-          element = <WithHook />;
-        }
+      let element;
+      if (i === 0) {
+        element = t.context.t(id, ...([values, options] as any));
+      } else {
+        element = <WithHook />;
+      }
 
-        render(<App>{element}</App>);
-        const div = screen.getByTestId('div');
-        return fn(t, div);
-      });
-    }
-  };
+      render(<App id={t.title}>{element}</App>);
+      const div = screen.getByTestId(t.title);
+      return fn(t, div);
+    });
+  }
+};
 
 forCases('key1', undefined)('simple', async (t, div) => {
   t.is(div.textContent, 'key1:en');
@@ -130,36 +131,36 @@ forCases('key1', undefined, { placeholder: '...' })('switching twice', async (t,
   t.is(div.textContent, '-');
 });
 
-test.serial('format with translator', async (t) => {
-  render(<App>{t.context.t.format('{date, date}', { date })}</App>);
-  const div = screen.getByTestId('div');
+test('format with translator', async (t) => {
+  render(<App id={t.title}>{t.context.t.format('{date, date}', { date })}</App>);
+  const div = screen.getByTestId(t.title);
   t.is(div.textContent, '1/1/2000');
 
   fireEvent.click(div);
   t.is(div.textContent, '1.1.2000');
 });
 
-test.serial('format with hook', async (t) => {
+test('format with hook', async (t) => {
   function WithHook() {
     const _t = t.context.useTranslator();
     return <>{_t.format('{date, date}', { date })}</>;
   }
 
   render(
-    <App>
+    <App id={t.title}>
       <WithHook />
     </App>,
   );
-  const div = screen.getByTestId('div');
+  const div = screen.getByTestId(t.title);
   t.is(div.textContent, '1/1/2000');
 
   fireEvent.click(div);
   t.is(div.textContent, '1.1.2000');
 });
 
-test.serial('arr with component', async (t) => {
-  render(<App>{t.context.t('arr', { pOne: 'p1', pTwo: 'p2' }, { component: 'div' })}</App>);
-  const div = screen.getByTestId('div');
+test('arr with component', async (t) => {
+  render(<App id={t.title}>{t.context.t('arr', { pOne: 'p1', pTwo: 'p2' }, { component: 'div' })}</App>);
+  const div = screen.getByTestId(t.title);
   t.is(div.innerHTML, '<div>one p1</div><div>two p2</div>');
 
   fireEvent.click(div);
@@ -167,7 +168,7 @@ test.serial('arr with component', async (t) => {
   t.is(div.innerHTML, '<div>eins p1</div><div>zwei p2</div>');
 });
 
-test.serial('arr with hook', async (t) => {
+test('arr with hook', async (t) => {
   function WithHook() {
     const _t = t.context.useTranslator();
     const arr = _t('arr', { pOne: 'p1', pTwo: 'p2' });
@@ -175,14 +176,43 @@ test.serial('arr with hook', async (t) => {
   }
 
   render(
-    <App>
+    <App id={t.title}>
       <WithHook />
     </App>,
   );
-  const div = screen.getByTestId('div');
+  const div = screen.getByTestId(t.title);
   t.is(div.innerHTML, 'two p2');
 
   fireEvent.click(div);
   await wait(1);
   t.is(div.innerHTML, 'zwei p2');
+});
+
+test('locale', async (t) => {
+  function WithHook() {
+    const _t = t.context.useTranslator();
+    return <>{_t.locale}</>;
+  }
+
+  render(
+    <App id={t.title}>
+      <WithHook />
+    </App>,
+  );
+  const div = screen.getByTestId(t.title);
+  t.is(div.innerHTML, 'en');
+
+  fireEvent.click(div);
+  await wait(1);
+  t.is(div.innerHTML, 'de');
+});
+
+test('render', async (t) => {
+  render(<App id={t.title}>{t.context.t.render((locale) => `locale: ${locale}`)}</App>);
+  const div = screen.getByTestId(t.title);
+  t.is(div.textContent, 'locale: en');
+
+  fireEvent.click(div);
+  await wait(1);
+  t.is(div.textContent, 'locale: de');
 });

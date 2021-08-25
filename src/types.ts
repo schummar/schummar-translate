@@ -65,9 +65,12 @@ export type GetTranslatorOptions = {
   fallback?: string;
 };
 
-export type GetTranslator<D extends FlatDict> = (locale: string) => Promise<
+export type GetTranslator<D extends FlatDict> = (
+  locale: string,
+) => Promise<
   TranslateKnown<D, GetTranslatorOptions, string, readonly string[]> & {
     unknown: TranslateUnknown<GetTranslatorOptions, string>;
     format: Format<string>;
+    locale: string;
   }
 >;

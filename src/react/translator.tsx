@@ -1,4 +1,4 @@
-import React, { createContext, Fragment, useContext, useMemo } from 'react';
+import React, { createContext, Fragment, ReactNode, useContext, useMemo } from 'react';
 import { DictStore } from '../dictStore';
 import { format, translate } from '../translate';
 import { getTranslator } from '../translator';
@@ -40,20 +40,23 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     const localeFallbackOrder = [locale, ...fallbackLocale];
     const dicts = useFuture(() => store.load(...new Set(localeFallbackOrder)), [locale]);
 
-    const t: TranslateUnknown<UseTranslatorOptions, string> = (id, ...[values, options]) => {
-      const fallback = options?.fallback ?? fallbackDefault;
-      const placeholder = options?.placeholder ?? placeholderDefault;
-      return translate({ dicts, sourceDict: store.sourceDict, id, values, fallback, placeholder, locale, warn });
-    };
+    return useMemo(() => {
+      const t: TranslateUnknown<UseTranslatorOptions, string> = (id, ...[values, options]) => {
+        const fallback = options?.fallback ?? fallbackDefault;
+        const placeholder = options?.placeholder ?? placeholderDefault;
+        return translate({ dicts, sourceDict: store.sourceDict, id, values, fallback, placeholder, locale, warn });
+      };
 
-    const f: Format<string> = (template, ...[values]) => {
-      return format(template, values as any, locale);
-    };
+      const f: Format<string> = (template, ...[values]) => {
+        return format(template, values as any, locale);
+      };
 
-    return Object.assign(t as unknown as TranslateKnown<FlattenDict<D>, UseTranslatorOptions, string, readonly string[]>, {
-      unknown: t,
-      format: f,
-    });
+      return Object.assign((t as unknown) as TranslateKnown<FlattenDict<D>, UseTranslatorOptions, string, readonly string[]>, {
+        unknown: t,
+        format: f,
+        locale,
+      });
+    }, [fallbackDefault, placeholderDefault, dicts, store.sourceDict, locale, warn]);
   };
 
   const TranslatorComponent = ({
@@ -70,11 +73,19 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     const localeFallbackOrder = [locale, ...fallbackLocale];
     const dicts = useFuture(() => store.load(...new Set(localeFallbackOrder)), [locale]);
 
-    if (id === 'flatKey') console.log(id, options, contextLocale, localeFallbackOrder, dicts);
-
     const fallback = options?.fallback ?? fallbackElement ?? fallbackDefault;
     const placeholder = options?.placeholder ?? placeholderElement ?? placeholderDefault;
-    const text = translate({ dicts, sourceDict: store.sourceDict, id, values, fallback, placeholder, locale, warn });
+
+    const text = useMemo(() => translate({ dicts, sourceDict: store.sourceDict, id, values, fallback, placeholder, locale, warn }), [
+      dicts,
+      store.sourceDict,
+      id,
+      values,
+      fallback,
+      placeholder,
+      locale,
+      warn,
+    ]);
     const textArray = text instanceof Array ? text : [text];
     const Component = options?.component ?? Fragment;
 
@@ -94,7 +105,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
   const FormatComponent = ({ template, values }: { template: string; values?: Record<string, unknown> }) => {
     const contextLocale = useContext(TranslationContext).locale;
     const locale = contextLocale ?? sourceLocale;
-    const text = format(template, values, locale);
+    const text = useMemo(() => format(template, values, locale), [template, values, locale]);
 
     return <>{text}</>;
   };
@@ -103,11 +114,18 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     return <FormatComponent {...{ template, values: values as any }} />;
   };
 
+  const RenderComponent = ({ render }: { render: (locale: string) => ReactNode }) => {
+    const contextLocale = useContext(TranslationContext).locale;
+    const locale = contextLocale ?? sourceLocale;
+    return <>{render(locale)}</>;
+  };
+
   const t: ReactTranslator<FlattenDict<D>> = Object.assign(
     createTranslatorComponent as TranslateKnown<FlattenDict<D>, ReactTranslatorOptions, React.ReactNode, React.ReactNode>,
     {
       unknown: createTranslatorComponent,
       format: createFormatComponent,
+      render: (render: (locale: string) => ReactNode) => <RenderComponent render={render} />,
     },
   );
 
