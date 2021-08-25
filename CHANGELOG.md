@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://www.github.com/schummar/schummar-translate/compare/v1.2.1...v1.3.0) (2021-08-25)
+
+
+### Features
+
+* t.render ([5b46b39](https://www.github.com/schummar/schummar-translate/commit/5b46b39d32a3bff0024f2e4f89bd79d6b781a9f0))
+
 ### [1.2.1](https://www.github.com/schummar/schummar-translate/compare/v1.2.0...v1.2.1) (2021-08-12)
 
 
