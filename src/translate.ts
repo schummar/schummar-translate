@@ -2,8 +2,6 @@ import { IntlMessageFormat } from 'intl-messageformat';
 import { mapPotentialArray } from './mapPotentialArray';
 import { FlatDict } from './types';
 
-const cache = new Map<string, IntlMessageFormat>();
-
 export function translate<F = never>({
   dicts,
   sourceDict,
@@ -55,10 +53,7 @@ export function translate<F = never>({
 
 export function format(template: string, values?: Record<string, unknown>, locale?: string): string {
   try {
-    const key = `${locale}:${template}`;
-    let f = cache.get(key);
-    if (!f) cache.set(key, (f = new IntlMessageFormat(template, locale)));
-
+    const f = new IntlMessageFormat(template, locale);
     const msg = f.format(values);
     if (msg instanceof Array) return msg.join(' ');
     return String(msg);

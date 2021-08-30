@@ -40,31 +40,30 @@ function App({ id, locales = ['en', 'de', 'es'], children }: { id: string; local
 }
 
 type D = typeof dictEn;
-const forCases = <K extends FlatKeys<D>>(id: K, ...[values, options]: Values<DeepValue<D, K>, UseTranslatorOptions>) => (
-  name: string,
-  fn: (t: ExecutionContext, div: HTMLElement) => MaybePromise<void>,
-) => {
-  for (let i = 0; i < 2; i++) {
-    test(`${name} with ${i === 0 ? 'translator' : 'hook'}`, (t) => {
-      function WithHook() {
-        const _t = t.context.useTranslator();
-        const value = _t(id, ...([values, options] as any));
-        return <>{value instanceof Array ? value.join('') : value}</>;
-      }
+const forCases =
+  <K extends FlatKeys<D>>(id: K, ...[values, options]: Values<DeepValue<D, K>, UseTranslatorOptions>) =>
+  (name: string, fn: (t: ExecutionContext, div: HTMLElement) => MaybePromise<void>) => {
+    for (let i = 0; i < 2; i++) {
+      test(`${name} with ${i === 0 ? 'translator' : 'hook'}`, (t) => {
+        function WithHook() {
+          const _t = t.context.useTranslator();
+          const value = _t(id, ...([values, options] as any));
+          return <>{value instanceof Array ? value.join('') : value}</>;
+        }
 
-      let element;
-      if (i === 0) {
-        element = t.context.t(id, ...([values, options] as any));
-      } else {
-        element = <WithHook />;
-      }
+        let element;
+        if (i === 0) {
+          element = t.context.t(id, ...([values, options] as any));
+        } else {
+          element = <WithHook />;
+        }
 
-      render(<App id={t.title}>{element}</App>);
-      const div = screen.getByTestId(t.title);
-      return fn(t, div);
-    });
-  }
-};
+        render(<App id={t.title}>{element}</App>);
+        const div = screen.getByTestId(t.title);
+        return fn(t, div);
+      });
+    }
+  };
 
 forCases('key1', undefined)('simple', async (t, div) => {
   t.is(div.textContent, 'key1:en');
@@ -208,11 +207,32 @@ test('locale', async (t) => {
 });
 
 test('render', async (t) => {
-  render(<App id={t.title}>{t.context.t.render((locale) => `locale: ${locale}`)}</App>);
+  let renderCount = 0;
+
+  const Comp = () => {
+    const [, setI] = useState(0);
+    return (
+      <div onClick={() => setI((i) => i + 1)}>
+        <App id={t.title} locales={['en', 'de', 'de']}>
+          {t.context.t.render((locale) => {
+            renderCount++;
+            return new Intl.DateTimeFormat(locale, { dateStyle: 'full' }).format(date);
+          }, [])}
+        </App>
+        ,
+      </div>
+    );
+  };
+
+  render(<Comp />);
   const div = screen.getByTestId(t.title);
-  t.is(div.textContent, 'locale: en');
+  t.is(div.innerHTML, 'Saturday, January 1, 2000');
 
   fireEvent.click(div);
   await wait(1);
-  t.is(div.textContent, 'locale: de');
+  t.is(div.innerHTML, 'Samstag, 1. Januar 2000');
+
+  fireEvent.click(div);
+  await wait(1);
+  t.is(renderCount, 2);
 });

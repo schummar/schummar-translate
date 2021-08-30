@@ -8,6 +8,7 @@ import {
   ReactCreateTranslatorResult,
   ReactTranslator,
   ReactTranslatorOptions,
+  Render,
   UseTranslator,
   UseTranslatorOptions,
 } from './types';
@@ -108,10 +109,15 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     return <FormatComponent {...{ template, values: values as any }} />;
   };
 
-  const RenderComponent = ({ render }: { render: (locale: string) => ReactNode }) => {
+  const RenderComponent = ({ renderFn, dependecies = [renderFn] }: { renderFn: (locale: string) => ReactNode; dependecies?: any[] }) => {
     const contextLocale = useContext(TranslationContext).locale;
     const locale = contextLocale ?? sourceLocale;
-    return <>{render(locale)}</>;
+    const value = useMemo(() => renderFn(locale), [locale, ...dependecies]);
+    return <>{value}</>;
+  };
+
+  const createRenderComponent: Render = (renderFn, dependecies) => {
+    return <RenderComponent renderFn={renderFn} dependecies={dependecies} />;
   };
 
   const t: ReactTranslator<FlattenDict<D>> = Object.assign(
@@ -119,7 +125,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     {
       unknown: createTranslatorComponent,
       format: createFormatComponent,
-      render: (render: (locale: string) => ReactNode) => <RenderComponent render={render} />,
+      render: createRenderComponent,
     },
   );
 

@@ -30,11 +30,22 @@ export type Dict = { [id: string]: Dict | string | readonly string[] };
 export type FlatDict = Record<string, string | readonly string[]>;
 
 export type CreateTranslatorOptions<D extends Dict> = {
+  /** The source dictionary. It's type determines the available ids. */
   sourceDictionary: D;
+  /** The source dictionary's locale */
   sourceLocale: string;
+  /** Locale(s) to fall back to if a string is not available in the active locale */
   fallbackLocale?: string | readonly string[];
+  /** Dictionaries. Either a record with locales as keys or a function that takes a locale and returns a promise of a dictionary
+   * @param locale the active locale
+   */
   dicts?: { [locale: string]: Dict | (() => MaybePromise<Dict>) } | ((locale: string) => MaybePromise<Dict | null>);
+  /** Custom fallback handler. Will be called when a string is not available in the active locale.
+   * @param id flat dictionary key
+   * @param sourceTranslation translated string in source locale
+   */
   fallback?: string | ((id: string, sourceTranslation: string) => string);
+  /** Receive warning when strings are missing. */
   warn?: (locale: string, id: string) => void;
 };
 
@@ -48,20 +59,23 @@ export type Values<T extends string | readonly string[], Options = never> = Reco
   ? [values?: Record<string, unknown>, options?: Options]
   : [values: GetICUArgs<T>, options?: Options];
 
-export type TranslateKnown<D extends FlatDict, Options, ReturnValue, ArrayReturnValue> = <K extends keyof D>(
-  id: K,
-  ...values: Values<D[K], Options>
-) => D[K] extends readonly string[] ? ArrayReturnValue : ReturnValue;
+export type TranslateKnown<D extends FlatDict, Options, ReturnValue, ArrayReturnValue> = {
+  /** Translate a dictionary id to a string in the active locale */
+  <K extends keyof D>(id: K, ...values: Values<D[K], Options>): D[K] extends readonly string[] ? ArrayReturnValue : ReturnValue;
+};
 
-export type TranslateUnknown<Options, ReturnValue> = (
-  id: string,
-  values?: Record<string, unknown>,
-  options?: Options,
-) => ReturnValue | readonly ReturnValue[];
+export type TranslateUnknown<Options, ReturnValue> = {
+  /** Translate a dictionary id to a string in the active locale. Without type checking the id. */
+  (id: string, values?: Record<string, unknown>, options?: Options): ReturnValue | readonly ReturnValue[];
+};
 
-export type Format<ReturnValue> = <T extends string>(template: T, ...values: Values<T>) => ReturnValue;
+export type Format<ReturnValue> = {
+  /** Format the given template directly. */
+  <T extends string>(template: T, ...values: Values<T>): ReturnValue;
+};
 
 export type GetTranslatorOptions = {
+  /** Override fallback to use if string is not available in active locale */
   fallback?: string;
 };
 
