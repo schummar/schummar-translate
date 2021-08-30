@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://www.github.com/schummar/schummar-translate/compare/v1.3.0...v1.4.0) (2021-08-30)
+
+
+### Features
+
+* Added dependecies to render function. ([0f6b109](https://www.github.com/schummar/schummar-translate/commit/0f6b109738441ba8fc626ba39456879dd70f1efb))
+
 ## [1.3.0](https://www.github.com/schummar/schummar-translate/compare/v1.2.1...v1.3.0) (2021-08-25)
 
 
