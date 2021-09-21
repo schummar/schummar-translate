@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.4.1](https://www.github.com/schummar/schummar-translate/compare/v1.4.0...v1.4.1) (2021-09-21)
+
+
+### Bug Fixes
+
+* Don't crash if no "other" case is provided. ([bc32164](https://www.github.com/schummar/schummar-translate/commit/bc321640f0c640769dace87694e5eead11f7dc57))
+
 ## [1.4.0](https://www.github.com/schummar/schummar-translate/compare/v1.3.0...v1.4.0) (2021-08-30)
 
 
