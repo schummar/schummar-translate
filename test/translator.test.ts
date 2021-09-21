@@ -78,3 +78,10 @@ test('locale', async (t) => {
   t.is(en.locale, 'en');
   t.is(de.locale, 'de');
 });
+
+test('plural without other', async (t) => {
+  const ru = await getTranslator('ru');
+  t.is(ru.format('{x, plural, one {# one} few {# few} many {# many}}', { x: 1 }), '1 one');
+  t.is(ru.format('{x, plural, one {# one} few {# few} many {# many}}', { x: 2 }), '2 few');
+  t.is(ru.format('{x, plural, one {# one} few {# few} many {# many}}', { x: 5 }), '5 many');
+});

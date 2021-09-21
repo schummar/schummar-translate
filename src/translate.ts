@@ -1,3 +1,4 @@
+import { parse } from '@formatjs/icu-messageformat-parser';
 import { IntlMessageFormat } from 'intl-messageformat';
 import { mapPotentialArray } from './mapPotentialArray';
 import { FlatDict } from './types';
@@ -53,7 +54,8 @@ export function translate<F = never>({
 
 export function format(template: string, values?: Record<string, unknown>, locale?: string): string {
   try {
-    const f = new IntlMessageFormat(template, locale);
+    const ast = parse(template, { requiresOtherClause: false });
+    const f = new IntlMessageFormat(ast, locale);
     const msg = f.format(values);
     if (msg instanceof Array) return msg.join(' ');
     return String(msg);
