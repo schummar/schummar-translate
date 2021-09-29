@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.5.0](https://www.github.com/schummar/schummar-translate/compare/v1.4.1...v1.5.0) (2021-09-29)
+
+
+### Features
+
+* Cache ([af9c9f5](https://www.github.com/schummar/schummar-translate/commit/af9c9f5e98614e67dcbc0001065af5e4ec9fe2ef))
+* Clear dictionaries ([af9c9f5](https://www.github.com/schummar/schummar-translate/commit/af9c9f5e98614e67dcbc0001065af5e4ec9fe2ef))
+* Dynamic source dictionary ([af9c9f5](https://www.github.com/schummar/schummar-translate/commit/af9c9f5e98614e67dcbc0001065af5e4ec9fe2ef))
+* Intl integration ([af9c9f5](https://www.github.com/schummar/schummar-translate/commit/af9c9f5e98614e67dcbc0001065af5e4ec9fe2ef))
+
 ### [1.4.1](https://www.github.com/schummar/schummar-translate/compare/v1.4.0...v1.4.1) (2021-09-21)
 
 
