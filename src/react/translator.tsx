@@ -1,87 +1,107 @@
-import React, { createContext, Fragment, ReactNode, useContext, useMemo } from 'react';
-import { DictStore } from '../dictStore';
+import React, { Fragment, ReactNode, useContext, useMemo } from 'react';
+import { TranslationContext } from '.';
+import { TranslatorFn } from '..';
+import { hash } from '../cache';
+import { castArray, toDate } from '../helpers';
+import { Store } from '../store';
 import { format, translate } from '../translate';
-import { getTranslator } from '../translator';
-import { Dict, FlattenDict, Format, TranslateKnown, TranslateUnknown } from '../types';
+import { createGetTranslator } from '../translator';
+import { Dict, FlattenDict, Values } from '../types';
 import {
+  HookTranslator,
+  HookTranslatorOptions,
+  InlineTranslator,
+  InlineTranslatorOptions,
   ReactCreateTranslatorOptions,
   ReactCreateTranslatorResult,
-  ReactTranslator,
-  ReactTranslatorOptions,
-  Render,
-  UseTranslator,
-  UseTranslatorOptions,
 } from './types';
-import { useFuture } from './useFuture';
-
-export const TranslationContext = createContext({
-  locale: typeof window === 'object' && 'navigator' in window ? window.navigator.language.slice(0, 2) : undefined,
-});
-
-export const TranslationContextProvider = ({ locale, children }: { locale?: string; children?: React.ReactNode }): JSX.Element => {
-  const value = useMemo(() => ({ locale }), [locale]);
-  return <TranslationContext.Provider value={value}>{children}</TranslationContext.Provider>;
-};
+import { useStore } from './useStore';
 
 export function createTranslator<D extends Dict>(options: ReactCreateTranslatorOptions<D>): ReactCreateTranslatorResult<FlattenDict<D>> {
-  const store = new DictStore(options);
-  const {
-    sourceLocale,
-    fallbackLocale = [],
-    fallback: fallbackDefault,
-    fallbackElement,
-    placeholder: placeholderDefault,
-    placeholderElement,
-    warn,
-  } = options;
+  type FD = FlattenDict<D>;
 
-  const useTranslator: UseTranslator<FlattenDict<D>> = (overrideLocale) => {
+  const store = new Store(options);
+  const { sourceLocale, fallbackLocale = [], fallback: defaultFallback, placeholder: defaultPlaceholder, warn } = options;
+
+  /////////////////////////////////////////////////////////////////////////////
+  // hook translator
+  /////////////////////////////////////////////////////////////////////////////
+  const useTranslator: ReactCreateTranslatorResult<FD>['useTranslator'] = (overrideLocale) => {
     const contextLocale = useContext(TranslationContext).locale;
     const locale = overrideLocale ?? contextLocale ?? sourceLocale;
-    const localeFallbackOrder = [locale, ...fallbackLocale];
-    const dicts = useFuture(() => store.load(...new Set(localeFallbackOrder)), [locale]);
+    const dicts = useStore(store, locale, ...castArray(fallbackLocale));
+    const [sourceDict] = useStore(store, sourceLocale) ?? [];
 
     return useMemo(() => {
-      const t: TranslateUnknown<UseTranslatorOptions, string> = (id, ...[values, options]) => {
-        const fallback = options?.fallback ?? fallbackDefault;
-        const placeholder = options?.placeholder ?? placeholderDefault;
-        return translate({ dicts, sourceDict: store.sourceDict, id, values, fallback, placeholder, locale, warn });
+      const t: TranslatorFn<FD, HookTranslatorOptions, string> = (id, ...[values, options]) => {
+        const fallback = options?.fallback ?? defaultFallback;
+        const placeholder = options?.placeholder ?? defaultPlaceholder;
+        return translate({ dicts, sourceDict, id, values, fallback, placeholder, locale, warn }) as any;
       };
 
-      const f: Format<string> = (template, ...[values]) => {
-        return format(template, values as any, locale);
-      };
-
-      return Object.assign(t as unknown as TranslateKnown<FlattenDict<D>, UseTranslatorOptions, string, readonly string[]>, {
-        unknown: t,
-        format: f,
+      return Object.assign<TranslatorFn<FD>, Omit<HookTranslator<FD>, keyof TranslatorFn<FD>>>(t, {
         locale,
+
+        unknown: t as HookTranslator<FD>['unknown'],
+
+        format(template, ...[values]) {
+          return format(template, values as any, locale);
+        },
+
+        dateTimeFormat(date, options) {
+          return store.cache.get(Intl.DateTimeFormat, locale, options).format(toDate(date));
+        },
+
+        displayNames(code, options) {
+          // TODO remove cast when DisplayNames is included in standard lib
+          return store.cache.get((Intl as any).DisplayNames, locale, options).of(code);
+        },
+
+        listFormat(list, options) {
+          // TODO remove cast when DisplayNames is included in standard lib
+          return store.cache.get((Intl as any).ListFormat, locale, options).format(list);
+        },
+
+        numberFormat(number, options) {
+          return store.cache.get(Intl.NumberFormat, locale, options).format(number);
+        },
+
+        pluralRules(number, options) {
+          return store.cache.get(Intl.PluralRules, locale, options).select(number);
+        },
+
+        relativeTimeFormat(value, unit, options) {
+          return store.cache.get(Intl.RelativeTimeFormat, locale, options).format(value, unit);
+        },
       });
-    }, [fallbackDefault, placeholderDefault, dicts, store.sourceDict, locale, warn]);
+    }, [locale, dicts, sourceDict]);
   };
 
-  const TranslatorComponent = ({
+  /////////////////////////////////////////////////////////////////////////////
+  // inline translator
+  /////////////////////////////////////////////////////////////////////////////
+  function TranslatorComponent<K extends keyof FD>({
     id,
     values,
     options,
   }: {
     id: string;
-    values?: Record<string, unknown>;
-    options?: ReactTranslatorOptions;
-  }) => {
+    values: Values<FD[K], InlineTranslatorOptions>[0];
+    options?: Values<FD[K], InlineTranslatorOptions>[1];
+  }) {
     const contextLocale = useContext(TranslationContext).locale;
     const locale = options?.locale ?? contextLocale ?? sourceLocale;
-    const localeFallbackOrder = [locale, ...fallbackLocale];
-    const dicts = useFuture(() => store.load(...new Set(localeFallbackOrder)), [locale]);
+    const dicts = useStore(store, locale, ...castArray(fallbackLocale));
+    const [sourceDict] = useStore(store, sourceLocale) ?? [];
 
-    const fallback = options?.fallback ?? fallbackElement ?? fallbackDefault;
-    const placeholder = options?.placeholder ?? placeholderElement ?? placeholderDefault;
+    const fallback = options?.fallback ?? defaultFallback;
+    const placeholder = options?.placeholder ?? defaultPlaceholder;
 
     const text = useMemo(
-      () => translate({ dicts, sourceDict: store.sourceDict, id, values, fallback, placeholder, locale, warn }),
-      [dicts, store.sourceDict, id, values, fallback, placeholder, locale, warn],
+      () => translate({ dicts, sourceDict, id, values, fallback, placeholder, locale, warn }),
+      [locale, dicts, sourceDict, id, values, fallback, placeholder],
     );
-    const textArray = text instanceof Array ? text : [text];
+    const textArray = castArray(text);
     const Component = options?.component ?? Fragment;
 
     return (
@@ -91,10 +111,10 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
         ))}
       </>
     );
-  };
+  }
 
-  const createTranslatorComponent: TranslateUnknown<ReactTranslatorOptions, React.ReactNode> = (id, ...[values, options]) => {
-    return <TranslatorComponent {...{ id, values, options }} />;
+  const createTranslatorComponent: TranslatorFn<FD, InlineTranslatorOptions, ReactNode> = (id, ...[values, options]) => {
+    return <TranslatorComponent id={id} values={values} options={options} />;
   };
 
   const FormatComponent = ({ template, values }: { template: string; values?: Record<string, unknown> }) => {
@@ -105,7 +125,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     return <>{text}</>;
   };
 
-  const createFormatComponent: Format<React.ReactNode> = (template, ...[values]) => {
+  const createFormatComponent: InlineTranslator<FD>['format'] = (template, ...[values]) => {
     return <FormatComponent {...{ template, values: values as any }} />;
   };
 
@@ -116,22 +136,70 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     return <>{value}</>;
   };
 
-  const createRenderComponent: Render = (renderFn, dependecies) => {
+  const createRenderComponent: InlineTranslator<FD>['render'] = (renderFn, dependecies) => {
     return <RenderComponent renderFn={renderFn} dependecies={dependecies} />;
   };
 
-  const t: ReactTranslator<FlattenDict<D>> = Object.assign(
-    createTranslatorComponent as TranslateKnown<FlattenDict<D>, ReactTranslatorOptions, React.ReactNode, React.ReactNode>,
-    {
-      unknown: createTranslatorComponent,
-      format: createFormatComponent,
-      render: createRenderComponent,
+  const t: InlineTranslator<FD> = Object.assign<
+    TranslatorFn<FD, InlineTranslatorOptions, ReactNode>,
+    Omit<InlineTranslator<FD>, keyof TranslatorFn<FD, InlineTranslatorOptions, ReactNode>>
+  >(createTranslatorComponent, {
+    get locale() {
+      return createRenderComponent((locale) => locale, []);
     },
-  );
+
+    unknown: createTranslatorComponent as InlineTranslator<FD>['unknown'],
+
+    format: createFormatComponent,
+
+    render: createRenderComponent,
+
+    dateTimeFormat(date, options) {
+      return createRenderComponent(
+        (locale) => store.cache.get(Intl.DateTimeFormat, locale, options).format(toDate(date)),
+        [date, hash(options)],
+      );
+    },
+
+    displayNames(code, options) {
+      // TODO remove cast when DisplayNames is included in standard lib
+      return createRenderComponent(
+        (locale) => store.cache.get((Intl as any).DisplayNames, locale, options).of(code),
+        [code, hash(options)],
+      );
+    },
+
+    listFormat(list, options) {
+      // TODO remove cast when DisplayNames is included in standard lib
+      return createRenderComponent(
+        (locale) => store.cache.get((Intl as any).ListFormat, locale, options).format(list),
+        [list && hash([...list]), hash(options)],
+      );
+    },
+
+    numberFormat(number, options) {
+      return createRenderComponent((locale) => store.cache.get(Intl.NumberFormat, locale, options).format(number), [number, hash(options)]);
+    },
+
+    pluralRules(number, options) {
+      return createRenderComponent((locale) => store.cache.get(Intl.PluralRules, locale, options).select(number), [number, hash(options)]);
+    },
+
+    relativeTimeFormat(value, unit, options) {
+      return createRenderComponent(
+        (locale) => store.cache.get(Intl.RelativeTimeFormat, locale, options).format(value, unit),
+        [value, unit, hash(options)],
+      );
+    },
+  });
 
   return {
-    getTranslator: getTranslator(store, options),
+    getTranslator: createGetTranslator(store, options),
     useTranslator,
     t,
+
+    clearDicts() {
+      store.clear();
+    },
   };
 }

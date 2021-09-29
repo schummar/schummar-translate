@@ -1,38 +1,30 @@
-import React, { ReactNode } from 'react';
-import { CreateTranslatorOptions, Dict, FlatDict, Format, GetTranslator, TranslateKnown, TranslateUnknown } from '../types';
+import { ElementType, ReactNode } from 'react';
+import { CreateTranslatorResult } from '..';
+import { CreateTranslatorOptions, Dict, FlatDict, Translator } from '../types';
 
-export type ReactCreateTranslatorOptions<D extends Dict> = CreateTranslatorOptions<D> & {
-  /** Custom fallback handler. Will be called when a string is not available in the active locale.
-   * @param id flat dictionary key
-   * @param sourceTranslation translated string in source locale
-   */
-  fallbackElement?: ReactNode | ((id: string, sourceTranslation: string) => ReactNode);
+export interface ReactCreateTranslatorOptions<D extends Dict> extends CreateTranslatorOptions<D> {
   /** Display while a locale is loading */
-  placeholder?: string | ((id: string, sourceTranslation: string) => string);
-  /** Display while a locale is loading */
-  placeholderElement?: ReactNode | ((id: string, sourceTranslation: string) => ReactNode);
-};
+  placeholder?: string | ((id: string, sourceTranslation?: string | readonly string[]) => string);
+}
 
-export type ReactCreateTranslatorResult<D extends FlatDict> = {
-  getTranslator: GetTranslator<D>;
-  useTranslator: UseTranslator<D>;
-  t: ReactTranslator<D>;
-};
+export interface ReactCreateTranslatorResult<D extends FlatDict> extends CreateTranslatorResult<D> {
+  /** Returns a translator instance in a hook, which updates as locales changes or dictionaries are loaded */
+  useTranslator: (locale?: string) => HookTranslator<D>;
+  /** Returns an inline translator instance, which updates as locales changes or dictionaries are loaded */
+  t: InlineTranslator<D>;
+}
 
-export type UseTranslatorOptions = {
+export interface HookTranslatorOptions {
   /** Override fallback to use if string is not available in active locale */
   fallback?: string;
   /** Override placholder that is displayed while a locale is loading */
   placeholder?: string;
-};
+}
 
-export type UseTranslator<D extends FlatDict> = (locale?: string) => TranslateKnown<D, UseTranslatorOptions, string, readonly string[]> & {
-  unknown: TranslateUnknown<UseTranslatorOptions, string>;
-  format: Format<string>;
-  locale: string;
-};
+export interface HookTranslator<D extends FlatDict, Options = HookTranslatorOptions, Output = string>
+  extends Translator<D, Options, Output> {}
 
-export type ReactTranslatorOptions = {
+export interface InlineTranslatorOptions {
   /** Override locale */
   locale?: string;
   /** Override fallback to use if string is not available in active locale */
@@ -40,19 +32,13 @@ export type ReactTranslatorOptions = {
   /** Override placholder that is displayed while a locale is loading */
   placeholder?: ReactNode;
   /** Wrap string (or each line in case of array values) in the given component */
-  component?: React.ElementType;
-};
+  component?: ElementType;
+}
 
-export type Render = {
+export interface InlineTranslator<D extends FlatDict> extends HookTranslator<D, InlineTranslatorOptions, ReactNode> {
   /** Render something using the currently active locale
    * @param renderFn your custom render function
    * @param dependencies if provided, will memoize the result of renderFn as long as dependencies stay the same (shallow compare)
    */
-  (renderFn: (locale: string) => ReactNode, dependencies?: any[]): ReactNode;
-};
-
-export type ReactTranslator<D extends FlatDict> = TranslateKnown<D, ReactTranslatorOptions, ReactNode, ReactNode> & {
-  unknown: TranslateUnknown<ReactTranslatorOptions, ReactNode>;
-  format: Format<ReactNode>;
-  render: Render;
-};
+  render(renderFn: (locale: string) => ReactNode, dependencies?: any[]): ReactNode;
+}

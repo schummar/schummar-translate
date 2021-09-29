@@ -1,4 +1,7 @@
+import { CacheOptions } from './cache';
 import { GetICUArgs } from './extractICU';
+import { DisplayNamesOptions } from './polyfills/intl_displayNames';
+import { ListFormatOptions } from './polyfills/intl_listFormat';
 
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers
@@ -29,9 +32,9 @@ export type FlattenDict<D extends Dict> = {
 export type Dict = { [id: string]: Dict | string | readonly string[] };
 export type FlatDict = Record<string, string | readonly string[]>;
 
-export type CreateTranslatorOptions<D extends Dict> = {
+export interface CreateTranslatorOptions<D extends Dict> {
   /** The source dictionary. It's type determines the available ids. */
-  sourceDictionary: D;
+  sourceDictionary?: D;
   /** The source dictionary's locale */
   sourceLocale: string;
   /** Locale(s) to fall back to if a string is not available in the active locale */
@@ -44,14 +47,20 @@ export type CreateTranslatorOptions<D extends Dict> = {
    * @param id flat dictionary key
    * @param sourceTranslation translated string in source locale
    */
-  fallback?: string | ((id: string, sourceTranslation: string) => string);
+  fallback?: string | ((id: string, sourceTranslation?: string | readonly string[]) => string);
   /** Receive warning when strings are missing. */
   warn?: (locale: string, id: string) => void;
-};
+  /** Configure cache for intl instances */
+  cacheOptions?: CacheOptions;
+}
 
-export type CreateTranslatorResult<D extends FlatDict> = {
-  getTranslator: GetTranslator<D>;
-};
+export interface CreateTranslatorResult<D extends FlatDict> {
+  /** Returns a promise for a translator instance */
+  getTranslator: (locale: string) => Promise<Translator<D>>;
+
+  /** Clear all dictionary data. As needed the dictionaries will be reloaded. Useful for OTA translation updates. */
+  clearDicts: () => void;
+}
 
 export type Values<T extends string | readonly string[], Options = never> = Record<string, never> extends GetICUArgs<T>
   ? [values?: Record<string, unknown>, options?: Options]
@@ -59,30 +68,44 @@ export type Values<T extends string | readonly string[], Options = never> = Reco
   ? [values?: Record<string, unknown>, options?: Options]
   : [values: GetICUArgs<T>, options?: Options];
 
-export type TranslateKnown<D extends FlatDict, Options, ReturnValue, ArrayReturnValue> = {
-  /** Translate a dictionary id to a string in the active locale */
-  <K extends keyof D>(id: K, ...values: Values<D[K], Options>): D[K] extends readonly string[] ? ArrayReturnValue : ReturnValue;
-};
-
-export type TranslateUnknown<Options, ReturnValue> = {
-  /** Translate a dictionary id to a string in the active locale. Without type checking the id. */
-  (id: string, values?: Record<string, unknown>, options?: Options): ReturnValue | readonly ReturnValue[];
-};
-
-export type Format<ReturnValue> = {
-  /** Format the given template directly. */
-  <T extends string>(template: T, ...values: Values<T>): ReturnValue;
-};
-
-export type GetTranslatorOptions = {
+export interface GetTranslatorOptions {
   /** Override fallback to use if string is not available in active locale */
   fallback?: string;
-};
+}
 
-export type GetTranslator<D extends FlatDict> = (locale: string) => Promise<
-  TranslateKnown<D, GetTranslatorOptions, string, readonly string[]> & {
-    unknown: TranslateUnknown<GetTranslatorOptions, string>;
-    format: Format<string>;
-    locale: string;
-  }
->;
+export interface TranslatorFn<D extends FlatDict, Options = GetTranslatorOptions, Output = string> {
+  /** Translate a dictionary id to a string in the active locale */
+  <K extends keyof D>(id: K, ...values: Values<D[K], Options>): D[K] extends readonly string[]
+    ? Output extends string
+      ? readonly string[]
+      : Output
+    : Output;
+}
+
+export interface Translator<D extends FlatDict, Options = GetTranslatorOptions, Output = string> extends TranslatorFn<D, Options, Output> {
+  locale: Output;
+
+  /** Translate a dictionary id to a string in the active locale. Without type checking the id. */
+  unknown(id: string, values?: Record<string, unknown>, options?: Options): Output extends string ? string | readonly string[] : Output;
+
+  /** Format the given template directly. */
+  format<T extends string>(template: T, ...values: Values<T>): Output;
+
+  /** Wraps Intl.DateTimeFormat.format */
+  dateTimeFormat(date?: Date | number | string, options?: Intl.DateTimeFormatOptions): Output;
+
+  /** Wraps Intl.DisplayNames.of */
+  displayNames(code: string, options?: DisplayNamesOptions): Output;
+
+  /** Wraps Intl.ListFormat.format */
+  listFormat(list?: Iterable<string>, options?: ListFormatOptions): Output;
+
+  /** Wraps Intl.NumberFormat.format */
+  numberFormat(number: number | bigint, options?: Intl.NumberFormatOptions): Output;
+
+  /** Wraps Intl.PluralRules.select */
+  pluralRules(number: number, options?: Intl.PluralRulesOptions): Output;
+
+  /** Wraps Intl.RelativeTimeFormat.format */
+  relativeTimeFormat(value: number, unit: Intl.RelativeTimeFormatUnit, options?: Intl.RelativeTimeFormatOptions): Output;
+}

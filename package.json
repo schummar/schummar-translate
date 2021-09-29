@@ -53,7 +53,7 @@
     "coverage": "nyc --include src --all npm run test"
   },
   "dependencies": {
-    "intl-messageformat": "^9.8.2"
+    "intl-messageformat": "^9.9.2"
   },
   "peerDependencies": {
     "@types/react": "^17.0.5",
@@ -68,23 +68,23 @@
     }
   },
   "devDependencies": {
-    "@testing-library/react": "^12.0.0",
-    "@types/node": "^16.4.13",
-    "@types/react": "*",
-    "@typescript-eslint/eslint-plugin": "^4.29.0",
-    "@typescript-eslint/parser": "^4.29.0",
+    "@testing-library/react": "^12.1.1",
+    "@types/node": "^16.10.1",
+    "@types/react": "^17.0.24",
+    "@typescript-eslint/eslint-plugin": "^4.32.0",
+    "@typescript-eslint/parser": "^4.32.0",
     "ava": "^3.15.0",
     "eslint": "^7.32.0",
-    "global-jsdom": "^8.1.0",
-    "jsdom": "^16.7.0",
+    "global-jsdom": "^8.2.0",
+    "jsdom": "^17.0.0",
     "npm-run-all": "^4.1.5",
     "nyc": "^15.1.0",
-    "prettier": "^2.3.2",
+    "prettier": "^2.4.1",
     "react": "*",
     "react-dom": "^17.0.2",
     "rimraf": "^3.0.2",
     "ts-node-dev": "^1.1.8",
-    "typescript": "^4.3.5"
+    "typescript": "^4.4.3"
   },
   "files": [
     "dist",

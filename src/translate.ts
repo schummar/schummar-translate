@@ -1,5 +1,6 @@
 import { parse } from '@formatjs/icu-messageformat-parser';
 import { IntlMessageFormat } from 'intl-messageformat';
+import { MaybePromise } from '.';
 import { mapPotentialArray } from './mapPotentialArray';
 import { FlatDict } from './types';
 
@@ -13,35 +14,43 @@ export function translate<F = never>({
   locale,
   warn,
 }: {
-  dicts?: FlatDict[];
-  sourceDict: FlatDict;
+  dicts: MaybePromise<FlatDict>[];
+  sourceDict?: MaybePromise<FlatDict> | null;
   id: string;
   values?: any;
-  fallback?: F | ((id: string, sourceTranslation: string) => F);
-  placeholder?: F | ((id: string, sourceTranslation: string) => F);
+  fallback?: F | ((id: string, sourceTranslation?: string | readonly string[]) => F);
+  placeholder?: F | ((id: string, sourceTranslation?: string | readonly string[]) => F);
   locale: string;
   warn?: (locale: string, id: string) => void;
 }): string | F | (string | F)[] | F {
-  if (!dicts) {
-    return mapPotentialArray(translate<string>({ dicts: [sourceDict], sourceDict, id, values, locale }), (sourceTranslation) => {
-      if (placeholder instanceof Function) {
-        return placeholder(id, sourceTranslation);
-      }
-      return placeholder ?? '';
-    });
-  }
-
   if (fallback !== undefined) {
     dicts = dicts.slice(0, 1);
   }
 
-  const dict = dicts.find((dict) => id in dict);
-  const template = dict?.[id];
+  const dict = dicts?.find((dict) => dict instanceof Promise || id in dict);
 
+  if (dict instanceof Promise) {
+    return mapPotentialArray(
+      sourceDict && !(sourceDict instanceof Promise)
+        ? translate<string>({ dicts: [sourceDict], sourceDict, id, values, locale })
+        : undefined,
+      (sourceTranslation) => {
+        if (placeholder instanceof Function) {
+          return placeholder(id, sourceTranslation);
+        }
+        return placeholder ?? '';
+      },
+    );
+  }
+
+  const template = dict?.[id];
   if (!template) {
     if (fallback instanceof Function) {
-      const sourceTranslation = translate<string>({ dicts: [sourceDict], sourceDict, id, values, locale });
-      return fallback(id, sourceTranslation as string);
+      const sourceTranslation =
+        sourceDict && !(sourceDict instanceof Promise)
+          ? translate<string>({ dicts: [sourceDict], sourceDict, id, values, locale })
+          : undefined;
+      return fallback(id, sourceTranslation);
     }
     if (fallback !== undefined) return fallback;
 

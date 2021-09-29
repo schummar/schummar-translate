@@ -1,46 +1,70 @@
-import { DictStore } from './dictStore';
+import { TranslatorFn } from '.';
+import { castArray, toDate } from './helpers';
+import { Store } from './store';
 import { format, translate } from './translate';
-import {
-  CreateTranslatorOptions,
-  CreateTranslatorResult,
-  Dict,
-  FlattenDict,
-  Format,
-  GetTranslator,
-  GetTranslatorOptions,
-  TranslateKnown,
-  TranslateUnknown,
-} from './types';
+import { CreateTranslatorOptions, CreateTranslatorResult, Dict, FlattenDict, Translator } from './types';
 
-export const getTranslator =
+export const createGetTranslator =
   <D extends Dict>(
-    store: DictStore<D>,
-    { fallbackLocale = [], fallback: globalFallback, warn }: CreateTranslatorOptions<D>,
-  ): GetTranslator<FlattenDict<D>> =>
+    store: Store<D>,
+    { fallbackLocale, fallback: globalFallback, warn, sourceLocale }: CreateTranslatorOptions<D>,
+  ): ((locale: string) => Promise<Translator<FlattenDict<D>>>) =>
   async (locale: string) => {
-    const localeFallbackOrder = [locale, ...fallbackLocale];
-    const dicts = await store.load(...new Set(localeFallbackOrder));
+    type FD = FlattenDict<D>;
 
-    const t: TranslateUnknown<GetTranslatorOptions, string> = (id, ...[values, options]) => {
+    const dicts = await store.loadAll(locale, ...castArray(fallbackLocale));
+    const sourceDict = await store.load(sourceLocale);
+
+    const t: TranslatorFn<FD> = (id, ...[values, options]) => {
       const fallback = options?.fallback ?? globalFallback;
-      return translate({ dicts, sourceDict: store.sourceDict, id, values, fallback, locale, warn });
+      return translate({ dicts, sourceDict, id, values, fallback, locale, warn }) as any;
     };
 
-    const f: Format<string> = (template, ...[values]) => {
-      return format(template, values as any, locale);
-    };
-
-    return Object.assign(t as unknown as TranslateKnown<FlattenDict<D>, GetTranslatorOptions, string, readonly string[]>, {
-      unknown: t,
-      format: f,
+    return Object.assign<TranslatorFn<FD>, Omit<Translator<FD>, keyof TranslatorFn<FD>>>(t, {
       locale,
+
+      unknown: t as Translator<FD>['unknown'],
+
+      format(template, ...[values]) {
+        return format(template, values as any, locale);
+      },
+
+      dateTimeFormat(date, options) {
+        return store.cache.get(Intl.DateTimeFormat, locale, options).format(toDate(date));
+      },
+
+      displayNames(code, options) {
+        // TODO remove cast when DisplayNames is included in standard lib
+        return store.cache.get((Intl as any).DisplayNames, locale, options).of(code);
+      },
+
+      listFormat(list, options) {
+        // TODO remove cast when DisplayNames is included in standard lib
+        return store.cache.get((Intl as any).ListFormat, locale, options).format(list);
+      },
+
+      numberFormat(number, options) {
+        return store.cache.get(Intl.NumberFormat, locale, options).format(number);
+      },
+
+      pluralRules(number, options) {
+        return store.cache.get(Intl.PluralRules, locale, options).select(number);
+      },
+
+      relativeTimeFormat(value, unit, options) {
+        return store.cache.get(Intl.RelativeTimeFormat, locale, options).format(value, unit);
+      },
     });
   };
 
 export function createTranslator<D extends Dict>(options: CreateTranslatorOptions<D>): CreateTranslatorResult<FlattenDict<D>> {
-  const store = new DictStore(options);
+  const store = new Store(options);
 
   return {
-    getTranslator: getTranslator(store, options),
+    getTranslator: createGetTranslator(store, options),
+
+    clearDicts() {
+      store.clear();
+    },
   };
 }
