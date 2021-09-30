@@ -9,7 +9,7 @@ const { getTranslator } = createTranslator({
   dicts: (locale) => (locale === 'de' ? dictDe : null),
 });
 
-const date = new Date('2000-01-01T00:00:00Z');
+const date = new Date(2000, 1, 2, 3, 4, 5);
 
 test('simple', async (t) => {
   const en = await getTranslator('en');
@@ -31,16 +31,16 @@ test('with complex values', async (t) => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
-  t.is(en('nested.key3', { number: 1, plural: 1, selectordinal: 1, date, time: date }), 'key3:en 1 one 1st 1/1/2000 1:00 AM');
-  t.is(de('nested.key3', { number: 1, plural: 1, selectordinal: 1, date, time: date }), 'key3:de 1 eins 1te 1.1.2000 01:00');
+  t.is(en('nested.key3', { number: 1, plural: 1, selectordinal: 1, date, time: date }), 'key3:en 1 one 1st 2/2/2000 3:04 AM');
+  t.is(de('nested.key3', { number: 1, plural: 1, selectordinal: 1, date, time: date }), 'key3:de 1 eins 1te 2.2.2000 03:04');
 });
 
 test('format', async (t) => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
-  t.is(en.format('{date, date}', { date }), '1/1/2000');
-  t.is(de.format('{date, date}', { date }), '1.1.2000');
+  t.is(en.format('{date, date}', { date }), '2/2/2000');
+  t.is(de.format('{date, date}', { date }), '2.2.2000');
 });
 
 test('wrong format', async (t) => {
@@ -91,8 +91,8 @@ test('dateTimeFormat', async (t) => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
-  t.is(en.dateTimeFormat(date, { dateStyle: 'long', timeStyle: 'short' }), 'January 1, 2000 at 1:00 AM');
-  t.is(de.dateTimeFormat(date, { dateStyle: 'long', timeStyle: 'short' }), '1. Januar 2000 um 01:00');
+  t.is(en.dateTimeFormat(date, { dateStyle: 'long', timeStyle: 'short' }), 'February 2, 2000 at 3:04 AM');
+  t.is(de.dateTimeFormat(date, { dateStyle: 'long', timeStyle: 'short' }), '2. Februar 2000 um 03:04');
 });
 
 test('displayNames', async (t) => {
