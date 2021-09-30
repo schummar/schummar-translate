@@ -45,7 +45,7 @@ function HookWrapper({
   return <>{value instanceof Array ? value.join('') : value}</>;
 }
 
-const date = new Date(2000, 0, 1, 0, 0, 0, 0);
+const date = new Date('2000-01-01T00:00:00Z');
 
 const forCases = (
   name: string,
@@ -101,10 +101,10 @@ forCases(
   'with complex values',
   (t) => t('nested.key3', { number: 1, plural: 1, selectordinal: 1, date, time: date }),
   async (t, div) => {
-    t.is(div.textContent, 'key3:en 1 one 1st 1/1/2000 12:00 AM');
+    t.is(div.textContent, 'key3:en 1 one 1st 1/1/2000 1:00 AM');
 
     fireEvent.click(div);
-    t.is(div.textContent, 'key3:de 1 eins 1te 1.1.2000 00:00');
+    t.is(div.textContent, 'key3:de 1 eins 1te 1.1.2000 01:00');
   },
 );
 
@@ -169,12 +169,12 @@ forCases(
 
 forCases(
   'dateTimeFormat',
-  (t) => t.dateTimeFormat(new Date(0), { dateStyle: 'short', timeStyle: 'long' }),
+  (t) => t.dateTimeFormat(date, { dateStyle: 'short', timeStyle: 'short' }),
   async (t, div) => {
-    t.is(div.textContent, '1/1/70, 1:00:00 AM GMT+1');
+    t.is(div.textContent, '1/1/00, 1:00 AM');
 
     fireEvent.click(div);
-    t.is(div.textContent, '01.01.70, 01:00:00 MEZ');
+    t.is(div.textContent, '01.01.00, 01:00');
   },
 );
 
