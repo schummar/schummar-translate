@@ -21,7 +21,19 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
   type FD = FlattenDict<D>;
 
   const store = new Store(options);
-  const { sourceLocale, fallbackLocale = [], fallback: defaultFallback, placeholder: defaultPlaceholder, warn } = options;
+  const {
+    sourceLocale,
+    fallbackLocale = [],
+    fallback: defaultFallback,
+    placeholder: defaultPlaceholder,
+    warn,
+    dateTimeFormatOptions,
+    displayNamesOptions,
+    listFormatOptions,
+    numberFormatOptions,
+    pluralRulesOptions,
+    relativeTimeFormatOptions,
+  } = options;
 
   /////////////////////////////////////////////////////////////////////////////
   // hook translator
@@ -36,7 +48,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
       const t: TranslatorFn<FD, HookTranslatorOptions, string> = (id, ...[values, options]) => {
         const fallback = options?.fallback ?? defaultFallback;
         const placeholder = options?.placeholder ?? defaultPlaceholder;
-        return translate({ dicts, sourceDict, id, values, fallback, placeholder, locale, warn }) as any;
+        return translate({ dicts, sourceDict, id, values, fallback, placeholder, locale, warn, cache: store.cache }) as any;
       };
 
       return Object.assign<TranslatorFn<FD>, Omit<HookTranslator<FD>, keyof TranslatorFn<FD>>>(t, {
@@ -45,32 +57,32 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
         unknown: t as HookTranslator<FD>['unknown'],
 
         format(template, ...[values]) {
-          return format(template, values as any, locale);
+          return format({ template, values: values as any, locale, cache: store.cache });
         },
 
-        dateTimeFormat(date, options) {
+        dateTimeFormat(date, options = dateTimeFormatOptions) {
           return store.cache.get(Intl.DateTimeFormat, locale, options).format(toDate(date));
         },
 
-        displayNames(code, options) {
+        displayNames(code, options = displayNamesOptions) {
           // TODO remove cast when DisplayNames is included in standard lib
           return store.cache.get((Intl as any).DisplayNames, locale, options).of(code);
         },
 
-        listFormat(list, options) {
+        listFormat(list, options = listFormatOptions) {
           // TODO remove cast when DisplayNames is included in standard lib
           return store.cache.get((Intl as any).ListFormat, locale, options).format(list);
         },
 
-        numberFormat(number, options) {
+        numberFormat(number, options = numberFormatOptions) {
           return store.cache.get(Intl.NumberFormat, locale, options).format(number);
         },
 
-        pluralRules(number, options) {
+        pluralRules(number, options = pluralRulesOptions) {
           return store.cache.get(Intl.PluralRules, locale, options).select(number);
         },
 
-        relativeTimeFormat(value, unit, options) {
+        relativeTimeFormat(value, unit, options = relativeTimeFormatOptions) {
           return store.cache.get(Intl.RelativeTimeFormat, locale, options).format(value, unit);
         },
       });
@@ -98,7 +110,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     const placeholder = options?.placeholder ?? defaultPlaceholder;
 
     const text = useMemo(
-      () => translate({ dicts, sourceDict, id, values, fallback, placeholder, locale, warn }),
+      () => translate({ dicts, sourceDict, id, values, fallback, placeholder, locale, warn, cache: store.cache }),
       [locale, dicts, sourceDict, id, values, fallback, placeholder],
     );
     const textArray = castArray(text);
@@ -117,18 +129,6 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     return <TranslatorComponent id={id} values={values} options={options} />;
   };
 
-  const FormatComponent = ({ template, values }: { template: string; values?: Record<string, unknown> }) => {
-    const contextLocale = useContext(TranslationContext).locale;
-    const locale = contextLocale ?? sourceLocale;
-    const text = useMemo(() => format(template, values, locale), [template, values, locale]);
-
-    return <>{text}</>;
-  };
-
-  const createFormatComponent: InlineTranslator<FD>['format'] = (template, ...[values]) => {
-    return <FormatComponent {...{ template, values: values as any }} />;
-  };
-
   const RenderComponent = ({ renderFn, dependecies = [renderFn] }: { renderFn: (locale: string) => ReactNode; dependecies?: any[] }) => {
     const contextLocale = useContext(TranslationContext).locale;
     const locale = contextLocale ?? sourceLocale;
@@ -136,7 +136,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     return <>{value}</>;
   };
 
-  const createRenderComponent: InlineTranslator<FD>['render'] = (renderFn, dependecies) => {
+  const render: InlineTranslator<FD>['render'] = (renderFn, dependecies) => {
     return <RenderComponent renderFn={renderFn} dependecies={dependecies} />;
   };
 
@@ -144,49 +144,43 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     TranslatorFn<FD, InlineTranslatorOptions, ReactNode>,
     Omit<InlineTranslator<FD>, keyof TranslatorFn<FD, InlineTranslatorOptions, ReactNode>>
   >(createTranslatorComponent, {
-    get locale() {
-      return createRenderComponent((locale) => locale, []);
-    },
+    locale: render((locale) => locale, []),
 
     unknown: createTranslatorComponent as InlineTranslator<FD>['unknown'],
 
-    format: createFormatComponent,
-
-    render: createRenderComponent,
-
-    dateTimeFormat(date, options) {
-      return createRenderComponent(
-        (locale) => store.cache.get(Intl.DateTimeFormat, locale, options).format(toDate(date)),
-        [date, hash(options)],
-      );
+    format(template, ...[values]) {
+      return render((locale) => format({ template, values: values as any, locale, cache: store.cache }), [template, hash(values)]);
     },
 
-    displayNames(code, options) {
-      // TODO remove cast when DisplayNames is included in standard lib
-      return createRenderComponent(
-        (locale) => store.cache.get((Intl as any).DisplayNames, locale, options).of(code),
-        [code, hash(options)],
-      );
+    render,
+
+    dateTimeFormat(date, options = dateTimeFormatOptions) {
+      return render((locale) => store.cache.get(Intl.DateTimeFormat, locale, options).format(toDate(date)), [date, hash(options)]);
     },
 
-    listFormat(list, options) {
+    displayNames(code, options = displayNamesOptions) {
       // TODO remove cast when DisplayNames is included in standard lib
-      return createRenderComponent(
+      return render((locale) => store.cache.get((Intl as any).DisplayNames, locale, options).of(code), [code, hash(options)]);
+    },
+
+    listFormat(list, options = listFormatOptions) {
+      // TODO remove cast when DisplayNames is included in standard lib
+      return render(
         (locale) => store.cache.get((Intl as any).ListFormat, locale, options).format(list),
         [list && hash([...list]), hash(options)],
       );
     },
 
-    numberFormat(number, options) {
-      return createRenderComponent((locale) => store.cache.get(Intl.NumberFormat, locale, options).format(number), [number, hash(options)]);
+    numberFormat(number, options = numberFormatOptions) {
+      return render((locale) => store.cache.get(Intl.NumberFormat, locale, options).format(number), [number, hash(options)]);
     },
 
-    pluralRules(number, options) {
-      return createRenderComponent((locale) => store.cache.get(Intl.PluralRules, locale, options).select(number), [number, hash(options)]);
+    pluralRules(number, options = pluralRulesOptions) {
+      return render((locale) => store.cache.get(Intl.PluralRules, locale, options).select(number), [number, hash(options)]);
     },
 
-    relativeTimeFormat(value, unit, options) {
-      return createRenderComponent(
+    relativeTimeFormat(value, unit, options = relativeTimeFormatOptions) {
+      return render(
         (locale) => store.cache.get(Intl.RelativeTimeFormat, locale, options).format(value, unit),
         [value, unit, hash(options)],
       );

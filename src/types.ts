@@ -52,6 +52,18 @@ export interface CreateTranslatorOptions<D extends Dict> {
   warn?: (locale: string, id: string) => void;
   /** Configure cache for intl instances */
   cacheOptions?: CacheOptions;
+  /** Default options */
+  dateTimeFormatOptions?: Intl.DateTimeFormatOptions;
+  /** Default options */
+  displayNamesOptions?: DisplayNamesOptions;
+  /** Default options */
+  listFormatOptions?: ListFormatOptions;
+  /** Default options */
+  numberFormatOptions?: Intl.NumberFormatOptions;
+  /** Default options */
+  pluralRulesOptions?: Intl.PluralRulesOptions;
+  /** Default options */
+  relativeTimeFormatOptions?: Intl.RelativeTimeFormatOptions;
 }
 
 export interface CreateTranslatorResult<D extends FlatDict> {

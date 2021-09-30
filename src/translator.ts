@@ -7,7 +7,18 @@ import { CreateTranslatorOptions, CreateTranslatorResult, Dict, FlattenDict, Tra
 export const createGetTranslator =
   <D extends Dict>(
     store: Store<D>,
-    { fallbackLocale, fallback: globalFallback, warn, sourceLocale }: CreateTranslatorOptions<D>,
+    {
+      fallbackLocale,
+      fallback: globalFallback,
+      warn,
+      sourceLocale,
+      dateTimeFormatOptions,
+      displayNamesOptions,
+      listFormatOptions,
+      numberFormatOptions,
+      pluralRulesOptions,
+      relativeTimeFormatOptions,
+    }: CreateTranslatorOptions<D>,
   ): ((locale: string) => Promise<Translator<FlattenDict<D>>>) =>
   async (locale: string) => {
     type FD = FlattenDict<D>;
@@ -17,7 +28,7 @@ export const createGetTranslator =
 
     const t: TranslatorFn<FD> = (id, ...[values, options]) => {
       const fallback = options?.fallback ?? globalFallback;
-      return translate({ dicts, sourceDict, id, values, fallback, locale, warn }) as any;
+      return translate({ dicts, sourceDict, id, values, fallback, locale, warn, cache: store.cache }) as any;
     };
 
     return Object.assign<TranslatorFn<FD>, Omit<Translator<FD>, keyof TranslatorFn<FD>>>(t, {
@@ -26,32 +37,32 @@ export const createGetTranslator =
       unknown: t as Translator<FD>['unknown'],
 
       format(template, ...[values]) {
-        return format(template, values as any, locale);
+        return format({ template, values: values as any, locale, cache: store.cache });
       },
 
-      dateTimeFormat(date, options) {
+      dateTimeFormat(date, options = dateTimeFormatOptions) {
         return store.cache.get(Intl.DateTimeFormat, locale, options).format(toDate(date));
       },
 
-      displayNames(code, options) {
+      displayNames(code, options = displayNamesOptions) {
         // TODO remove cast when DisplayNames is included in standard lib
         return store.cache.get((Intl as any).DisplayNames, locale, options).of(code);
       },
 
-      listFormat(list, options) {
+      listFormat(list, options = listFormatOptions) {
         // TODO remove cast when DisplayNames is included in standard lib
         return store.cache.get((Intl as any).ListFormat, locale, options).format(list);
       },
 
-      numberFormat(number, options) {
+      numberFormat(number, options = numberFormatOptions) {
         return store.cache.get(Intl.NumberFormat, locale, options).format(number);
       },
 
-      pluralRules(number, options) {
+      pluralRules(number, options = pluralRulesOptions) {
         return store.cache.get(Intl.PluralRules, locale, options).select(number);
       },
 
-      relativeTimeFormat(value, unit, options) {
+      relativeTimeFormat(value, unit, options = relativeTimeFormatOptions) {
         return store.cache.get(Intl.RelativeTimeFormat, locale, options).format(value, unit);
       },
     });

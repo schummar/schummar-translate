@@ -13,6 +13,7 @@ const createContext = () =>
     sourceLocale: 'en',
     dicts: { de: dictDe, es: dictEs },
     fallback: () => '-',
+    dateTimeFormatOptions: { dateStyle: 'medium', timeStyle: 'medium' },
   });
 const test = anyTest as TestInterface<ReturnType<typeof createContext>>;
 
@@ -175,6 +176,17 @@ forCases(
 
     fireEvent.click(div);
     t.is(div.textContent, '02.02.00, 03:04');
+  },
+);
+
+forCases(
+  'dateTimeFormat default options',
+  (t) => t.dateTimeFormat(date),
+  async (t, div) => {
+    t.is(div.textContent, 'Feb 2, 2000, 3:04:05 AM');
+
+    fireEvent.click(div);
+    t.is(div.textContent, '02.02.2000, 03:04:05');
   },
 );
 
