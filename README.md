@@ -73,7 +73,7 @@ export App() {
 function createTranslator(options: Options): ReturnValue;
 
 type Options = {
-  sourceDictionary: { [id: string]: Dict | string };
+  sourceDictionary?: { [id: string]: Dict | string };
   sourceLocale: string;
   fallbackLocale?: string | string[];
   dicts?:
@@ -81,22 +81,33 @@ type Options = {
     | ((locale: string) => MaybePromise<PartialDict<D> | null>);
   warn?: (locale: string, id: string) => void;
   fallback?: string | ((id: string, sourceTranslation: string) => string);
-  fallbackElement?: React.ReactNode | ((id: string, sourceTranslation: string) => React.ReactNode);
   placeholder?: string | ((id: string, sourceTranslation: string) => string);
-  placeholderElement?: React.ReactNode | ((id: string, sourceTranslation: string) => React.ReactNode);
+  cacheOptions?: CacheOptions;
+  dateTimeFormatOptions?: Intl.DateTimeFormatOptions;
+  displayNamesOptions?: Intl.DisplayNamesOptions;
+  listFormatOptions?: Intl.ListFormatOptions;
+  numberFormatOptions?: Intl.NumberFormatOptions;
+  pluralRulesOptions?: Intl.PluralRulesOptions;
+  relativeTimeFormatOptions?: Intl.RelativeTimeFormatOptions;
+};
+
+type CacheOptions = {
+  maxEntries?: number;
+  ttl?: number;
 };
 
 type ReturnValue = {
   getTranslator: GetTranslator;
   useTranslator: UseTranslator;
   t: ReactTranslator;
+  clearDicts: () => void;
 };
 ```
 
 The are two versions of this function, depending on the used import. When importing `'schummar-translate'`, it creates a translator without React support (and therefore without the dependency on React). Then the last three parameters do not apply and the return value only contains `getTranslator`. When importing `'schummar-translate/react'` React support and the last three parameters are included.
 
 - `createTranslator` creates and provides all the other functions and uses the passed in `sourceDictionary` to type them.
-- `sourceDictionary` takes the source dictionary as seen above.
+- `sourceDictionary` takes the source dictionary as seen above. If not provided, the dictionary for the source language will be loaded as any other. Also, if not provided, you will have to explicitly set the dictionary type: `createTranslator<typeof mySourceDict>(...)`.
 - `sourceLocale` is the locale of the source dictionary as [ISO-639-1 code](https://de.wikipedia.org/wiki/Liste_der_ISO-639-1-Codes).
 - `fallbackLocale` provides a locale that will be used as fallback if a translation key is not available for some locale.
 - `dicts` provides all languages except the source language. It can either be an object with the locales as key and a dictionary or promise of a dictionary as value. Or it can be a function returning a dictionary or promise of a dictionary for a given locale. The last can be used to lazy load locales (expect source locale), for example with dynamic imports: `` dicts: (locale: string) => import(`./langs/${locale}`).then(mod => mod.default) `` or getting it from a cdn via `fetch`.
@@ -105,6 +116,14 @@ The are two versions of this function, depending on the used import. When import
 - `fallbackElement` the same as `fallback` but also allows to pass a `ReactNode` to display more complex (e.g styled) fallbacks for translations embedded in JSX.
 - `placeholder` lets you define a string that will be displayed in place of a translated string while the active locale is loading (when using promises)
 - `placeholderElement` the same as `placeholder` but also allows to pass a `ReactNode` to display more complex (e.g styled) placeholders for translations embedded in JSX.
+- `cacheOptions.maxEntries` the maximum amount of entries that are kept in cache. The cache is currently used to memoize Intl instances, since creating them is quite expensive.
+- `cacheOptions.ttl` how long cache entries are kept, in milliseconds. Cleanup happens on next cache miss.
+- `dateTimeFormatOptions` default options for `dateTimeFormat` calls.
+- `displayNamesOptions` default options for `dateTimeFormat` calls.
+- `listFormatOptions` default options for `dateTimeFormat` calls.
+- `numberFormatOptions` default options for `dateTimeFormat` calls.
+- `pluralRulesOptions` default options for `dateTimeFormat` calls.
+- `relativeTimeFormatOptions` default options for `dateTimeFormat` calls.
 
 The return value is meant to be exported so the provided functions can be used everywhere in your app: `export const { getTranslator, useTranslator, t } = createTranslator({ ... })`
 
@@ -168,6 +187,25 @@ function f.render(renderFn: (locale: string) => ReactNode, dependencies?: any[])
 - `dependencies` if provided, will memoize the result of renderFn as long as dependencies stay the same (shallow compare)
   A common example will be to use the Intl api like: `t.render(locale => new Intl.DateTimeFormat(locale).format(date), [date])`.
 
+### t.locale
+
+```ts
+function f.locale: ReactNode;
+```
+
+`t.locale` returns the currently active locale. Mostly useful for `useTranslator`, to pass into another function.
+
+### t.{dateTimeFormat, displayNames, listFormat, numberFormat, pluralRules, relativeTimeFormat}
+
+E.g.
+
+```ts
+function f.dateTimeFormat(date?: Date | number | string, options?: Intl.DateTimeFormatOptions): ReactNode;
+```
+
+`t.dateTimeFormat` formats dates and times. It proxies Intl.DateTimeFormat.format but adds caching and inject the active locale. The same is true for displayNames, listFormat, numberFormat, pluralRules and relativeTimeFormat.
+See [MDN: Intl](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl)
+
 ### useTranslator
 
 ```ts
@@ -210,3 +248,11 @@ type Options = {
 Returns a promise of a translator object. That method can be used in the backend or in the frontend outside of React components. It loads the necessary locales first then resolves the promise. The resulting translator is again very similar to `t` but obviously returning string and not ReactNode.
 If the dictionary value is an array, an array of translated string will be returned.
 For more details see [t](#t), [t.unknown](#tunknown) and [t.format](#tformat).
+
+### clearDicts
+
+```ts
+function clearDicts(): void;
+```
+
+Clears all dictionary and cache data. This will result in dictionaries being reloaded, as soon as they are used again. This allows loading new dictionary versions from a server, for example.
