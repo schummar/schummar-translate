@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.6.0](https://www.github.com/schummar/schummar-translate/compare/v1.5.0...v1.6.0) (2021-09-30)
+
+
+### Features
+
+* caching intl instances for icu strings ([f6882ed](https://www.github.com/schummar/schummar-translate/commit/f6882edaf46c33099efda60a3a031a92ba8f21fc))
+* default options for intl functions ([f6882ed](https://www.github.com/schummar/schummar-translate/commit/f6882edaf46c33099efda60a3a031a92ba8f21fc))
+
+
+### Bug Fixes
+
+* date test ([2b95b25](https://www.github.com/schummar/schummar-translate/commit/2b95b250445bbc63870633ac7f621509a2dc23d7))
+* date test ([a832222](https://www.github.com/schummar/schummar-translate/commit/a832222e14238063d14ccc5a7b258951542e8685))
+* date test ([9dddf53](https://www.github.com/schummar/schummar-translate/commit/9dddf5322f69787e53e369cb9291c56ff3e0184c))
+
 ## [1.5.0](https://www.github.com/schummar/schummar-translate/compare/v1.4.1...v1.5.0) (2021-09-29)
 
 
