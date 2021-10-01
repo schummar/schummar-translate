@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://www.github.com/schummar/schummar-translate/compare/v1.6.1...v1.7.0) (2021-10-01)
+
+
+### Features
+
+* render passes hook translator ([5515664](https://www.github.com/schummar/schummar-translate/commit/551566412addeafe95bb90c6d59e98ddeb8c1b1b))
+
 ### [1.6.1](https://www.github.com/schummar/schummar-translate/compare/v1.6.0...v1.6.1) (2021-10-01)
 
 
