@@ -278,9 +278,9 @@ test('render', async (t) => {
     return (
       <div onClick={() => setI((i) => i + 1)}>
         <App id={t.title} locales={['en', 'de', 'de']}>
-          {t.context.t.render((locale) => {
+          {t.context.t.render((t) => {
             renderCount++;
-            return new Intl.DateTimeFormat(locale, { dateStyle: 'full' }).format(date);
+            return new Intl.DateTimeFormat(t.locale, { dateStyle: 'full' }).format(date);
           }, [])}
         </App>
         ,

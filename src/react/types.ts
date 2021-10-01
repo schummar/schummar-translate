@@ -40,5 +40,5 @@ export interface InlineTranslator<D extends FlatDict> extends HookTranslator<D, 
    * @param renderFn your custom render function
    * @param dependencies if provided, will memoize the result of renderFn as long as dependencies stay the same (shallow compare)
    */
-  render(renderFn: (locale: string) => ReactNode, dependencies?: any[]): ReactNode;
+  render(renderFn: (t: HookTranslator<D>) => ReactNode, dependencies?: any[]): ReactNode;
 }

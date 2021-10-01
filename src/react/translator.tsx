@@ -42,7 +42,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     const contextLocale = useContext(TranslationContext).locale;
     const locale = overrideLocale ?? contextLocale ?? sourceLocale;
     const dicts = useStore(store, locale, ...castArray(fallbackLocale));
-    const [sourceDict] = useStore(store, sourceLocale) ?? [];
+    const [sourceDict] = useStore(store, sourceLocale);
 
     return useMemo(() => {
       const t: TranslatorFn<FD, HookTranslatorOptions, string> = (id, ...[values, options]) => {
@@ -104,7 +104,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     const contextLocale = useContext(TranslationContext).locale;
     const locale = options?.locale ?? contextLocale ?? sourceLocale;
     const dicts = useStore(store, locale, ...castArray(fallbackLocale));
-    const [sourceDict] = useStore(store, sourceLocale) ?? [];
+    const [sourceDict] = useStore(store, sourceLocale);
 
     const fallback = options?.fallback ?? defaultFallback;
     const placeholder = options?.placeholder ?? defaultPlaceholder;
@@ -129,10 +129,15 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     return <TranslatorComponent id={id} values={values} options={options} />;
   };
 
-  const RenderComponent = ({ renderFn, dependecies = [renderFn] }: { renderFn: (locale: string) => ReactNode; dependecies?: any[] }) => {
-    const contextLocale = useContext(TranslationContext).locale;
-    const locale = contextLocale ?? sourceLocale;
-    const value = useMemo(() => renderFn(locale), [locale, ...dependecies]);
+  const RenderComponent = ({
+    renderFn,
+    dependecies = [renderFn],
+  }: {
+    renderFn: (t: HookTranslator<FD>) => ReactNode;
+    dependecies?: any[];
+  }) => {
+    const t = useTranslator();
+    const value = useMemo(() => renderFn(t), [t, ...dependecies]);
     return <>{value}</>;
   };
 
@@ -144,46 +149,43 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     TranslatorFn<FD, InlineTranslatorOptions, ReactNode>,
     Omit<InlineTranslator<FD>, keyof TranslatorFn<FD, InlineTranslatorOptions, ReactNode>>
   >(createTranslatorComponent, {
-    locale: render((locale) => locale, []),
+    locale: render((t) => t.locale, []),
 
     unknown: createTranslatorComponent as InlineTranslator<FD>['unknown'],
 
     format(template, ...[values]) {
-      return render((locale) => format({ template, values: values as any, locale, cache: store.cache }), [template, hash(values)]);
+      return render((t) => format({ template, values: values as any, locale: t.locale, cache: store.cache }), [template, hash(values)]);
     },
 
     render,
 
     dateTimeFormat(date, options = dateTimeFormatOptions) {
-      return render((locale) => store.cache.get(Intl.DateTimeFormat, locale, options).format(toDate(date)), [date, hash(options)]);
+      return render((t) => store.cache.get(Intl.DateTimeFormat, t.locale, options).format(toDate(date)), [date, hash(options)]);
     },
 
     displayNames(code, options = displayNamesOptions) {
       // TODO remove cast when DisplayNames is included in standard lib
-      return render((locale) => store.cache.get((Intl as any).DisplayNames, locale, options).of(code), [code, hash(options)]);
+      return render((t) => store.cache.get((Intl as any).DisplayNames, t.locale, options).of(code), [code, hash(options)]);
     },
 
     listFormat(list, options = listFormatOptions) {
       // TODO remove cast when DisplayNames is included in standard lib
       return render(
-        (locale) => store.cache.get((Intl as any).ListFormat, locale, options).format(list),
+        (t) => store.cache.get((Intl as any).ListFormat, t.locale, options).format(list),
         [list && hash([...list]), hash(options)],
       );
     },
 
     numberFormat(number, options = numberFormatOptions) {
-      return render((locale) => store.cache.get(Intl.NumberFormat, locale, options).format(number), [number, hash(options)]);
+      return render((t) => store.cache.get(Intl.NumberFormat, t.locale, options).format(number), [number, hash(options)]);
     },
 
     pluralRules(number, options = pluralRulesOptions) {
-      return render((locale) => store.cache.get(Intl.PluralRules, locale, options).select(number), [number, hash(options)]);
+      return render((t) => store.cache.get(Intl.PluralRules, t.locale, options).select(number), [number, hash(options)]);
     },
 
     relativeTimeFormat(value, unit, options = relativeTimeFormatOptions) {
-      return render(
-        (locale) => store.cache.get(Intl.RelativeTimeFormat, locale, options).format(value, unit),
-        [value, unit, hash(options)],
-      );
+      return render((t) => store.cache.get(Intl.RelativeTimeFormat, t.locale, options).format(value, unit), [value, unit, hash(options)]);
     },
   });
 
