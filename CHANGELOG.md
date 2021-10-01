@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.6.1](https://www.github.com/schummar/schummar-translate/compare/v1.6.0...v1.6.1) (2021-10-01)
+
+
+### Bug Fixes
+
+* correctly peer dep. ([a8e8d12](https://www.github.com/schummar/schummar-translate/commit/a8e8d1232cde1ad2dc456960ccac0f6d8c90f5b7))
+
 ## [1.6.0](https://www.github.com/schummar/schummar-translate/compare/v1.5.0...v1.6.0) (2021-09-30)
 
 
