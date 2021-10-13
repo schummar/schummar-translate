@@ -178,10 +178,10 @@ function t.format(template: string, values: V): ReactNode;
 ### t.render
 
 ```ts
-function f.render(renderFn: (locale: string) => ReactNode, dependencies?: any[]): ReactNode;
+function t.render(renderFn: (t: HookTranslator<D>) => ReactNode, dependencies?: any[]): ReactNode;
 ```
 
-`t.render` can be used to pass the current locale to some other component and will abviously update automatically when the locale changes.
+`t.render` can be used to get access to a translator instance as you would get from `useTranslator`. That is useful e.g. when working on a class component, where the hook is otherwise not available: `<div>{t.render(t => <ComponentThatUsesStringProperty placeholder={t('key1')} />)}</div>`
 
 - `renderFn` will be executed to render
 - `dependencies` if provided, will memoize the result of renderFn as long as dependencies stay the same (shallow compare)
