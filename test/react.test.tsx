@@ -21,8 +21,18 @@ test.beforeEach((t) => {
   t.context = createContext();
 });
 
-function App({ id, locales = ['en', 'de', 'es'], children }: { id: string; locales?: string[]; children?: React.ReactNode }) {
-  const [locale, setLocale] = useState(locales[0]);
+function App({
+  id,
+  locales = ['en', 'de', 'es'],
+  initialLocale = locales[0],
+  children,
+}: {
+  id: string;
+  locales?: string[];
+  initialLocale?: string;
+  children?: React.ReactNode;
+}) {
+  const [locale, setLocale] = useState(initialLocale);
   const toggleLocale = () => setLocale((l) => locales[(l ? locales.indexOf(l) + 1 : 0) % locales.length]);
 
   return (
@@ -52,7 +62,7 @@ const forCases = (
   name: string,
   renderFn: (t: HookTranslator<D>) => ReactNode,
   assertionFn: (t: ExecutionContext, div: HTMLElement) => MaybePromise<void>,
-  { locales }: { locales?: string[] } = {},
+  { locales, initialLocale }: { locales?: string[]; initialLocale?: string } = {},
 ) => {
   for (const i of [0, 1]) {
     test(`${name} with ${i === 0 ? 'translator' : 'hook'}`, (t) => {
@@ -64,7 +74,7 @@ const forCases = (
       }
 
       render(
-        <App id={t.title} locales={locales}>
+        <App id={t.title} locales={locales} initialLocale={initialLocale}>
           {element}
         </App>,
       );
@@ -244,6 +254,15 @@ forCases(
     fireEvent.click(div);
     t.is(div.textContent, 'vor 30 Sekunden');
   },
+);
+
+forCases(
+  'match locales',
+  (t) => t('key1'),
+  (t, div) => {
+    t.is(div.textContent, 'key1:en');
+  },
+  { initialLocale: 'en-US' },
 );
 
 test('arr with component', async (t) => {

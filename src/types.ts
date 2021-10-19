@@ -38,7 +38,7 @@ export interface CreateTranslatorOptions<D extends Dict> {
   /** The source dictionary's locale */
   sourceLocale: string;
   /** Locale(s) to fall back to if a string is not available in the active locale */
-  fallbackLocale?: string | readonly string[];
+  fallbackLocale?: string | readonly string[] | ((locale: string) => string | readonly string[]);
   /** Dictionaries. Either a record with locales as keys or a function that takes a locale and returns a promise of a dictionary
    * @param locale the active locale
    */

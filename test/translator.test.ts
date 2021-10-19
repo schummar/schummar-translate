@@ -173,3 +173,12 @@ test('cache', async (t) => {
   cache.get(Mock, { n: 1 });
   t.is(count, 3);
 });
+
+test('match locales', async (t) => {
+  const { getTranslator } = createTranslator({
+    sourceLocale: 'en',
+    sourceDictionary: dictEn,
+  });
+  const _t = await getTranslator('en-US');
+  t.is(_t('key1'), 'key1:en');
+});

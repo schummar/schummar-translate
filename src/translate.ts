@@ -30,7 +30,7 @@ export function translate<F = never>({
     dicts = dicts.slice(0, 1);
   }
 
-  const dict = dicts?.find((dict) => dict instanceof Promise || id in dict);
+  const dict = dicts.find((dict) => dict instanceof Promise || id in dict);
 
   if (dict instanceof Promise) {
     return mapPotentialArray(

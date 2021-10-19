@@ -2,7 +2,7 @@ import React, { Fragment, ReactNode, useContext, useMemo } from 'react';
 import { TranslationContext } from '.';
 import { TranslatorFn } from '..';
 import { hash } from '../cache';
-import { castArray, toDate } from '../helpers';
+import { calcLocales, castArray, toDate } from '../helpers';
 import { Store } from '../store';
 import { format, translate } from '../translate';
 import { createGetTranslator } from '../translator';
@@ -41,7 +41,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
   const useTranslator: ReactCreateTranslatorResult<FD>['useTranslator'] = (overrideLocale) => {
     const contextLocale = useContext(TranslationContext).locale;
     const locale = overrideLocale ?? contextLocale ?? sourceLocale;
-    const dicts = useStore(store, locale, ...castArray(fallbackLocale));
+    const dicts = useStore(store, locale, ...calcLocales(locale, fallbackLocale));
     const [sourceDict] = useStore(store, sourceLocale);
 
     return useMemo(() => {
@@ -103,7 +103,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
   }) {
     const contextLocale = useContext(TranslationContext).locale;
     const locale = options?.locale ?? contextLocale ?? sourceLocale;
-    const dicts = useStore(store, locale, ...castArray(fallbackLocale));
+    const dicts = useStore(store, locale, ...calcLocales(locale, fallbackLocale));
     const [sourceDict] = useStore(store, sourceLocale);
 
     const fallback = options?.fallback ?? defaultFallback;

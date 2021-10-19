@@ -1,3 +1,4 @@
+import { match } from '@formatjs/intl-localematcher';
 import { Cache } from './cache';
 import { flattenDict } from './flattenDict';
 import { arrEquals } from './helpers';
@@ -14,15 +15,16 @@ export class Store<D extends Dict = any> {
     let entry = this.dicts.get(locale);
     if (entry !== undefined) return entry;
 
-    let dict;
-    if (locale === this.options.sourceLocale && this.options.sourceDictionary) {
+    let dict = null;
+    if (match([locale], [this.options.sourceLocale], '') && this.options.sourceDictionary) {
       dict = this.options.sourceDictionary;
     } else if (this.options.dicts instanceof Function) {
       dict = this.options.dicts(locale);
-    } else {
-      const get = this.options.dicts?.[locale] ?? null;
-      if (get instanceof Function) dict = get();
-      else dict = get;
+    } else if (this.options.dicts) {
+      const availableLocales = Object.keys(this.options.dicts);
+      const matching = match([locale], availableLocales, locale);
+      dict = this.options.dicts[matching] ?? null;
+      if (dict instanceof Function) dict = dict();
     }
 
     if (dict instanceof Promise) {

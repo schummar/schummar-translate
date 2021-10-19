@@ -75,7 +75,7 @@ function createTranslator(options: Options): ReturnValue;
 type Options = {
   sourceDictionary?: { [id: string]: Dict | string };
   sourceLocale: string;
-  fallbackLocale?: string | string[];
+  fallbackLocale?: string | readonly string[] | ((locale: string) => string | readonly string[]);
   dicts?:
     | { [locale: string]: PartialDict<D> | (() => MaybePromise<PartialDict<D>>) }
     | ((locale: string) => MaybePromise<PartialDict<D> | null>);

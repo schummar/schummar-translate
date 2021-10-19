@@ -1,5 +1,5 @@
 import { TranslatorFn } from '.';
-import { castArray, toDate } from './helpers';
+import { calcLocales, toDate } from './helpers';
 import { Store } from './store';
 import { format, translate } from './translate';
 import { CreateTranslatorOptions, CreateTranslatorResult, Dict, FlattenDict, Translator } from './types';
@@ -23,7 +23,7 @@ export const createGetTranslator =
   async (locale: string) => {
     type FD = FlattenDict<D>;
 
-    const dicts = await store.loadAll(locale, ...castArray(fallbackLocale));
+    const dicts = await store.loadAll(locale, ...calcLocales(locale, fallbackLocale));
     const sourceDict = await store.load(sourceLocale);
 
     const t: TranslatorFn<FD> = (id, ...[values, options]) => {
