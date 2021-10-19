@@ -4,7 +4,7 @@ import { CreateTranslatorOptions, Dict, FlatDict, Translator } from '../types';
 
 export interface ReactCreateTranslatorOptions<D extends Dict> extends CreateTranslatorOptions<D> {
   /** Display while a locale is loading */
-  placeholder?: string | ((id: string, sourceTranslation?: string | readonly string[]) => string);
+  placeholder?: string | ((id: string) => string);
 }
 
 export interface ReactCreateTranslatorResult<D extends FlatDict> extends CreateTranslatorResult<D> {
@@ -38,7 +38,7 @@ export interface InlineTranslatorOptions {
 export interface InlineTranslator<D extends FlatDict> extends HookTranslator<D, InlineTranslatorOptions, ReactNode> {
   /** Render something using the currently active locale
    * @param renderFn your custom render function
-   * @param dependencies if provided, will memoize the result of renderFn as long as dependencies stay the same (shallow compare)
+   * @param locale override locale
    */
-  render(renderFn: (t: HookTranslator<D>) => ReactNode, dependencies?: any[]): ReactNode;
+  render(renderFn: (t: HookTranslator<D>) => ReactNode, options?: { locale?: string }): ReactNode;
 }

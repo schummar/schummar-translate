@@ -290,34 +290,20 @@ test('arr with hook', async (t) => {
 });
 
 test('render', async (t) => {
-  let renderCount = 0;
+  render(
+    <App id={t.title} locales={['en', 'de', 'de']}>
+      {t.context.t.render((t) => t.locale)}
+    </App>,
+  );
 
-  const Comp = () => {
-    const [, setI] = useState(0);
-    return (
-      <div onClick={() => setI((i) => i + 1)}>
-        <App id={t.title} locales={['en', 'de', 'de']}>
-          {t.context.t.render((t) => {
-            renderCount++;
-            return new Intl.DateTimeFormat(t.locale, { dateStyle: 'full' }).format(date);
-          }, [])}
-        </App>
-        ,
-      </div>
-    );
-  };
-
-  render(<Comp />);
   const div = screen.getByTestId(t.title);
-  t.is(div.innerHTML, 'Wednesday, February 2, 2000');
+  t.is(div.innerHTML, 'en');
 
   fireEvent.click(div);
   await wait(1);
-  t.is(div.innerHTML, 'Mittwoch, 2. Februar 2000');
+  t.is(div.innerHTML, 'de');
 
   fireEvent.click(div);
-  await wait(1);
-  t.is(renderCount, 2);
 });
 
 test('placeholder', async (t) => {
@@ -325,7 +311,7 @@ test('placeholder', async (t) => {
     sourceLocale: 'en',
     dicts: { en: dictEn, de: async () => dictDe },
     fallback: () => '-',
-    placeholder: (id, st) => (typeof st === 'string' ? st.replace(/./g, '.') : '...'),
+    placeholder: (id) => (id === 'key1' ? 'key1_placeholder' : 'other_placeholder'),
   });
 
   render(<App id={t.title}>{_t('key1')}</App>);
@@ -333,7 +319,7 @@ test('placeholder', async (t) => {
   t.is(div.textContent, 'key1:en');
 
   fireEvent.click(div);
-  t.is(div.textContent, '.......');
+  t.is(div.textContent, 'key1_placeholder');
 
   await wait(1);
   t.is(div.textContent, 'key1:de');

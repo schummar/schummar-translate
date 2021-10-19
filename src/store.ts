@@ -15,7 +15,7 @@ export class Store<D extends Dict = any> {
     let entry = this.dicts.get(locale);
     if (entry !== undefined) return entry;
 
-    let dict = null;
+    let dict;
     if (match([locale], [this.options.sourceLocale], '') && this.options.sourceDictionary) {
       dict = this.options.sourceDictionary;
     } else if (this.options.dicts instanceof Function) {
@@ -41,7 +41,7 @@ export class Store<D extends Dict = any> {
       entry = dict && flattenDict(dict);
     }
 
-    this.dicts.set(locale, entry);
+    this.dicts.set(locale, entry ?? null);
 
     if (entry instanceof Promise) {
       entry.then(() => this.notify());
@@ -49,10 +49,10 @@ export class Store<D extends Dict = any> {
       this.notify();
     }
 
-    return entry;
+    return entry ?? null;
   }
 
-  loadAll(...locales: string[]): MaybePromise<FlatDict[]> {
+  loadAll(locales: readonly string[]): MaybePromise<FlatDict[]> {
     const dicts = locales.map((locale) => this.load(locale));
 
     if (dicts.some((dict) => dict instanceof Promise)) {
@@ -62,16 +62,17 @@ export class Store<D extends Dict = any> {
     return dicts.filter(Boolean) as unknown as FlatDict[];
   }
 
-  getAll(...locales: string[]): MaybePromise<FlatDict>[] {
+  getAll(locales: readonly string[]): FlatDict[] | undefined {
     const dicts = locales.map((locale) => this.load(locale));
-    return dicts.filter(Boolean) as MaybePromise<FlatDict>[];
+    if (dicts.some((dict) => dict instanceof Promise)) return;
+    return dicts.filter(Boolean) as FlatDict[];
   }
 
-  subscribe(locales: string[], callback: (dicts?: MaybePromise<FlatDict>[]) => void): () => void {
+  subscribe(locales: readonly string[], callback: (dicts?: MaybePromise<FlatDict>[]) => void): () => void {
     let last: MaybePromise<FlatDict>[] | undefined;
 
     const sub = () => {
-      const dicts = this.getAll(...locales);
+      const dicts = this.getAll(locales);
       if (!arrEquals(dicts, last)) {
         last = dicts;
         callback(dicts);

@@ -1,13 +1,11 @@
 import { parse } from '@formatjs/icu-messageformat-parser';
 import { IntlMessageFormat } from 'intl-messageformat';
-import { MaybePromise } from '.';
 import { Cache } from './cache';
 import { mapPotentialArray } from './mapPotentialArray';
 import { FlatDict } from './types';
 
-export function translate<F = never>({
+export function translate<F = string>({
   dicts,
-  sourceDict,
   id,
   values,
   fallback,
@@ -16,44 +14,28 @@ export function translate<F = never>({
   warn,
   cache,
 }: {
-  dicts: MaybePromise<FlatDict>[];
-  sourceDict?: MaybePromise<FlatDict> | null;
+  dicts?: FlatDict[];
   id: string;
   values?: any;
-  fallback?: F | ((id: string, sourceTranslation?: string | readonly string[]) => F);
-  placeholder?: F | ((id: string, sourceTranslation?: string | readonly string[]) => F);
+  fallback?: F | ((id: string) => F);
+  placeholder?: F | ((id: string) => F);
   locale: string;
   warn?: (locale: string, id: string) => void;
   cache: Cache;
 }): string | F | (string | F)[] | F {
-  if (fallback !== undefined) {
-    dicts = dicts.slice(0, 1);
+  if (!dicts) {
+    if (placeholder instanceof Function) {
+      return placeholder(id);
+    }
+    return placeholder ?? '';
   }
 
   const dict = dicts.find((dict) => dict instanceof Promise || id in dict);
-
-  if (dict instanceof Promise) {
-    return mapPotentialArray(
-      sourceDict && !(sourceDict instanceof Promise)
-        ? translate<string>({ dicts: [sourceDict], sourceDict, id, values, locale, cache })
-        : undefined,
-      (sourceTranslation) => {
-        if (placeholder instanceof Function) {
-          return placeholder(id, sourceTranslation);
-        }
-        return placeholder ?? '';
-      },
-    );
-  }
-
   const template = dict?.[id];
-  if (!template) {
+
+  if (template === undefined) {
     if (fallback instanceof Function) {
-      const sourceTranslation =
-        sourceDict && !(sourceDict instanceof Promise)
-          ? translate<string>({ dicts: [sourceDict], sourceDict, id, values, locale, cache })
-          : undefined;
-      return fallback(id, sourceTranslation);
+      return fallback(id);
     }
     if (fallback !== undefined) return fallback;
 

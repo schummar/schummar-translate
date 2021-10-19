@@ -45,9 +45,10 @@ export interface CreateTranslatorOptions<D extends Dict> {
   dicts?: { [locale: string]: Dict | (() => MaybePromise<Dict>) } | ((locale: string) => MaybePromise<Dict | null>);
   /** Custom fallback handler. Will be called when a string is not available in the active locale.
    * @param id flat dictionary key
-   * @param sourceTranslation translated string in source locale
    */
-  fallback?: string | ((id: string, sourceTranslation?: string | readonly string[]) => string);
+  fallback?: string | ((id: string) => string);
+  /** Display while a locale is loading */
+  placeholder?: string | ((id: string) => string);
   /** Receive warning when strings are missing. */
   warn?: (locale: string, id: string) => void;
   /** Configure cache for intl instances */
@@ -80,12 +81,12 @@ export type Values<T extends string | readonly string[], Options = never> = Reco
   ? [values?: Record<string, unknown>, options?: Options]
   : [values: GetICUArgs<T>, options?: Options];
 
-export interface GetTranslatorOptions {
+export interface TranslatorOptions {
   /** Override fallback to use if string is not available in active locale */
   fallback?: string;
 }
 
-export interface TranslatorFn<D extends FlatDict, Options = GetTranslatorOptions, Output = string> {
+export interface TranslatorFn<D extends FlatDict, Options = TranslatorOptions, Output = string> {
   /** Translate a dictionary id to a string in the active locale */
   <K extends keyof D>(id: K, ...values: Values<D[K], Options>): D[K] extends readonly string[]
     ? Output extends string
@@ -94,11 +95,12 @@ export interface TranslatorFn<D extends FlatDict, Options = GetTranslatorOptions
     : Output;
 }
 
-export interface Translator<D extends FlatDict, Options = GetTranslatorOptions, Output = string> extends TranslatorFn<D, Options, Output> {
-  locale: Output;
-
+export interface Translator<D extends FlatDict, Options = TranslatorOptions, Output = string> extends TranslatorFn<D, Options, Output> {
   /** Translate a dictionary id to a string in the active locale. Without type checking the id. */
   unknown(id: string, values?: Record<string, unknown>, options?: Options): Output extends string ? string | readonly string[] : Output;
+
+  /** The active locale */
+  locale: Output;
 
   /** Format the given template directly. */
   format<T extends string>(template: T, ...values: Values<T>): Output;
