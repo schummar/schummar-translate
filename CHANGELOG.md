@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.8.0](https://www.github.com/schummar/schummar-translate/compare/v1.7.0...v1.8.0) (2021-10-19)
+
+
+### Features
+
+* Dynamic fallback locale. ([a10d965](https://www.github.com/schummar/schummar-translate/commit/a10d9650d1579ece44ff686f024e7e641c89ca23))
+* Locale inheritance. E.g. "en-US" falls back to "en". ([a10d965](https://www.github.com/schummar/schummar-translate/commit/a10d9650d1579ece44ff686f024e7e641c89ca23))
+
+
+### Bug Fixes
+
+* Updated dependencies. ([8fc6b97](https://www.github.com/schummar/schummar-translate/commit/8fc6b976d3da36f92e54463ac46dc3920662d2c6))
+
 ## [1.7.0](https://www.github.com/schummar/schummar-translate/compare/v1.6.1...v1.7.0) (2021-10-01)
 
 
