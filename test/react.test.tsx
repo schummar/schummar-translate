@@ -321,6 +321,6 @@ test('placeholder', async (t) => {
   fireEvent.click(div);
   t.is(div.textContent, 'key1_placeholder');
 
-  await wait(1);
+  await wait(2);
   t.is(div.textContent, 'key1:de');
 });

@@ -93,6 +93,8 @@ export class Store<D extends Dict = any> {
   }
 
   private notify() {
-    for (const sub of this.subs) sub();
+    setTimeout(() => {
+      for (const sub of this.subs) sub();
+    });
   }
 }
