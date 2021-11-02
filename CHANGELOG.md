@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.8.1](https://www.github.com/schummar/schummar-translate/compare/v1.8.0...v1.8.1) (2021-11-02)
+
+
+### Bug Fixes
+
+* delay update to next tick when dict is loaded. ([c3e24e1](https://www.github.com/schummar/schummar-translate/commit/c3e24e1261e11c4660db8f9be06201889243da3f))
+
 ## [1.8.0](https://www.github.com/schummar/schummar-translate/compare/v1.7.0...v1.8.0) (2021-10-19)
 
 
