@@ -8,6 +8,15 @@ export const dictEn1 = {
   key1: 'key1:en',
   nested: { key2: 'key2:en {value2}' },
   arr: ['one {pOne}', 'two {pTwo}'],
+  escape: `
+    This is not an interpolation: '{word}
+    These are not interpolations: '{word1} {word2}'
+    '<notATag>
+    '<notATag>hello</notATag>'
+    This '{isn''t}' obvious.
+    {param}
+    `,
+  escape1: `'a{b}c'`,
 } as const;
 export const dictEn2 = {
   nested: {

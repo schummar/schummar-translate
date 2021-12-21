@@ -11,8 +11,11 @@ type Trim<T> = T extends `${Whitespace}${infer Rest}`
   ? T
   : never;
 
+
+
 /** Returns an array of top level blocks */
-type FindBlocks<Text> = Text extends `${string}{${infer Right}` //find first {
+type FindBlocks<Text> = Text extends `${infer Left}{${infer Right}` //find first {
+  Left extends `${infer L1}'${infer R2}` ? 
   ? ReadBlock<'', Right, ''> extends [infer Block, infer Tail]
     ? [Block, ...FindBlocks<Tail>] // read block and find next block for tail
     : never

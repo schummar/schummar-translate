@@ -182,3 +182,8 @@ test('match locales', async (t) => {
   const _t = await getTranslator('en-US');
   t.is(_t('key1'), 'key1:en');
 });
+
+test('escape', async (t) => {
+  const en = await getTranslator('en');
+  t.is(en.unknown('escape1', { param: '' }), '');
+});
