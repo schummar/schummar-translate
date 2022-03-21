@@ -59,10 +59,10 @@
     "lint:prettier": "prettier src -l",
     "lint:eslint": "eslint src",
     "lint:tsc": "tsc --noEmit --emitDeclarationOnly false",
-    "prepublishOnly": "run-s build",
-    "test": "cd test && ava -v",
-    "test-watch": "cd test && ava --watch",
-    "coverage": "nyc --include src --all npm run test"
+    "prepublishOnly": "run-p lint test build",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest",
+    "test:export": "vitest run --coverage --reporter=verbose --reporter=junit --outputFile=test/testResults.xml"
   },
   "dependencies": {
     "intl-messageformat": "^9.11.4"
@@ -80,24 +80,22 @@
     }
   },
   "devDependencies": {
-    "@testing-library/react": "^12.1.1",
-    "@types/node": "^16.10.2",
-    "@types/react": "^17.0.26",
-    "@typescript-eslint/eslint-plugin": "^4.32.0",
-    "@typescript-eslint/parser": "^4.32.0",
-    "ava": "^3.15.0",
-    "eslint": "^7.32.0",
-    "global-jsdom": "^8.2.0",
-    "jsdom": "^17.0.0",
+    "@testing-library/react": "^12.1.4",
+    "@types/node": "^17.0.22",
+    "@types/react": "^17.0.41",
+    "@typescript-eslint/eslint-plugin": "^5.16.0",
+    "@typescript-eslint/parser": "^5.16.0",
+    "c8": "^7.11.0",
+    "eslint": "^8.11.0",
+    "jsdom": "^19.0.0",
     "npm-run-all": "^4.1.5",
-    "nyc": "^15.1.0",
-    "prettier": "^2.4.1",
+    "prettier": "^2.6.0",
     "react": "17.0.2",
     "react-dom": "^17.0.2",
     "rimraf": "^3.0.2",
-    "ts-node-dev": "^1.1.8",
-    "typescript": "^4.4.3",
-    "vite": "^2.8.6"
+    "typescript": "^4.6.2",
+    "vite": "^2.8.6",
+    "vitest": "^0.7.7"
   },
   "files": [
     "dist",

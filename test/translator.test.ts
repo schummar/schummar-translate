@@ -1,4 +1,4 @@
-import test from 'ava';
+import { expect, test } from 'vitest';
 import { createTranslator } from '../src';
 import { Cache } from '../src/cache';
 import { dictDe, dictEn } from './_helpers';
@@ -11,131 +11,131 @@ const { getTranslator } = createTranslator({
 
 const date = new Date(2000, 1, 2, 3, 4, 5);
 
-test('simple', async (t) => {
+test('simple', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
-  t.is(en('key1'), 'key1:en');
-  t.is(de('key1'), 'key1:de');
+  expect(en('key1')).toBe('key1:en');
+  expect(de('key1')).toBe('key1:de');
 });
 
-test('with value', async (t) => {
+test('with value', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
-  t.is(en('nested.key2', { value2: 'v2' }), 'key2:en v2');
-  t.is(de('nested.key2', { value2: 'v2' }), 'key2:de v2');
+  expect(en('nested.key2', { value2: 'v2' })).toBe('key2:en v2');
+  expect(de('nested.key2', { value2: 'v2' })).toBe('key2:de v2');
 });
 
-test('with complex values', async (t) => {
+test('with complex values', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
-  t.is(en('nested.key3', { number: 1, plural: 1, selectordinal: 1, date, time: date }), 'key3:en 1 one 1st 2/2/2000 3:04 AM');
-  t.is(de('nested.key3', { number: 1, plural: 1, selectordinal: 1, date, time: date }), 'key3:de 1 eins 1te 2.2.2000 03:04');
+  expect(en('nested.key3', { number: 1, plural: 1, selectordinal: 1, date, time: date })).toBe('key3:en 1 one 1st 2/2/2000 3:04 AM');
+  expect(de('nested.key3', { number: 1, plural: 1, selectordinal: 1, date, time: date })).toBe('key3:de 1 eins 1te 2.2.2000 03:04');
 });
 
-test('format', async (t) => {
+test('format', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
-  t.is(en.format('{date, date}', { date }), '2/2/2000');
-  t.is(de.format('{date, date}', { date }), '2.2.2000');
+  expect(en.format('{date, date}', { date })).toBe('2/2/2000');
+  expect(de.format('{date, date}', { date })).toBe('2.2.2000');
 });
 
-test('wrong format', async (t) => {
+test('wrong format', async () => {
   const en = await getTranslator('en');
-  t.is(en.format('{number, numbr}', { number: 1 }), 'Wrong format: SyntaxError: INVALID_ARGUMENT_TYPE');
+  expect(en.format('{number, numbr}', { number: 1 })).toBe('Wrong format: SyntaxError: INVALID_ARGUMENT_TYPE');
 });
 
-test('warn', async (t) => {
-  t.plan(3);
+test('warn', async () => {
+  expect.assertions(3);
 
   const { getTranslator } = createTranslator({
     sourceDictionary: dictEn,
     sourceLocale: 'en',
     dicts: (locale) => (locale === 'de' ? dictDe : null),
     warn: (locale, id) => {
-      t.is(locale, 'en');
-      t.is(id, 'missingKey');
+      expect(locale).toBe('en');
+      expect(id).toBe('missingKey');
     },
   });
   const en = await getTranslator('en');
-  t.is(en.unknown('missingKey'), 'missingKey');
+  expect(en.unknown('missingKey')).toBe('missingKey');
 });
 
-test('array', async (t) => {
+test('array', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
-  t.deepEqual(en('arr', { pOne: 'p1', pTwo: 'p2' }), ['one p1', 'two p2']);
-  t.deepEqual(de('arr', { pOne: 'p1', pTwo: 'p2' }), ['eins p1', 'zwei p2']);
+  expect(en('arr', { pOne: 'p1', pTwo: 'p2' })).toEqual(['one p1', 'two p2']);
+  expect(de('arr', { pOne: 'p1', pTwo: 'p2' })).toEqual(['eins p1', 'zwei p2']);
 });
 
-test('locale', async (t) => {
+test('locale', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
-  t.is(en.locale, 'en');
-  t.is(de.locale, 'de');
+  expect(en.locale).toBe('en');
+  expect(de.locale).toBe('de');
 });
 
-test('plural without other', async (t) => {
+test('plural without other', async () => {
   const ru = await getTranslator('ru');
-  t.is(ru.format('{x, plural, one {# one} few {# few} many {# many}}', { x: 1 }), '1 one');
-  t.is(ru.format('{x, plural, one {# one} few {# few} many {# many}}', { x: 2 }), '2 few');
-  t.is(ru.format('{x, plural, one {# one} few {# few} many {# many}}', { x: 5 }), '5 many');
+  expect(ru.format('{x, plural, one {# one} few {# few} many {# many}}', { x: 1 })).toBe('1 one');
+  expect(ru.format('{x, plural, one {# one} few {# few} many {# many}}', { x: 2 })).toBe('2 few');
+  expect(ru.format('{x, plural, one {# one} few {# few} many {# many}}', { x: 5 })).toBe('5 many');
 });
 
-test('dateTimeFormat', async (t) => {
+test('dateTimeFormat', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
-  t.is(en.dateTimeFormat(date, { dateStyle: 'long', timeStyle: 'short' }), 'February 2, 2000 at 3:04 AM');
-  t.is(de.dateTimeFormat(date, { dateStyle: 'long', timeStyle: 'short' }), '2. Februar 2000 um 03:04');
+  expect(en.dateTimeFormat(date, { dateStyle: 'long', timeStyle: 'short' })).toBe('February 2, 2000 at 3:04 AM');
+  expect(de.dateTimeFormat(date, { dateStyle: 'long', timeStyle: 'short' })).toBe('2. Februar 2000 um 03:04');
 });
 
-test('displayNames', async (t) => {
+test('displayNames', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
-  t.is(en.displayNames('de', { type: 'language' }), 'German');
-  t.is(de.displayNames('de', { type: 'language' }), 'Deutsch');
+  expect(en.displayNames('de', { type: 'language' })).toBe('German');
+  expect(de.displayNames('de', { type: 'language' })).toBe('Deutsch');
 });
 
-test('listFormat', async (t) => {
+test('listFormat', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
-  t.is(en.listFormat(['a', 'b', 'c'], { type: 'conjunction' }), 'a, b, and c');
-  t.is(de.listFormat(['a', 'b', 'c'], { type: 'conjunction' }), 'a, b und c');
+  expect(en.listFormat(['a', 'b', 'c'], { type: 'conjunction' })).toBe('a, b, and c');
+  expect(de.listFormat(['a', 'b', 'c'], { type: 'conjunction' })).toBe('a, b und c');
 });
 
-test('numberFormat', async (t) => {
+test('numberFormat', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
-  t.is(en.numberFormat(12.34, { maximumFractionDigits: 1 }), '12.3');
-  t.is(de.numberFormat(12.34, { maximumFractionDigits: 1 }), '12,3');
+  expect(en.numberFormat(12.34, { maximumFractionDigits: 1 })).toBe('12.3');
+  expect(de.numberFormat(12.34, { maximumFractionDigits: 1 })).toBe('12,3');
 });
 
-test('pluralRules', async (t) => {
+test('pluralRules', async () => {
   const en = await getTranslator('en');
   const pl = await getTranslator('pl');
 
-  t.is(en.pluralRules(4), 'other');
-  t.is(pl.pluralRules(4), 'few');
+  expect(en.pluralRules(4)).toBe('other');
+  expect(pl.pluralRules(4)).toBe('few');
 });
 
-test('relativeTimeFormat', async (t) => {
+test('relativeTimeFormat', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
-  t.is(en.relativeTimeFormat(-30, 'seconds'), '30 seconds ago');
-  t.is(de.relativeTimeFormat(-30, 'seconds'), 'vor 30 Sekunden');
+  expect(en.relativeTimeFormat(-30, 'seconds')).toBe('30 seconds ago');
+  expect(de.relativeTimeFormat(-30, 'seconds')).toBe('vor 30 Sekunden');
 });
 
-test('clear', async (t) => {
+test('clear', async () => {
   let count = 0;
 
   const { getTranslator, clearDicts } = createTranslator({
@@ -148,14 +148,14 @@ test('clear', async (t) => {
 
   await getTranslator('en');
   await getTranslator('en');
-  t.is(count, 1);
+  expect(count).toBe(1);
 
   clearDicts();
   await getTranslator('en');
-  t.is(count, 2);
+  expect(count).toBe(2);
 });
 
-test('cache', async (t) => {
+test('cache', async () => {
   let count = 0;
 
   class Mock {
@@ -167,18 +167,18 @@ test('cache', async (t) => {
   const cache = new Cache({ maxEntries: 1 });
   cache.get(Mock, { n: 1 });
   cache.get(Mock, { n: 1 });
-  t.is(count, 1);
+  expect(count).toBe(1);
 
   cache.get(Mock, { n: 2 });
   cache.get(Mock, { n: 1 });
-  t.is(count, 3);
+  expect(count).toBe(3);
 });
 
-test('match locales', async (t) => {
+test('match locales', async () => {
   const { getTranslator } = createTranslator({
     sourceLocale: 'en',
     sourceDictionary: dictEn,
   });
   const _t = await getTranslator('en-US');
-  t.is(_t('key1'), 'key1:en');
+  expect(_t('key1')).toBe('key1:en');
 });
