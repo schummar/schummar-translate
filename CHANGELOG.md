@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.0](https://www.github.com/schummar/schummar-translate/compare/v1.8.1...v1.9.0) (2022-03-21)
+
+
+### Features
+
+* new builder ([8afaf99](https://www.github.com/schummar/schummar-translate/commit/8afaf998c43fbc0ad1fa639bcb7b340ae321fba6))
+* new testing framework ([0d17b43](https://www.github.com/schummar/schummar-translate/commit/0d17b436605a5aec16cb24fc8208b1a5b8172776))
+
 ### [1.8.1](https://www.github.com/schummar/schummar-translate/compare/v1.8.0...v1.8.1) (2021-11-02)
 
 
