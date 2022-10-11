@@ -1,7 +1,7 @@
 import React, { createContext, useMemo } from 'react';
 
 export const TranslationContext = createContext({
-  locale: typeof window === 'object' && 'navigator' in window ? window.navigator.language : undefined,
+  locale: typeof navigator !== 'undefined' ? navigator.language : undefined,
 });
 
 export const TranslationContextProvider = ({ locale, children }: { locale?: string; children?: React.ReactNode }): JSX.Element => {

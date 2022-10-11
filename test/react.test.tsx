@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import React, { ReactNode, useState } from 'react';
 import { beforeEach, expect, test } from 'vitest';
 import { FlattenDict } from '../src';
@@ -96,8 +96,11 @@ forCases(
   async (div) => {
     expect(div.textContent).toBe('key1:en');
 
-    fireEvent.click(div);
-    await wait(1);
+    await act(async () => {
+      div.click();
+      await wait(1);
+    });
+
     expect(div.textContent).toBe('key1:de');
   },
 );
@@ -108,8 +111,11 @@ forCases(
   async (div) => {
     expect(div.textContent).toBe('key2:en v2');
 
-    fireEvent.click(div);
-    await wait(1);
+    await act(async () => {
+      div.click();
+      await wait(1);
+    });
+
     expect(div.textContent).toBe('key2:de v2');
   },
 );
@@ -120,7 +126,10 @@ forCases(
   async (div) => {
     expect(div.textContent).toBe('key3:en 1 one 1st 2/2/2000 3:04 AM');
 
-    fireEvent.click(div);
+    act(() => {
+      div.click();
+    });
+
     expect(div.textContent).toBe('key3:de 1 eins 1te 2.2.2000 03:04');
   },
 );
@@ -131,7 +140,10 @@ forCases(
   async (div) => {
     expect(div.textContent).toBe('key4:en');
 
-    fireEvent.click(div);
+    act(() => {
+      div.click();
+    });
+
     expect(div.textContent).toBe('-');
   },
 );
@@ -142,7 +154,10 @@ forCases(
   async (div) => {
     expect(div.textContent).toBe('key4:en');
 
-    fireEvent.click(div);
+    act(() => {
+      div.click();
+    });
+
     expect(div.textContent).toBe('--');
   },
 );
@@ -153,10 +168,16 @@ forCases(
   async (div) => {
     expect(div.textContent).toBe('key1:en');
 
-    fireEvent.click(div);
+    act(() => {
+      div.click();
+    });
+
     expect(div.textContent).toBe('key1:de');
 
-    fireEvent.click(div);
+    act(() => {
+      div.click();
+    });
+
     expect(div.textContent).toBe('-');
   },
 );
@@ -178,8 +199,11 @@ forCases(
   async (div) => {
     expect(div.innerHTML).toBe('en');
 
-    fireEvent.click(div);
-    await wait(1);
+    await act(async () => {
+      div.click();
+      await wait(1);
+    });
+
     expect(div.innerHTML).toBe('de');
   },
 );
@@ -190,7 +214,10 @@ forCases(
   async (div) => {
     expect(div.textContent).toBe('2/2/00, 3:04 AM');
 
-    fireEvent.click(div);
+    act(() => {
+      div.click();
+    });
+
     expect(div.textContent).toBe('02.02.00, 03:04');
   },
 );
@@ -201,7 +228,10 @@ forCases(
   async (div) => {
     expect(div.textContent).toBe('Feb 2, 2000, 3:04:05 AM');
 
-    fireEvent.click(div);
+    act(() => {
+      div.click();
+    });
+
     expect(div.textContent).toBe('02.02.2000, 03:04:05');
   },
 );
@@ -212,7 +242,10 @@ forCases(
   async (div) => {
     expect(div.textContent).toBe('German');
 
-    fireEvent.click(div);
+    act(() => {
+      div.click();
+    });
+
     expect(div.textContent).toBe('Deutsch');
   },
 );
@@ -223,7 +256,10 @@ forCases(
   async (div) => {
     expect(div.textContent).toBe('a, b, and c');
 
-    fireEvent.click(div);
+    act(() => {
+      div.click();
+    });
+
     expect(div.textContent).toBe('a, b und c');
   },
 );
@@ -234,7 +270,10 @@ forCases(
   async (div) => {
     expect(div.textContent).toBe('12.3');
 
-    fireEvent.click(div);
+    act(() => {
+      div.click();
+    });
+
     expect(div.textContent).toBe('12,3');
   },
 );
@@ -245,7 +284,10 @@ forCases(
   async (div) => {
     expect(div.textContent).toBe('other');
 
-    fireEvent.click(div);
+    act(() => {
+      div.click();
+    });
+
     expect(div.textContent).toBe('few');
   },
   { locales: ['en', 'pl'] },
@@ -257,7 +299,10 @@ forCases(
   async (div) => {
     expect(div.textContent).toBe('30 seconds ago');
 
-    fireEvent.click(div);
+    act(() => {
+      div.click();
+    });
+
     expect(div.textContent).toBe('vor 30 Sekunden');
   },
 );
@@ -276,8 +321,11 @@ test('arr with component', async () => {
   const div = screen.getByTestId('arr with component');
   expect(div.innerHTML).toBe('<div>one p1</div><div>two p2</div>');
 
-  fireEvent.click(div);
-  await wait(1);
+  await act(async () => {
+    div.click();
+    await wait(1);
+  });
+
   expect(div.innerHTML).toBe('<div>eins p1</div><div>zwei p2</div>');
 });
 
@@ -290,8 +338,11 @@ test('arr with hook', async () => {
   const div = screen.getByTestId('arr with hook');
   expect(div.innerHTML).toBe('one p1, two p2');
 
-  fireEvent.click(div);
-  await wait(1);
+  await act(async () => {
+    div.click();
+    await wait(1);
+  });
+
   expect(div.innerHTML).toBe('eins p1, zwei p2');
 });
 
@@ -317,12 +368,18 @@ test('render', async () => {
   const div = screen.getByTestId('render');
   expect(div.innerHTML).toBe('Wednesday, February 2, 2000');
 
-  fireEvent.click(div);
-  await wait(1);
+  await act(async () => {
+    div.click();
+    await wait(1);
+  });
+
   expect(div.innerHTML).toBe('Mittwoch, 2. Februar 2000');
 
-  fireEvent.click(div);
-  await wait(1);
+  await act(async () => {
+    div.click();
+    await wait(1);
+  });
+
   expect(renderCount).toBe(2);
 });
 
@@ -338,9 +395,15 @@ test('placeholder', async () => {
   const div = screen.getByTestId('placeholder');
   expect(div.textContent).toBe('key1:en');
 
-  fireEvent.click(div);
+  act(() => {
+    div.click();
+  });
+
   expect(div.textContent).toBe('.......');
 
-  await wait(2);
+  await act(async () => {
+    await wait(2);
+  });
+
   expect(div.textContent).toBe('key1:de');
 });
