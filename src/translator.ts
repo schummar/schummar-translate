@@ -9,6 +9,7 @@ export const createGetTranslator =
     store: Store<D>,
     {
       fallbackLocale,
+      fallbackToLessSpecific = true,
       fallback: globalFallback,
       warn,
       sourceLocale,
@@ -23,7 +24,7 @@ export const createGetTranslator =
   async (locale: string) => {
     type FD = FlattenDict<D>;
 
-    const dicts = await store.loadAll(locale, ...calcLocales(locale, fallbackLocale));
+    const dicts = await store.loadAll(locale, ...calcLocales(locale, fallbackToLessSpecific, fallbackLocale));
     const sourceDict = await store.load(sourceLocale);
 
     const t: TranslatorFn<FD> = (id, ...[values, options]) => {

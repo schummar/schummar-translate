@@ -16,9 +16,21 @@ export function castArray<T>(x: T | readonly T[] = []): readonly T[] {
 
 export function calcLocales(
   locale: string,
+  fallbackToLessSpecific: boolean,
   fallback?: string | readonly string[] | ((locale: string) => string | readonly string[]),
 ): readonly string[] {
   const requestedLocales = [locale];
+
+  if (fallbackToLessSpecific) {
+    let prefix = locale;
+
+    while (prefix.includes('-')) {
+      const index = prefix.lastIndexOf('-');
+      prefix = prefix.slice(0, index);
+      requestedLocales.push(prefix);
+    }
+  }
+
   if (fallback instanceof Function) {
     requestedLocales.push(...castArray(fallback(locale)));
   } else if (fallback) {

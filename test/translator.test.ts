@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { createTranslator } from '../src';
 import { Cache } from '../src/cache';
-import { dictDe, dictEn } from './_helpers';
+import { dictDe, dictEn, dictEnCa } from './_helpers';
 
 const { getTranslator } = createTranslator({
   sourceDictionary: dictEn,
@@ -181,4 +181,39 @@ test('match locales', async () => {
   });
   const _t = await getTranslator('en-US');
   expect(_t('key1')).toBe('key1:en');
+});
+
+describe('fallback order', () => {
+  test('with fallbackToLessSpecific', async () => {
+    const { getTranslator } = createTranslator({
+      sourceLocale: 'de',
+      sourceDictionary: dictDe,
+      dicts: {
+        en: dictEn,
+        'en-CA': dictEnCa,
+      },
+      fallbackLocale: 'de',
+    });
+    const _t = await getTranslator('en-CA');
+
+    expect(_t('key1')).toBe('key1:en');
+    expect(_t('deOnly')).toBe('deOnly:de');
+  });
+
+  test('without fallbackToLessSpecific', async () => {
+    const { getTranslator } = createTranslator({
+      sourceLocale: 'de',
+      sourceDictionary: dictDe,
+      dicts: {
+        en: dictEn,
+        'en-CA': dictEnCa,
+      },
+      fallbackLocale: 'de',
+      fallbackToLessSpecific: false,
+    });
+    const _t = await getTranslator('en-CA');
+
+    expect(_t('key1')).toBe('key1:de');
+    expect(_t('deOnly')).toBe('deOnly:de');
+  });
 });

@@ -21,6 +21,7 @@ export const dictDe1 = {
   key1: 'key1:de',
   nested: { key2: 'key2:de {value2}' },
   arr: ['eins {pOne}', 'zwei {pTwo}'],
+  deOnly: 'deOnly:de',
 };
 export const dictDe2 = {
   nested: {
@@ -30,3 +31,5 @@ export const dictDe2 = {
 export const dictDe = mergeDicts(dictDe1, dictDe2);
 
 export const dictEs = {};
+
+export const dictEnCa = {};

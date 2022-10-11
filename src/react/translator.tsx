@@ -23,7 +23,8 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
   const store = new Store(options);
   const {
     sourceLocale,
-    fallbackLocale = [],
+    fallbackLocale,
+    fallbackToLessSpecific = true,
     fallback: defaultFallback,
     placeholder: defaultPlaceholder,
     warn,
@@ -41,7 +42,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
   const useTranslator: ReactCreateTranslatorResult<FD>['useTranslator'] = (overrideLocale) => {
     const contextLocale = useContext(TranslationContext).locale;
     const locale = overrideLocale ?? contextLocale ?? sourceLocale;
-    const dicts = useStore(store, locale, ...calcLocales(locale, fallbackLocale));
+    const dicts = useStore(store, locale, ...calcLocales(locale, fallbackToLessSpecific, fallbackLocale));
     const [sourceDict] = useStore(store, sourceLocale);
 
     return useMemo(() => {
@@ -103,7 +104,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
   }) {
     const contextLocale = useContext(TranslationContext).locale;
     const locale = options?.locale ?? contextLocale ?? sourceLocale;
-    const dicts = useStore(store, locale, ...calcLocales(locale, fallbackLocale));
+    const dicts = useStore(store, locale, ...calcLocales(locale, fallbackToLessSpecific, fallbackLocale));
     const [sourceDict] = useStore(store, sourceLocale);
 
     const fallback = options?.fallback ?? defaultFallback;
