@@ -19,6 +19,7 @@ export const createGetTranslator =
       numberFormatOptions,
       pluralRulesOptions,
       relativeTimeFormatOptions,
+      ignoreMissingArgs,
     }: CreateTranslatorOptions<D>,
   ): ((locale: string) => Promise<Translator<FlattenDict<D>>>) =>
   async (locale: string) => {
@@ -29,7 +30,7 @@ export const createGetTranslator =
 
     const t: TranslatorFn<FD> = (id, ...[values, options]) => {
       const fallback = options?.fallback ?? globalFallback;
-      return translate({ dicts, sourceDict, id, values, fallback, locale, warn, cache: store.cache }) as any;
+      return translate({ dicts, sourceDict, id, values, fallback, locale, warn, cache: store.cache, ignoreMissingArgs }) as any;
     };
 
     return Object.assign<TranslatorFn<FD>, Omit<Translator<FD>, keyof TranslatorFn<FD>>>(t, {

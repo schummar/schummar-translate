@@ -217,3 +217,51 @@ describe('fallback order', () => {
     expect(_t('deOnly')).toBe('deOnly:de');
   });
 });
+
+describe('ignoreMissingArgs', () => {
+  test('without ignoreMissingArgs', async () => {
+    const { getTranslator } = createTranslator({
+      sourceLocale: 'en',
+      sourceDictionary: dictEn,
+    });
+
+    const _t = await getTranslator('en');
+
+    expect(_t('nested.key2', {} as any)).toMatchInlineSnapshot(
+      '"Wrong format: Error: The intl string context variable \\"value2\\" was not provided to the string \\"undefined\\""',
+    );
+  });
+
+  test('with ignoreMissingArgs=true', async () => {
+    const { getTranslator } = createTranslator({
+      sourceLocale: 'en',
+      sourceDictionary: dictEn,
+      ignoreMissingArgs: true,
+    });
+
+    const _t = await getTranslator('en');
+    expect(_t('nested.key2', {} as any)).toBe('key2:en ');
+  });
+
+  test('with ignoreMissingArgs as string', async () => {
+    const { getTranslator } = createTranslator({
+      sourceLocale: 'en',
+      sourceDictionary: dictEn,
+      ignoreMissingArgs: 'ignore',
+    });
+
+    const _t = await getTranslator('en');
+    expect(_t('nested.key2', {} as any)).toBe('key2:en ignore');
+  });
+
+  test('with ignoreMissingArgs as function', async () => {
+    const { getTranslator } = createTranslator({
+      sourceLocale: 'en',
+      sourceDictionary: dictEn,
+      ignoreMissingArgs: (key, template) => `ignore-${key}-${template}}`,
+    });
+
+    const _t = await getTranslator('en');
+    expect(_t('nested.key2', {} as any)).toBe('key2:en ignore-value2-key2:en {value2}}');
+  });
+});

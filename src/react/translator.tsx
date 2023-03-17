@@ -34,6 +34,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     numberFormatOptions,
     pluralRulesOptions,
     relativeTimeFormatOptions,
+    ignoreMissingArgs,
   } = options;
 
   /////////////////////////////////////////////////////////////////////////////
@@ -49,7 +50,18 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
       const t: TranslatorFn<FD, HookTranslatorOptions, string> = (id, ...[values, options]) => {
         const fallback = options?.fallback ?? defaultFallback;
         const placeholder = options?.placeholder ?? defaultPlaceholder;
-        return translate({ dicts, sourceDict, id, values, fallback, placeholder, locale, warn, cache: store.cache }) as any;
+        return translate({
+          dicts,
+          sourceDict,
+          id,
+          values,
+          fallback,
+          placeholder,
+          locale,
+          warn,
+          cache: store.cache,
+          ignoreMissingArgs,
+        }) as any;
       };
 
       return Object.assign<TranslatorFn<FD>, Omit<HookTranslator<FD>, keyof TranslatorFn<FD>>>(t, {
@@ -111,7 +123,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     const placeholder = options?.placeholder ?? defaultPlaceholder;
 
     const text = useMemo(
-      () => translate({ dicts, sourceDict, id, values, fallback, placeholder, locale, warn, cache: store.cache }),
+      () => translate({ dicts, sourceDict, id, values, fallback, placeholder, locale, warn, cache: store.cache, ignoreMissingArgs }),
       [locale, dicts, sourceDict, id, values, fallback, placeholder],
     );
     const textArray = castArray(text);

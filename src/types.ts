@@ -52,6 +52,7 @@ export interface CreateTranslatorOptions<D extends Dict> {
    * @param sourceTranslation translated string in source locale
    */
   fallback?: string | ((id: string, sourceTranslation?: string | readonly string[]) => string);
+  ignoreMissingArgs?: boolean | string | ((id: string, template: string) => string);
   /** Receive warning when strings are missing. */
   warn?: (locale: string, id: string) => void;
   /** Configure cache for intl instances */
