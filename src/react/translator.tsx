@@ -29,7 +29,6 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     placeholder: defaultPlaceholder,
     warn,
     dateTimeFormatOptions,
-    displayNamesOptions,
     listFormatOptions,
     numberFormatOptions,
     pluralRulesOptions,
@@ -77,14 +76,12 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
           return store.cache.get(Intl.DateTimeFormat, locale, options).format(toDate(date));
         },
 
-        displayNames(code, options = displayNamesOptions) {
-          // TODO remove cast when DisplayNames is included in standard lib
-          return store.cache.get((Intl as any).DisplayNames, locale, options).of(code);
+        displayNames(code, options) {
+          return store.cache.get(Intl.DisplayNames, locale, options).of(code) ?? '';
         },
 
         listFormat(list, options = listFormatOptions) {
-          // TODO remove cast when DisplayNames is included in standard lib
-          return store.cache.get((Intl as any).ListFormat, locale, options).format(list);
+          return store.cache.get(Intl.ListFormat, locale, options).format(list);
         },
 
         numberFormat(number, options = numberFormatOptions) {
@@ -176,17 +173,12 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
       return render((t) => store.cache.get(Intl.DateTimeFormat, t.locale, options).format(toDate(date)), [date, hash(options)]);
     },
 
-    displayNames(code, options = displayNamesOptions) {
-      // TODO remove cast when DisplayNames is included in standard lib
-      return render((t) => store.cache.get((Intl as any).DisplayNames, t.locale, options).of(code), [code, hash(options)]);
+    displayNames(code, options) {
+      return render((t) => store.cache.get(Intl.DisplayNames, t.locale, options).of(code), [code, hash(options)]);
     },
 
     listFormat(list, options = listFormatOptions) {
-      // TODO remove cast when DisplayNames is included in standard lib
-      return render(
-        (t) => store.cache.get((Intl as any).ListFormat, t.locale, options).format(list),
-        [list && hash([...list]), hash(options)],
-      );
+      return render((t) => store.cache.get(Intl.ListFormat, t.locale, options).format(list), [list && hash([...list]), hash(options)]);
     },
 
     numberFormat(number, options = numberFormatOptions) {

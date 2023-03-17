@@ -14,7 +14,6 @@ export const createGetTranslator =
       warn,
       sourceLocale,
       dateTimeFormatOptions,
-      displayNamesOptions,
       listFormatOptions,
       numberFormatOptions,
       pluralRulesOptions,
@@ -46,14 +45,12 @@ export const createGetTranslator =
         return store.cache.get(Intl.DateTimeFormat, locale, options).format(toDate(date));
       },
 
-      displayNames(code, options = displayNamesOptions) {
-        // TODO remove cast when DisplayNames is included in standard lib
-        return store.cache.get((Intl as any).DisplayNames, locale, options).of(code);
+      displayNames(code, options) {
+        return store.cache.get(Intl.DisplayNames, locale, options).of(code) ?? '';
       },
 
       listFormat(list, options = listFormatOptions) {
-        // TODO remove cast when DisplayNames is included in standard lib
-        return store.cache.get((Intl as any).ListFormat, locale, options).format(list);
+        return store.cache.get(Intl.ListFormat, locale, options).format(list);
       },
 
       numberFormat(number, options = numberFormatOptions) {

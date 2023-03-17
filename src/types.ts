@@ -1,7 +1,5 @@
 import { CacheOptions } from './cache';
 import { GetICUArgs } from './extractICU';
-import { DisplayNamesOptions } from './polyfills/intl_displayNames';
-import { ListFormatOptions } from './polyfills/intl_listFormat';
 
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers
@@ -60,9 +58,7 @@ export interface CreateTranslatorOptions<D extends Dict> {
   /** Default options */
   dateTimeFormatOptions?: Intl.DateTimeFormatOptions;
   /** Default options */
-  displayNamesOptions?: DisplayNamesOptions;
-  /** Default options */
-  listFormatOptions?: ListFormatOptions;
+  listFormatOptions?: Intl.ListFormatOptions;
   /** Default options */
   numberFormatOptions?: Intl.NumberFormatOptions;
   /** Default options */
@@ -112,10 +108,10 @@ export interface Translator<D extends FlatDict, Options = GetTranslatorOptions, 
   dateTimeFormat(date?: Date | number | string, options?: Intl.DateTimeFormatOptions): Output;
 
   /** Wraps Intl.DisplayNames.of */
-  displayNames(code: string, options?: DisplayNamesOptions): Output;
+  displayNames(code: string, options: Intl.DisplayNamesOptions): Output;
 
   /** Wraps Intl.ListFormat.format */
-  listFormat(list?: Iterable<string>, options?: ListFormatOptions): Output;
+  listFormat(list: Iterable<string>, options?: Intl.ListFormatOptions): Output;
 
   /** Wraps Intl.NumberFormat.format */
   numberFormat(number: number | bigint, options?: Intl.NumberFormatOptions): Output;
