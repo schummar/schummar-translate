@@ -82,8 +82,8 @@ export function format({
         getDateTimeFormat(...args) {
           return cache.get(Intl.DateTimeFormat, ...args);
         },
-        getNumberFormat(...args) {
-          return cache.get(Intl.NumberFormat, ...args);
+        getNumberFormat(locals, opts) {
+          return cache.get(Intl.NumberFormat, locals, opts as Intl.NumberFormatOptions | undefined);
         },
         getPluralRules(...args) {
           return cache.get(Intl.PluralRules, ...args);
