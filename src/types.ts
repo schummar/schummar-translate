@@ -76,9 +76,9 @@ export interface CreateTranslatorResult<D extends FlatDict> {
 }
 
 export type Values<T extends string | readonly string[], Options = never> = Record<string, never> extends GetICUArgs<T>
-  ? [values?: Record<string, unknown>, options?: Options]
+  ? [values?: Record<string, never>, options?: Options]
   : GetICUArgs<T> extends never
-  ? [values?: Record<string, unknown>, options?: Options]
+  ? [values?: Record<string, never>, options?: Options]
   : [values: GetICUArgs<T>, options?: Options];
 
 export interface GetTranslatorOptions {

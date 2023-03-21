@@ -54,7 +54,17 @@ type HandleOther<T> = 'other' extends T ? Exclude<T, 'other'> | (string & {}) : 
 
 type SelectOptions<Name extends string, Rest> = FindOuter<Name, Rest>;
 
+type EscapeLike = `'${'{' | '}' | '<' | '>'}`;
+type StripEscapes<T> = T extends `${infer Left}''${infer Right}`
+  ? `${Left}${Right}`
+  : T extends `${infer Start}${EscapeLike}${string}'${infer End}`
+  ? `${Start}${StripEscapes<End>}`
+  : T extends `${infer Start}${EscapeLike}${string}`
+  ? Start
+  : T;
+type TupleStripEscapes<T> = T extends readonly [infer First, ...infer Rest] ? [StripEscapes<First>, ...TupleStripEscapes<Rest>] : [];
+
 /** Calculates an object type with all variables and their types in the given ICU format string */
 export type GetICUArgs<T extends string | readonly string[]> = TupleParseBlock<
-  T extends readonly string[] ? TupleFindBlocks<T> : FindBlocks<T>
+  T extends readonly string[] ? TupleFindBlocks<TupleStripEscapes<T>> : FindBlocks<StripEscapes<T>>
 >;

@@ -13,7 +13,7 @@ specifiers:
   eslint: 8.36.0
   eslint-config-prettier: 8.8.0
   eslint-plugin-prettier: 4.2.1
-  intl-messageformat: 10.3.3
+  intl-messageformat: ^10.3.3
   jsdom: 21.1.1
   prettier: 2.8.5
   react: 18.2.0
