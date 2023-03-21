@@ -32,7 +32,9 @@ type ReadBlock<Block extends string, Tail extends string, Depth extends string> 
 
 /** Parse block, return variables with types and recursively find nested blocks within */
 type ParseBlock<Block> = Block extends `${infer Name},${infer Format},${infer Rest}`
-  ? { [K in Trim<Name>]: VariableType<Trim<Format>> } & TupleParseBlock<TupleFindBlocks<FindBlocks<Rest>>>
+  ? Trim<Format> extends 'select'
+    ? SelectOptions<Trim<Name>, Trim<Rest>>
+    : { [K in Trim<Name>]: VariableType<Trim<Format>> } & TupleParseBlock<TupleFindBlocks<FindBlocks<Rest>>>
   : Block extends `${infer Name},${infer Format}`
   ? { [K in Trim<Name>]: VariableType<Trim<Format>> }
   : { [K in Trim<Block>]: Value };
@@ -41,6 +43,16 @@ type ParseBlock<Block> = Block extends `${infer Name},${infer Format},${infer Re
 type TupleParseBlock<T> = T extends readonly [infer First, ...infer Rest] ? ParseBlock<First> & TupleParseBlock<Rest> : unknown;
 
 type VariableType<T extends string> = T extends 'number' | 'plural' | 'selectordinal' ? number : T extends 'date' | 'time' ? Date : Value;
+
+type FindOuter<Name extends string, Rest> = Rest extends `${infer Left}{${infer Right}`
+  ? ReadBlock<'', Right, ''> extends [infer Block, infer Tail]
+    ? ({ [K in Name]: HandleOther<Trim<Left>> } & TupleParseBlock<FindBlocks<Block>>) | FindOuter<Name, Tail>
+    : never
+  : never;
+
+type HandleOther<T> = 'other' extends T ? Exclude<T, 'other'> | (string & {}) : T;
+
+type SelectOptions<Name extends string, Rest> = FindOuter<Name, Rest>;
 
 /** Calculates an object type with all variables and their types in the given ICU format string */
 export type GetICUArgs<T extends string | readonly string[]> = TupleParseBlock<

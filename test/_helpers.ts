@@ -8,6 +8,10 @@ export const dictEn1 = {
   key1: 'key1:en',
   nested: { key2: 'key2:en {value2}' },
   arr: ['one {pOne}', 'two {pTwo}'],
+  select: 'text { value, select, option1 {text1} option2 {text2} } text',
+  selectWithOther: 'text { value, select, option1 {text1} option2 {text2} other {text3} } text',
+  selectWithNested: 'text { value, select, option1 {text1 {nested}} option2 {text2} } text',
+  selectWithOtherNested: 'text { value, select, option1 {text1} option2 {text2} other {text3 {nested}} } text',
 } as const;
 export const dictEn2 = {
   nested: {
