@@ -11,6 +11,7 @@ export type {
   GetTranslatorOptions,
   MaybePromise,
   Merge,
+  OtherString,
   Translator,
   TranslatorFn,
   Values,

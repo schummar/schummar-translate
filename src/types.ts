@@ -122,3 +122,5 @@ export interface Translator<D extends FlatDict, Options = GetTranslatorOptions, 
   /** Wraps Intl.RelativeTimeFormat.format */
   relativeTimeFormat(value: number, unit: Intl.RelativeTimeFormatUnit, options?: Intl.RelativeTimeFormatOptions): Output;
 }
+
+export type OtherString = string & { __type: 'other' };

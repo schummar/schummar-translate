@@ -1,3 +1,5 @@
+import { OtherString } from './types';
+
 type Value = string | number | boolean | Date;
 
 type Whitespace = ' ' | '\t' | '\n' | '\r';
@@ -44,15 +46,29 @@ type TupleParseBlock<T> = T extends readonly [infer First, ...infer Rest] ? Pars
 
 type VariableType<T extends string> = T extends 'number' | 'plural' | 'selectordinal' ? number : T extends 'date' | 'time' ? Date : Value;
 
-type FindOuter<Name extends string, Rest> = Rest extends `${infer Left}{${infer Right}`
+// Select //////////////////////////////////////////////////////////////////////
+
+type SelectOptions<Name extends string, Rest> = KeepAndMerge<ParseSelectBlock<Name, Rest>>;
+
+type ParseSelectBlock<Name extends string, Rest> = Rest extends `${infer Left}{${infer Right}`
   ? ReadBlock<'', Right, ''> extends [infer Block, infer Tail]
-    ? ({ [K in Name]: HandleOther<Trim<Left>> } & TupleParseBlock<FindBlocks<Block>>) | FindOuter<Name, Tail>
+    ? ({ [K in Name]: HandleOther<Trim<Left>> } & TupleParseBlock<FindBlocks<Block>>) | ParseSelectBlock<Name, Tail>
     : never
   : never;
 
-type HandleOther<T> = 'other' extends T ? Exclude<T, 'other'> | (string & {}) : T;
+type HandleOther<T> = 'other' extends T ? Exclude<T, 'other'> | OtherString : T;
 
-type SelectOptions<Name extends string, Rest> = FindOuter<Name, Rest>;
+type KeepAndMerge<T extends object> = T | MergeTypeUnion<T>;
+
+type KeysFromUnion<T> = T extends T ? keyof T : never;
+
+type SimpleTypeMerge<T, K extends keyof any> = T extends { [k in K]?: any } ? (T[K] extends OtherString ? string & {} : T[K]) : never;
+
+type MergeTypeUnion<T extends object> = {
+  [k in KeysFromUnion<T>]: SimpleTypeMerge<T, k>;
+};
+
+// Escapes /////////////////////////////////////////////////////////////////////
 
 type EscapeLike = `'${'{' | '}' | '<' | '>'}`;
 type StripEscapes<T> = T extends `${infer Left}''${infer Right}`
@@ -64,7 +80,16 @@ type StripEscapes<T> = T extends `${infer Left}''${infer Right}`
   : T;
 type TupleStripEscapes<T> = T extends readonly [infer First, ...infer Rest] ? [StripEscapes<First>, ...TupleStripEscapes<Rest>] : [];
 
+////////////////////////////////////////////////////////////////////////////////
+
+// Makes type readable
+type Flatten<T> = T extends object
+  ? {
+      [P in keyof T]: T[P];
+    }
+  : T;
+
 /** Calculates an object type with all variables and their types in the given ICU format string */
-export type GetICUArgs<T extends string | readonly string[]> = TupleParseBlock<
-  T extends readonly string[] ? TupleFindBlocks<TupleStripEscapes<T>> : FindBlocks<StripEscapes<T>>
+export type GetICUArgs<T extends string | readonly string[]> = Flatten<
+  TupleParseBlock<T extends readonly string[] ? TupleFindBlocks<TupleStripEscapes<T>> : FindBlocks<StripEscapes<T>>>
 >;

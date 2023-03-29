@@ -11,13 +11,13 @@ export const dictEn1 = {
   select: 'text { value, select, option1 {text1} option2 {text2} } text',
   selectWithOther: 'text { value, select, option1 {text1} option2 {text2} other {text3} } text',
   selectWithNested: 'text { value, select, option1 {text1 {nested}} option2 {text2} } text',
-  selectWithOtherNested: 'text { value, select, option1 {text1} option2 {text2} other {text3 {nested}} } text',
+  selectWithOtherNested: 'text { value, select, option1 {text1 {nested1}} option2 {text2 {nested2}} other {text3 {nested3}} } text',
   escapeSingle: `text '{word1} {word2}`,
   escapePair: `text '{word1} {word2}'`,
   escapeEscaped: `text ''{word1}`,
   escapeNonEscapable: `text ' text {word1}`,
-  escapeSharpInPlural: `text { value, plural, other {'#' times} }`,
-  escapeSharpOutsidePlural: `text '#' times`,
+  escapeSharpInPlural: `text { value, plural, other {'# times {word}'} }`,
+  escapeSharpOutsidePlural: `text '# times {word}`,
 } as const;
 export const dictEn2 = {
   nested: {

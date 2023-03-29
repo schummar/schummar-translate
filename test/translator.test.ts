@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { createTranslator } from '../src';
 import { Cache } from '../src/cache';
+import { OtherString } from '../src/types';
 import { dictDe, dictEn, dictEnCa } from './_helpers';
 
 const { getTranslator } = createTranslator({
@@ -295,13 +296,50 @@ describe('ignoreMissingArgs', () => {
 
     test('select with other nested', async () => {
       const _t = await getTranslator('en');
-      expect(_t('selectWithOtherNested', { value: 'option1', nested: 'foo' })).toBe('text text1 text');
-      expect(_t('selectWithOtherNested', { value: 'option2' })).toBe('text text2 text');
-      // @ts-expect-error for other, nested is required
-      expect(_t('selectWithOtherNested', { value: 'foo' })).toMatchInlineSnapshot(
-        '"Wrong format: Error: The intl string context variable \\"nested\\" was not provided to the string \\"undefined\\""',
+      //@ts-expect-error for option1, nested1 is required
+      expect(_t('selectWithOtherNested', { value: 'option1' })).toMatchInlineSnapshot(
+        '"Wrong format: Error: The intl string context variable \\"nested1\\" was not provided to the string \\"undefined\\""',
       );
-      expect(_t('selectWithOtherNested', { value: 'foo', nested: 'nestedText' })).toBe('text text3 nestedText text');
+      expect(_t('selectWithOtherNested', { value: 'option1', nested1: 'n1' })).toBe('text text1 n1 text');
+      //@ts-expect-error for option1, nested1 is required
+      expect(_t('selectWithOtherNested', { value: 'option1', nested3: 'n3' })).toMatchInlineSnapshot(
+        '"Wrong format: Error: The intl string context variable \\"nested1\\" was not provided to the string \\"undefined\\""',
+      );
+      expect(_t('selectWithOtherNested', { value: 'option1', nested1: 'n1', nested2: 'n2', nested3: 'n3' })).toBe('text text1 n1 text');
+
+      //@ts-expect-error for option2, nested2 is required
+      expect(_t('selectWithOtherNested', { value: 'option2' })).toMatchInlineSnapshot(
+        '"Wrong format: Error: The intl string context variable \\"nested2\\" was not provided to the string \\"undefined\\""',
+      );
+      expect(_t('selectWithOtherNested', { value: 'option2', nested2: 'n2' })).toBe('text text2 n2 text');
+      //@ts-expect-error for option2, nested2 is required
+      expect(_t('selectWithOtherNested', { value: 'option2', nested3: 'n3' })).toMatchInlineSnapshot(
+        '"Wrong format: Error: The intl string context variable \\"nested2\\" was not provided to the string \\"undefined\\""',
+      );
+      expect(_t('selectWithOtherNested', { value: 'option2', nested1: 'n1', nested2: 'n2', nested3: 'n3' })).toBe('text text2 n2 text');
+
+      // @ts-expect-error for other, nested3 is required
+      expect(_t('selectWithOtherNested', { value: 'foo' as OtherString })).toMatchInlineSnapshot(
+        '"Wrong format: Error: The intl string context variable \\"nested3\\" was not provided to the string \\"undefined\\""',
+      );
+      expect(_t('selectWithOtherNested', { value: 'foo' as OtherString, nested3: 'n3' })).toBe('text text3 n3 text');
+      // @ts-expect-error for other, nested3 is required
+      expect(_t('selectWithOtherNested', { value: 'foo' as OtherString, nested1: 'n1' })).toMatchInlineSnapshot(
+        '"Wrong format: Error: The intl string context variable \\"nested3\\" was not provided to the string \\"undefined\\""',
+      );
+      expect(_t('selectWithOtherNested', { value: 'foo' as OtherString, nested1: 'n1', nested2: 'n2', nested3: 'n3' })).toBe(
+        'text text3 n3 text',
+      );
+
+      // @ts-expect-error for string, all nested args are required
+      expect(_t('selectWithOtherNested', { value: 'foo' as string })).toMatchInlineSnapshot(
+        '"Wrong format: Error: The intl string context variable \\"nested3\\" was not provided to the string \\"undefined\\""',
+      );
+      // @ts-expect-error for string, all nested args are required
+      expect(_t('selectWithOtherNested', { value: 'foo' as string, nested3: 'n3' })).toBe('text text3 n3 text');
+      expect(_t('selectWithOtherNested', { value: 'foo' as string, nested1: 'n1', nested2: 'n2', nested3: 'n3' })).toBe(
+        'text text3 n3 text',
+      );
     });
   });
 
@@ -328,12 +366,13 @@ describe('ignoreMissingArgs', () => {
 
     test('escape sharp in plural', async () => {
       const _t = await getTranslator('en');
-      expect(_t('escapeSharpInPlural', { value: 1 })).toBe(`text # times`);
+
+      expect(_t('escapeSharpInPlural', { value: 1 })).toBe(`text # times {word}`);
     });
 
     test('escape sharp outside plural', async () => {
       const _t = await getTranslator('en');
-      expect(_t('escapeSharpOutsidePlural')).toBe(`text '#' times`);
+      expect(_t('escapeSharpOutsidePlural', { word: 'text' })).toBe(`text '# times text`);
     });
   });
 });
