@@ -366,7 +366,7 @@ describe('ignoreMissingArgs', () => {
 
     test('escape sharp in plural', async () => {
       const _t = await getTranslator('en');
-
+    // @ts-expect-error this escape is currently not supported
       expect(_t('escapeSharpInPlural', { value: 1 })).toBe(`text # times {word}`);
     });
 
