@@ -1,8 +1,9 @@
-import React, { Fragment, ReactNode, useContext, useMemo } from 'react';
+import { Fragment, ReactNode, useContext, useMemo } from 'react';
 import { TranslationContext } from '.';
 import { TranslatorFn } from '..';
 import { hash } from '../cache';
-import { calcLocales, castArray, toDate } from '../helpers';
+import { calcLocales, castArray } from '../helpers';
+import { intlHelpers } from '../intlHelpers';
 import { Store } from '../store';
 import { format, translate } from '../translate';
 import { createGetTranslator } from '../translator';
@@ -72,29 +73,15 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
           return format({ template, values: values as any, locale, cache: store.cache });
         },
 
-        dateTimeFormat(date, options = dateTimeFormatOptions) {
-          return store.cache.get(Intl.DateTimeFormat, locale, options).format(toDate(date));
-        },
-
-        displayNames(code, options) {
-          return store.cache.get(Intl.DisplayNames, locale, options).of(code) ?? '';
-        },
-
-        listFormat(list, options = listFormatOptions) {
-          return store.cache.get(Intl.ListFormat, locale, options).format(list);
-        },
-
-        numberFormat(number, options = numberFormatOptions) {
-          return store.cache.get(Intl.NumberFormat, locale, options).format(number);
-        },
-
-        pluralRules(number, options = pluralRulesOptions) {
-          return store.cache.get(Intl.PluralRules, locale, options).select(number);
-        },
-
-        relativeTimeFormat(value, unit, options = relativeTimeFormatOptions) {
-          return store.cache.get(Intl.RelativeTimeFormat, locale, options).format(value, unit);
-        },
+        ...intlHelpers({
+          cache: store.cache,
+          transform: (fn) => fn(locale),
+          dateTimeFormatOptions,
+          listFormatOptions,
+          numberFormatOptions,
+          pluralRulesOptions,
+          relativeTimeFormatOptions,
+        }),
       });
     }, [locale, dicts, sourceDict]);
   };
@@ -169,29 +156,15 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
 
     render,
 
-    dateTimeFormat(date, options = dateTimeFormatOptions) {
-      return render((t) => store.cache.get(Intl.DateTimeFormat, t.locale, options).format(toDate(date)), [date, hash(options)]);
-    },
-
-    displayNames(code, options) {
-      return render((t) => store.cache.get(Intl.DisplayNames, t.locale, options).of(code), [code, hash(options)]);
-    },
-
-    listFormat(list, options = listFormatOptions) {
-      return render((t) => store.cache.get(Intl.ListFormat, t.locale, options).format(list), [list && hash([...list]), hash(options)]);
-    },
-
-    numberFormat(number, options = numberFormatOptions) {
-      return render((t) => store.cache.get(Intl.NumberFormat, t.locale, options).format(number), [number, hash(options)]);
-    },
-
-    pluralRules(number, options = pluralRulesOptions) {
-      return render((t) => store.cache.get(Intl.PluralRules, t.locale, options).select(number), [number, hash(options)]);
-    },
-
-    relativeTimeFormat(value, unit, options = relativeTimeFormatOptions) {
-      return render((t) => store.cache.get(Intl.RelativeTimeFormat, t.locale, options).format(value, unit), [value, unit, hash(options)]);
-    },
+    ...intlHelpers({
+      cache: store.cache,
+      transform: (fn) => render((t) => fn(t.locale)),
+      dateTimeFormatOptions,
+      listFormatOptions,
+      numberFormatOptions,
+      pluralRulesOptions,
+      relativeTimeFormatOptions,
+    }),
   });
 
   return {

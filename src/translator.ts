@@ -1,5 +1,6 @@
 import { TranslatorFn } from '.';
-import { calcLocales, toDate } from './helpers';
+import { calcLocales } from './helpers';
+import { intlHelpers } from './intlHelpers';
 import { Store } from './store';
 import { format, translate } from './translate';
 import { CreateTranslatorOptions, CreateTranslatorResult, Dict, FlattenDict, Translator } from './types';
@@ -41,29 +42,15 @@ export const createGetTranslator =
         return format({ template, values: values as any, locale, cache: store.cache });
       },
 
-      dateTimeFormat(date, options = dateTimeFormatOptions) {
-        return store.cache.get(Intl.DateTimeFormat, locale, options).format(toDate(date));
-      },
-
-      displayNames(code, options) {
-        return store.cache.get(Intl.DisplayNames, locale, options).of(code) ?? '';
-      },
-
-      listFormat(list, options = listFormatOptions) {
-        return store.cache.get(Intl.ListFormat, locale, options).format(list);
-      },
-
-      numberFormat(number, options = numberFormatOptions) {
-        return store.cache.get(Intl.NumberFormat, locale, options).format(number);
-      },
-
-      pluralRules(number, options = pluralRulesOptions) {
-        return store.cache.get(Intl.PluralRules, locale, options).select(number);
-      },
-
-      relativeTimeFormat(value, unit, options = relativeTimeFormatOptions) {
-        return store.cache.get(Intl.RelativeTimeFormat, locale, options).format(value, unit);
-      },
+      ...intlHelpers({
+        cache: store.cache,
+        transform: (fn) => fn(locale),
+        dateTimeFormatOptions,
+        listFormatOptions,
+        numberFormatOptions,
+        pluralRulesOptions,
+        relativeTimeFormatOptions,
+      }),
     });
   };
 

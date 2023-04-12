@@ -95,7 +95,9 @@ export interface TranslatorFn<D extends FlatDict, Options = GetTranslatorOptions
     : Output;
 }
 
-export interface Translator<D extends FlatDict, Options = GetTranslatorOptions, Output = string> extends TranslatorFn<D, Options, Output> {
+export interface Translator<D extends FlatDict, Options = GetTranslatorOptions, Output = string>
+  extends TranslatorFn<D, Options, Output>,
+    IntlHelpers<Output> {
   locale: Output;
 
   /** Translate a dictionary id to a string in the active locale. Without type checking the id. */
@@ -103,9 +105,14 @@ export interface Translator<D extends FlatDict, Options = GetTranslatorOptions, 
 
   /** Format the given template directly. */
   format<T extends string>(template: T, ...values: Values<T>): Output;
+}
 
+export interface IntlHelpers<Output = string> {
   /** Wraps Intl.DateTimeFormat.format */
   dateTimeFormat(date?: Date | number | string, options?: Intl.DateTimeFormatOptions): Output;
+
+  /** Wraps Intl.DateTimeFormat.formatRange */
+  dateTimeFormatRange(startDate: Date | number | string, endDate: Date | number | string, options?: Intl.DateTimeFormatOptions): Output;
 
   /** Wraps Intl.DisplayNames.of */
   displayNames(code: string, options: Intl.DisplayNamesOptions): Output;
@@ -115,6 +122,9 @@ export interface Translator<D extends FlatDict, Options = GetTranslatorOptions, 
 
   /** Wraps Intl.NumberFormat.format */
   numberFormat(number: number | bigint, options?: Intl.NumberFormatOptions): Output;
+
+  /** Wraps Intl.NumberFormat.formatRange */
+  // numberFormatRange(start: number | bigint, end: number | bigint, options?: Intl.NumberFormatOptions): Output;
 
   /** Wraps Intl.PluralRules.select */
   pluralRules(number: number, options?: Intl.PluralRulesOptions): Output;

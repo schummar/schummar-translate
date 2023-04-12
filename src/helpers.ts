@@ -1,6 +1,8 @@
-export function toDate(d?: Date | number | string): Date | number | undefined {
-  if (typeof d === 'string') return new Date(d);
-  return d;
+export function toDate(d: Date | number | string): Date;
+export function toDate(d: Date | number | string | undefined): Date | undefined;
+export function toDate(d: Date | number | string | undefined) {
+  if (d !== undefined) return new Date(d);
+  return;
 }
 
 export function arrEquals(a?: any[], b?: any[]): boolean {

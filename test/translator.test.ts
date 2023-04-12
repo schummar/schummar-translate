@@ -11,6 +11,7 @@ const { getTranslator } = createTranslator({
 });
 
 const date = new Date(2000, 1, 2, 3, 4, 5);
+const date2 = new Date(2001, 1, 2, 3, 4, 5);
 
 test('simple', async () => {
   const en = await getTranslator('en');
@@ -96,6 +97,18 @@ test('dateTimeFormat', async () => {
   expect(de.dateTimeFormat(date, { dateStyle: 'long', timeStyle: 'short' })).toBe('2. Februar 2000 um 03:04');
 });
 
+test('dateTimeFormatRange', async () => {
+  const en = await getTranslator('en');
+  const de = await getTranslator('de');
+
+  expect(en.dateTimeFormatRange(date, date2, { dateStyle: 'long', timeStyle: 'short' })).toMatchInlineSnapshot(
+    '"February 2, 2000 at 3:04 AM – February 2, 2001 at 3:04 AM"',
+  );
+  expect(de.dateTimeFormatRange(date, date2, { dateStyle: 'long', timeStyle: 'short' })).toMatchInlineSnapshot(
+    '"2. Februar 2000 um 03:04 – 2. Februar 2001 um 03:04"',
+  );
+});
+
 test('displayNames', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
@@ -119,6 +132,14 @@ test('numberFormat', async () => {
   expect(en.numberFormat(12.34, { maximumFractionDigits: 1 })).toBe('12.3');
   expect(de.numberFormat(12.34, { maximumFractionDigits: 1 })).toBe('12,3');
 });
+
+// test('numberFormatRange', async () => {
+//   const en = await getTranslator('en');
+//   const de = await getTranslator('de');
+
+//   expect(en.numberFormatRange(1, 2, { maximumFractionDigits: 1 })).toBe('1–2');
+//   expect(de.numberFormatRange(1, 2, { maximumFractionDigits: 1 })).toBe('1–2');
+// });
 
 test('pluralRules', async () => {
   const en = await getTranslator('en');
@@ -366,7 +387,7 @@ describe('ignoreMissingArgs', () => {
 
     test('escape sharp in plural', async () => {
       const _t = await getTranslator('en');
-    // @ts-expect-error this escape is currently not supported
+      // @ts-expect-error this escape is currently not supported
       expect(_t('escapeSharpInPlural', { value: 1 })).toBe(`text # times {word}`);
     });
 
