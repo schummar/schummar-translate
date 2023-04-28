@@ -1,3 +1,4 @@
+import { TemporalLike } from './polyfill/temporal';
 import { OtherString } from './types';
 
 type Value = string | number | boolean | Date;
@@ -44,7 +45,11 @@ type ParseBlock<Block> = Block extends `${infer Name},${infer Format},${infer Re
 /** Parse block for each tuple entry */
 type TupleParseBlock<T> = T extends readonly [infer First, ...infer Rest] ? ParseBlock<First> & TupleParseBlock<Rest> : unknown;
 
-type VariableType<T extends string> = T extends 'number' | 'plural' | 'selectordinal' ? number : T extends 'date' | 'time' ? Date : Value;
+type VariableType<T extends string> = T extends 'number' | 'plural' | 'selectordinal'
+  ? number
+  : T extends 'date' | 'time'
+  ? Date | number | string | TemporalLike
+  : Value;
 
 // Select //////////////////////////////////////////////////////////////////////
 

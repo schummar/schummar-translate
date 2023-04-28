@@ -70,7 +70,12 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
         unknown: t as HookTranslator<FD>['unknown'],
 
         format(template, ...[values]) {
-          return format({ template, values: values as any, locale, cache: store.cache });
+          return format({
+            template,
+            values: values as any,
+            locale,
+            cache: store.cache,
+          });
         },
 
         ...intlHelpers({
@@ -78,9 +83,6 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
           transform: (fn) => fn(locale),
           dateTimeFormatOptions,
           listFormatOptions,
-          numberFormatOptions,
-          pluralRulesOptions,
-          relativeTimeFormatOptions,
         }),
       });
     }, [locale, dicts, sourceDict]);
@@ -107,7 +109,19 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     const placeholder = options?.placeholder ?? defaultPlaceholder;
 
     const text = useMemo(
-      () => translate({ dicts, sourceDict, id, values, fallback, placeholder, locale, warn, cache: store.cache, ignoreMissingArgs }),
+      () =>
+        translate({
+          dicts,
+          sourceDict,
+          id,
+          values,
+          fallback,
+          placeholder,
+          locale,
+          warn,
+          cache: store.cache,
+          ignoreMissingArgs,
+        }),
       [locale, dicts, sourceDict, id, values, fallback, placeholder],
     );
     const textArray = castArray(text);
@@ -151,7 +165,16 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     unknown: createTranslatorComponent as InlineTranslator<FD>['unknown'],
 
     format(template, ...[values]) {
-      return render((t) => format({ template, values: values as any, locale: t.locale, cache: store.cache }), [template, hash(values)]);
+      return render(
+        (t) =>
+          format({
+            template,
+            values: values as any,
+            locale: t.locale,
+            cache: store.cache,
+          }),
+        [template, hash(values)],
+      );
     },
 
     render,

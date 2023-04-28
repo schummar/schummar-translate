@@ -3,6 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@formatjs/icu-messageformat-parser': ^2.3.0
   '@formatjs/intl-localematcher': ^0.2.32
+  '@js-temporal/polyfill': ^0.4.3
   '@schummar/runp': 1.12.0
   '@testing-library/react': 14.0.0
   '@types/node': 18.15.11
@@ -31,6 +32,7 @@ dependencies:
   intl-messageformat: 10.3.3
 
 devDependencies:
+  '@js-temporal/polyfill': 0.4.3
   '@schummar/runp': 1.12.0
   '@testing-library/react': 14.0.0_biqbaboplfbrettd7655fr4n2y
   '@types/node': 18.15.11
@@ -408,6 +410,14 @@ packages:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.0
       '@jridgewell/sourcemap-codec': 1.4.14
+    dev: true
+
+  /@js-temporal/polyfill/0.4.3:
+    resolution: {integrity: sha512-6Fmjo/HlkyVCmJzAPnvtEWlcbQUSRhi8qlN9EtJA/wP7FqXsevLLrlojR44kzNzrRkpf7eDJ+z7b4xQD/Ycypw==}
+    engines: {node: '>=12'}
+    dependencies:
+      jsbi: 4.3.0
+      tslib: 2.4.0
     dev: true
 
   /@nodelib/fs.scandir/2.1.5:
@@ -2334,6 +2344,10 @@ packages:
       argparse: 2.0.1
     dev: true
 
+  /jsbi/4.3.0:
+    resolution: {integrity: sha512-SnZNcinB4RIcnEyZqFPdGPVgrg2AcnykiBy0sHVJQKHYeaLUvi3Exj+iaPpLnFVkDPZIV4U0yvgC9/R4uEAZ9g==}
+    dev: true
+
   /jsdom/21.1.1:
     resolution: {integrity: sha512-Jjgdmw48RKcdAIQyUD1UdBh2ecH7VqwaXPN3ehoZN6MqgVbMn+lRm1aAT1AsdJRAJpwfa4IpwgzySn61h2qu3w==}
     engines: {node: '>=14'}
@@ -3878,7 +3892,6 @@ packages:
 
   /tslib/2.4.0:
     resolution: {integrity: sha512-d6xOpEDfsi2CZVlPQzGeux8XMwLT9hssAsaPYExaQMuYskwb+x1x7J371tWlbBdWHroy99KnVB6qIkUbs5X3UQ==}
-    dev: false
 
   /tsutils/3.21.0_typescript@5.0.4:
     resolution: {integrity: sha512-mHKK3iUXL+3UF6xL5k0PEhKRUBKPBCv/+RkEOpjRWxxx27KKRBmmA60A9pgOUvMi8GKhRMPEmjBRPzs2W7O1OA==}

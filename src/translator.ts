@@ -30,7 +30,17 @@ export const createGetTranslator =
 
     const t: TranslatorFn<FD> = (id, ...[values, options]) => {
       const fallback = options?.fallback ?? globalFallback;
-      return translate({ dicts, sourceDict, id, values, fallback, locale, warn, cache: store.cache, ignoreMissingArgs }) as any;
+      return translate({
+        dicts,
+        sourceDict,
+        id,
+        values,
+        fallback,
+        locale,
+        warn,
+        cache: store.cache,
+        ignoreMissingArgs,
+      }) as any;
     };
 
     return Object.assign<TranslatorFn<FD>, Omit<Translator<FD>, keyof TranslatorFn<FD>>>(t, {
@@ -39,7 +49,12 @@ export const createGetTranslator =
       unknown: t as Translator<FD>['unknown'],
 
       format(template, ...[values]) {
-        return format({ template, values: values as any, locale, cache: store.cache });
+        return format({
+          template,
+          values: values as any,
+          locale,
+          cache: store.cache,
+        });
       },
 
       ...intlHelpers({

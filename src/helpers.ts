@@ -1,8 +1,53 @@
-export function toDate(d: Date | number | string): Date;
-export function toDate(d: Date | number | string | undefined): Date | undefined;
-export function toDate(d: Date | number | string | undefined) {
-  if (d !== undefined) return new Date(d);
-  return;
+import { TemporalLike } from './polyfill/temporal';
+
+export function toDate(
+  date: Date | number | string | TemporalLike | undefined,
+  options: Intl.DateTimeFormatOptions | undefined = {},
+): {
+  date: Date;
+  options: Intl.DateTimeFormatOptions;
+  type: 'instant' | 'plainDateTime' | 'plainDate' | 'plainTime';
+} {
+  if (date instanceof Date) {
+    return { date, options, type: 'instant' };
+  }
+
+  if (!(date instanceof Object)) {
+    return { date: date ? new Date(date) : new Date(), options, type: 'instant' };
+  }
+
+  if ('epochMilliseconds' in date) {
+    return { date: new Date(date.epochMilliseconds), options, type: 'instant' };
+  } else {
+    const isPlain = !date.timeZone;
+    let iso = date.toString().replace(/\[.*\]/, '') + (isPlain ? 'Z' : '');
+    let type: 'instant' | 'plainDateTime' | 'plainDate' | 'plainTime' = 'instant';
+
+    if (isPlain) {
+      // Ignore timeZones, time is relative
+      options = { ...options, timeZone: 'UTC' };
+      type = 'plainDateTime';
+    }
+
+    if (date.hour === undefined) {
+      // Plain date
+      options = { ...options, timeStyle: undefined, hour: undefined, minute: undefined, second: undefined };
+      type = 'plainDate';
+    }
+
+    if (date.month === undefined) {
+      // Plain time
+      iso = `1970-01-01T${iso}`;
+      options = { ...options, dateStyle: undefined, year: undefined, month: undefined, day: undefined };
+      type = 'plainTime';
+    }
+
+    return {
+      date: new Date(iso),
+      options,
+      type,
+    };
+  }
 }
 
 export function arrEquals(a?: any[], b?: any[]): boolean {

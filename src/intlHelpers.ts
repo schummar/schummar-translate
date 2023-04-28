@@ -1,5 +1,6 @@
 import { Cache } from './cache';
 import { toDate } from './helpers';
+import { TemporalLike } from './polyfill/temporal';
 import { IntlHelpers } from './types';
 
 export function intlHelpers<Output>({
@@ -21,11 +22,11 @@ export function intlHelpers<Output>({
 }): IntlHelpers<Output> {
   return {
     dateTimeFormat(date, options = dateTimeFormatOptions) {
-      return transform((locale) => cache.get(Intl.DateTimeFormat, locale, options).format(toDate(date)));
+      return transform((locale) => customDateTimeFormat(cache, locale, options, date));
     },
 
     dateTimeFormatRange(startDate, endDate, options = dateTimeFormatOptions) {
-      return transform((locale) => cache.get(Intl.DateTimeFormat, locale, options).formatRange(toDate(startDate), toDate(endDate)));
+      return transform((locale) => customDateTimeFormatRange(cache, locale, options, startDate, endDate));
     },
 
     displayNames(code, options) {
@@ -52,4 +53,31 @@ export function intlHelpers<Output>({
       return transform((locale) => cache.get(Intl.RelativeTimeFormat, locale, options).format(value, unit));
     },
   };
+}
+
+export function customDateTimeFormat(
+  cache: Cache,
+  locale: string | undefined,
+  options_: Intl.DateTimeFormatOptions | undefined,
+  date_: Date | number | string | TemporalLike | undefined,
+) {
+  const { date, options } = toDate(date_, options_) ?? {};
+  return cache.get(Intl.DateTimeFormat, locale, options).format(date);
+}
+
+export function customDateTimeFormatRange(
+  cache: Cache,
+  locale: string | undefined,
+  options_: Intl.DateTimeFormatOptions | undefined,
+  startDate_: Date | number | string | TemporalLike,
+  endDate_: Date | number | string | TemporalLike,
+) {
+  const start = toDate(startDate_, options_);
+  const end = toDate(endDate_);
+
+  if (start.type !== end.type) {
+    throw new Error('Intl.DateTimeFormat.formatRange accepts two values of the same type');
+  }
+
+  return cache.get(Intl.DateTimeFormat, locale, start.options).formatRange(start.date, end.date);
 }

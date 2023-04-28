@@ -1,5 +1,6 @@
 import { CacheOptions } from './cache';
 import { GetICUArgs } from './extractICU';
+import { TemporalLike } from './polyfill/temporal';
 
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers
@@ -109,10 +110,14 @@ export interface Translator<D extends FlatDict, Options = GetTranslatorOptions, 
 
 export interface IntlHelpers<Output = string> {
   /** Wraps Intl.DateTimeFormat.format */
-  dateTimeFormat(date?: Date | number | string, options?: Intl.DateTimeFormatOptions): Output;
+  dateTimeFormat(date?: Date | number | string | TemporalLike, options?: Intl.DateTimeFormatOptions): Output;
 
   /** Wraps Intl.DateTimeFormat.formatRange */
-  dateTimeFormatRange(startDate: Date | number | string, endDate: Date | number | string, options?: Intl.DateTimeFormatOptions): Output;
+  dateTimeFormatRange(
+    startDate: Date | number | string | TemporalLike,
+    endDate: Date | number | string | TemporalLike,
+    options?: Intl.DateTimeFormatOptions,
+  ): Output;
 
   /** Wraps Intl.DisplayNames.of */
   displayNames(code: string, options: Intl.DisplayNamesOptions): Output;

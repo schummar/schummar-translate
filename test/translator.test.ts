@@ -3,6 +3,7 @@ import { createTranslator } from '../src';
 import { Cache } from '../src/cache';
 import { OtherString } from '../src/types';
 import { dictDe, dictEn, dictEnCa } from './_helpers';
+import { Temporal } from '@js-temporal/polyfill';
 
 const { getTranslator } = createTranslator({
   sourceDictionary: dictEn,
@@ -89,12 +90,89 @@ test('plural without other', async () => {
   expect(ru.format('{x, plural, one {# one} few {# few} many {# many}}', { x: 5 })).toBe('5 many');
 });
 
-test('dateTimeFormat', async () => {
-  const en = await getTranslator('en');
-  const de = await getTranslator('de');
+describe('dateTimeFormat', () => {
+  test('dateTimeFormat', async () => {
+    const en = await getTranslator('en');
+    const de = await getTranslator('de');
 
-  expect(en.dateTimeFormat(date, { dateStyle: 'long', timeStyle: 'short' })).toBe('February 2, 2000 at 3:04 AM');
-  expect(de.dateTimeFormat(date, { dateStyle: 'long', timeStyle: 'short' })).toBe('2. Februar 2000 um 03:04');
+    expect(en.dateTimeFormat(date, { dateStyle: 'long', timeStyle: 'short' })).toBe('February 2, 2000 at 3:04 AM');
+    expect(de.dateTimeFormat(date, { dateStyle: 'long', timeStyle: 'short' })).toBe('2. Februar 2000 um 03:04');
+  });
+
+  test('with Temporal.Instant and rendered in local timeZone', async () => {
+    const de = await getTranslator('de');
+
+    expect(de.dateTimeFormat(Temporal.Instant.from('2023-01-01T00:00:00Z'), { dateStyle: 'medium', timeStyle: 'medium' })).toBe(
+      '01.01.2023, 01:00:00',
+    );
+  });
+
+  test('with Temporal.Instant and rendered in UTC', async () => {
+    const de = await getTranslator('de');
+
+    expect(
+      de.dateTimeFormat(Temporal.Instant.from('2023-01-01T00:00:00Z'), { dateStyle: 'medium', timeStyle: 'medium', timeZone: 'UTC' }),
+    ).toBe('01.01.2023, 00:00:00');
+  });
+
+  test('with Temporal.ZonedDateTime rendered in local timeZone', async () => {
+    const de = await getTranslator('de');
+
+    expect(
+      de.dateTimeFormat(Temporal.ZonedDateTime.from('2023-01-01T00:00:00[Europe/Berlin]'), {
+        dateStyle: 'medium',
+        timeStyle: 'medium',
+      }),
+    ).toBe('01.01.2023, 00:00:00');
+  });
+
+  test('with Temporal.ZonedDateTime rendered in UTC', async () => {
+    const de = await getTranslator('de');
+
+    expect(
+      de.dateTimeFormat(Temporal.ZonedDateTime.from('2023-01-01T00:00:00[Europe/Berlin]'), {
+        dateStyle: 'medium',
+        timeStyle: 'medium',
+        timeZone: 'UTC',
+      }),
+    ).toBe('31.12.2022, 23:00:00');
+  });
+
+  test('with Temporal.PlainDateTime rendered in local timeZone', async () => {
+    const de = await getTranslator('de');
+
+    expect(de.dateTimeFormat(Temporal.PlainDateTime.from('2023-01-01T00:00:00'), { dateStyle: 'medium', timeStyle: 'medium' })).toBe(
+      '01.01.2023, 00:00:00',
+    );
+  });
+
+  test('with Temporal.PlainDateTime rendered in UTC', async () => {
+    const de = await getTranslator('de');
+
+    expect(
+      de.dateTimeFormat(Temporal.PlainDateTime.from('2023-01-01T00:00:00'), { dateStyle: 'medium', timeStyle: 'medium', timeZone: 'UTC' }),
+    ).toBe('01.01.2023, 00:00:00');
+  });
+
+  test('with Temporal.PlainDate', async () => {
+    const de = await getTranslator('de');
+
+    expect(de.dateTimeFormat(Temporal.PlainDate.from('2023-01-01'), { dateStyle: 'medium', timeStyle: 'medium' })).toBe('01.01.2023');
+  });
+
+  test('with Temporal.PlainTime', async () => {
+    const de = await getTranslator('de');
+
+    expect(de.dateTimeFormat(Temporal.PlainTime.from('00:00:00'), { dateStyle: 'medium', timeStyle: 'medium' })).toBe('00:00:00');
+  });
+
+  test('format with Temporal', async () => {
+    const de = await getTranslator('de');
+
+    expect(de.format('{x, date, medium} # {x, time, medium}', { x: Temporal.PlainDateTime.from('2023-01-01T00:00:00') })).toBe(
+      '1. Jan. 2023 # 00:00:00',
+    );
+  });
 });
 
 test('dateTimeFormatRange', async () => {
