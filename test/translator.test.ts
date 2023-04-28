@@ -99,12 +99,16 @@ describe('dateTimeFormat', () => {
     expect(de.dateTimeFormat(date, { dateStyle: 'long', timeStyle: 'short' })).toBe('2. Februar 2000 um 03:04');
   });
 
-  test('with Temporal.Instant and rendered in local timeZone', async () => {
+  test('with Temporal.Instant and rendered in specific timeZone', async () => {
     const de = await getTranslator('de');
 
-    expect(de.dateTimeFormat(Temporal.Instant.from('2023-01-01T00:00:00Z'), { dateStyle: 'medium', timeStyle: 'medium' })).toBe(
-      '01.01.2023, 01:00:00',
-    );
+    expect(
+      de.dateTimeFormat(Temporal.Instant.from('2023-01-01T00:00:00Z'), {
+        dateStyle: 'medium',
+        timeStyle: 'medium',
+        timeZone: 'Europe/Berlin',
+      }),
+    ).toBe('01.01.2023, 01:00:00');
   });
 
   test('with Temporal.Instant and rendered in UTC', async () => {
@@ -115,13 +119,14 @@ describe('dateTimeFormat', () => {
     ).toBe('01.01.2023, 00:00:00');
   });
 
-  test('with Temporal.ZonedDateTime rendered in local timeZone', async () => {
+  test('with Temporal.ZonedDateTime rendered in specific timeZone', async () => {
     const de = await getTranslator('de');
 
     expect(
       de.dateTimeFormat(Temporal.ZonedDateTime.from('2023-01-01T00:00:00[Europe/Berlin]'), {
         dateStyle: 'medium',
         timeStyle: 'medium',
+        timeZone: 'Europe/Berlin',
       }),
     ).toBe('01.01.2023, 00:00:00');
   });
@@ -138,12 +143,16 @@ describe('dateTimeFormat', () => {
     ).toBe('31.12.2022, 23:00:00');
   });
 
-  test('with Temporal.PlainDateTime rendered in local timeZone', async () => {
+  test('with Temporal.PlainDateTime rendered in specific timeZone', async () => {
     const de = await getTranslator('de');
 
-    expect(de.dateTimeFormat(Temporal.PlainDateTime.from('2023-01-01T00:00:00'), { dateStyle: 'medium', timeStyle: 'medium' })).toBe(
-      '01.01.2023, 00:00:00',
-    );
+    expect(
+      de.dateTimeFormat(Temporal.PlainDateTime.from('2023-01-01T00:00:00'), {
+        dateStyle: 'medium',
+        timeStyle: 'medium',
+        timeZone: 'Europe/Berlin',
+      }),
+    ).toBe('01.01.2023, 00:00:00');
   });
 
   test('with Temporal.PlainDateTime rendered in UTC', async () => {
