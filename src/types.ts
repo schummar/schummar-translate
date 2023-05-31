@@ -25,6 +25,8 @@ export type FlattenDict<D extends Dict> = {
   [K in FlatKeys<D>]: DeepValue<D, K>;
 };
 
+type MatchingKeys<D extends FlatDict, Pattern> = keyof D extends infer K ? (K extends Pattern ? K : never) : never;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Public types
 ////////////////////////////////////////////////////////////////////////////////
@@ -97,12 +99,10 @@ export interface GetTranslatorOptions {
 
 export interface TranslatorFn<D extends FlatDict, Options = GetTranslatorOptions, Output = string> {
   /** Translate a dictionary id to a string in the active locale */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  <K extends keyof D, _OriginalString = D[K]>(id: K, ...values: Values<D[K], Options>): D[K] extends readonly string[]
-    ? Output extends string
-      ? readonly string[]
-      : Output
-    : Output;
+  <TKey extends keyof D, TString extends D[TKey] = D[TKey]>(
+    id: TKey,
+    ...values: Values<TString, Options>
+  ): TString extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output;
 }
 
 export interface Translator<D extends FlatDict, Options = GetTranslatorOptions, Output = string>
@@ -114,10 +114,13 @@ export interface Translator<D extends FlatDict, Options = GetTranslatorOptions, 
   unknown(id: string, values?: Record<string, unknown>, options?: Options): Output extends string ? string | readonly string[] : Output;
 
   /** Translate a dictionary id to a string in the active locale. Without type checking the id. */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  dynamic<K extends keyof D | (string & {}), _OriginalString = D[K]>(
-    id: K,
-    ...values: Values<D[K], Options>
+  dynamic<
+    TKey extends keyof D | (string & {}),
+    TMatchingKey extends MatchingKeys<D, TKey> = MatchingKeys<D, TKey>,
+    TString extends D[TMatchingKey] = D[TMatchingKey],
+  >(
+    id: TMatchingKey extends never ? never : TKey,
+    ...values: Values<TString, Options>
   ): Output extends string ? string | readonly string[] : Output;
 
   /** Format the given template directly. */

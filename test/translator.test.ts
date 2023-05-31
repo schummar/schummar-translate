@@ -76,14 +76,30 @@ test('unknown', async () => {
   expect(en.unknown('unknownKey', { value: 1 })).toBe('unknownKey');
 });
 
-test('dynamic', async () => {
-  const en = await getTranslator('en');
+describe('dynamic', () => {
+  test('with known key', async () => {
+    const en = await getTranslator('en');
 
-  expectTypeOf(en.dynamic<'nested.key2'>).parameters.toEqualTypeOf<[id: 'nested.key2', values: { value2: ICUArgument }, options?: any]>();
-  expect(en.dynamic('nested.key2', { value2: 1 })).toBe('key2:en 1');
+    expectTypeOf(en.dynamic<'nested.key2'>).parameters.toEqualTypeOf<[id: 'nested.key2', values: { value2: ICUArgument }, options?: any]>();
+    expect(en.dynamic('nested.key2', { value2: 1 })).toBe('key2:en 1');
+  });
 
-  expectTypeOf(en.dynamic<'unknownKey'>).parameters.toEqualTypeOf<[id: 'unknownKey', values?: Record<string, unknown>, options?: any]>();
-  expect(en.dynamic('unknownKey', { value: 1 })).toBe('unknownKey');
+  test('with partially known key', async () => {
+    const en = await getTranslator('en');
+
+    expectTypeOf(en.dynamic<`pattern${number}`>).parameters.toEqualTypeOf<
+      [id: `pattern${number}`, values: { value1: ICUArgument; value2: ICUArgument }, options?: any]
+    >();
+    expect(en.dynamic('pattern1' as `pattern${number}`, { value1: 1, value2: 2 })).toBe('pattern1 1');
+  });
+
+  test('with unknown value', async () => {
+    const en = await getTranslator('en');
+
+    expectTypeOf(en.dynamic<'unknownKey'>).parameters.toEqualTypeOf<[id: never, values: unknown, options?: any]>();
+    // @ts-expect-error unknownKey is known not to be in the dictionary
+    expect(en.dynamic('unknownKey')).toBe('unknownKey');
+  });
 });
 
 test('union', async () => {

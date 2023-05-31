@@ -18,6 +18,9 @@ export const dictEn1 = {
   escapeNonEscapable: `text ' text {word1}`,
   escapeSharpInPlural: `text { value, plural, other {'# times {word}'} }`,
   escapeSharpOutsidePlural: `text '# times {word}`,
+  pattern1: 'pattern1 {value1}',
+  pattern2: 'pattern2 {value2}',
+  patternx: 'pattern2 {valuex}',
 } as const;
 export const dictEn2 = {
   nested: {
