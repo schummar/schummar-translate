@@ -68,6 +68,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
         locale,
 
         unknown: t as HookTranslator<FD>['unknown'],
+        dynamic: t as HookTranslator<FD>['dynamic'],
 
         format(template, ...[values]) {
           return format({
@@ -163,6 +164,7 @@ export function createTranslator<D extends Dict>(options: ReactCreateTranslatorO
     locale: render((t) => t.locale, []),
 
     unknown: createTranslatorComponent as InlineTranslator<FD>['unknown'],
+    dynamic: createTranslatorComponent as InlineTranslator<FD>['dynamic'],
 
     format(template, ...[values]) {
       return render(

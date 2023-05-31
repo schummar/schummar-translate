@@ -17,7 +17,8 @@
     "allowSyntheticDefaultImports": true,
     "noUncheckedIndexedAccess": true,
     "jsx": "react-jsx",
-    "useDefineForClassFields": false
+    "useDefineForClassFields": false,
+    "noErrorTruncation": true
   },
   "include": ["src", "test"]
 }

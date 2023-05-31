@@ -1,7 +1,4 @@
-import { TemporalLike } from './polyfill/temporal';
-import { OtherString } from './types';
-
-type Value = string | number | boolean | Date;
+import { ICUArgument, ICUDateArgument, ICUNumberArgument, OtherString } from './types';
 
 type Whitespace = ' ' | '\t' | '\n' | '\r';
 
@@ -40,16 +37,16 @@ type ParseBlock<Block> = Block extends `${infer Name},${infer Format},${infer Re
     : { [K in Trim<Name>]: VariableType<Trim<Format>> } & TupleParseBlock<TupleFindBlocks<FindBlocks<Rest>>>
   : Block extends `${infer Name},${infer Format}`
   ? { [K in Trim<Name>]: VariableType<Trim<Format>> }
-  : { [K in Trim<Block>]: Value };
+  : { [K in Trim<Block>]: ICUArgument };
 
 /** Parse block for each tuple entry */
-type TupleParseBlock<T> = T extends readonly [infer First, ...infer Rest] ? ParseBlock<First> & TupleParseBlock<Rest> : unknown;
+type TupleParseBlock<T> = T extends readonly [infer First, ...infer Rest] ? ParseBlock<First> & TupleParseBlock<Rest> : {};
 
 type VariableType<T extends string> = T extends 'number' | 'plural' | 'selectordinal'
-  ? number
+  ? ICUNumberArgument
   : T extends 'date' | 'time'
-  ? Date | number | string | TemporalLike
-  : Value;
+  ? ICUDateArgument
+  : ICUArgument;
 
 // Select //////////////////////////////////////////////////////////////////////
 

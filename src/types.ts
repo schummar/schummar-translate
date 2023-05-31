@@ -76,11 +76,19 @@ export interface CreateTranslatorResult<D extends FlatDict> {
   clearDicts: () => void;
 }
 
-export type Values<T extends string | readonly string[], Options = never> = Record<string, never> extends GetICUArgs<T>
-  ? [values?: Record<string, never>, options?: Options]
-  : GetICUArgs<T> extends never
-  ? [values?: Record<string, never>, options?: Options]
-  : [values: GetICUArgs<T>, options?: Options];
+export type Values<T extends string | readonly string[], Options = never> =
+  // any string => unknown arguments
+  string extends T
+    ? [value?: Record<string, unknown>, options?: Options]
+    : string[] extends T
+    ? [value?: Record<string, unknown>, options?: Options]
+    : // for unions, extract arguments for each union member individually
+    (T extends any ? (k: GetICUArgs<T>) => void : never) extends (k: infer Args) => void
+    ? Args extends Record<string, never>
+      ? // if no arguments are found, allow omitting values
+        [values?: {}, options?: Options]
+      : [values: Args, options?: Options]
+    : never;
 
 export interface GetTranslatorOptions {
   /** Override fallback to use if string is not available in active locale */
@@ -89,7 +97,8 @@ export interface GetTranslatorOptions {
 
 export interface TranslatorFn<D extends FlatDict, Options = GetTranslatorOptions, Output = string> {
   /** Translate a dictionary id to a string in the active locale */
-  <K extends keyof D>(id: K, ...values: Values<D[K], Options>): D[K] extends readonly string[]
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  <K extends keyof D, _OriginalString = D[K]>(id: K, ...values: Values<D[K], Options>): D[K] extends readonly string[]
     ? Output extends string
       ? readonly string[]
       : Output
@@ -103,6 +112,13 @@ export interface Translator<D extends FlatDict, Options = GetTranslatorOptions, 
 
   /** Translate a dictionary id to a string in the active locale. Without type checking the id. */
   unknown(id: string, values?: Record<string, unknown>, options?: Options): Output extends string ? string | readonly string[] : Output;
+
+  /** Translate a dictionary id to a string in the active locale. Without type checking the id. */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  dynamic<K extends keyof D | (string & {}), _OriginalString = D[K]>(
+    id: K,
+    ...values: Values<D[K], Options>
+  ): Output extends string ? string | readonly string[] : Output;
 
   /** Format the given template directly. */
   format<T extends string>(template: T, ...values: Values<T>): Output;
@@ -137,5 +153,9 @@ export interface IntlHelpers<Output = string> {
   /** Wraps Intl.RelativeTimeFormat.format */
   relativeTimeFormat(value: number, unit: Intl.RelativeTimeFormatUnit, options?: Intl.RelativeTimeFormatOptions): Output;
 }
+
+export type ICUArgument = string | number | boolean | Date;
+export type ICUNumberArgument = number;
+export type ICUDateArgument = Date | number | string | TemporalLike;
 
 export type OtherString = string & { __type: 'other' };

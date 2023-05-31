@@ -1,9 +1,9 @@
-import { describe, expect, test } from 'vitest';
+import { Temporal } from '@js-temporal/polyfill';
+import { describe, expect, expectTypeOf, test } from 'vitest';
 import { createTranslator } from '../src';
 import { Cache } from '../src/cache';
-import { OtherString } from '../src/types';
+import { ICUArgument, ICUDateArgument, ICUNumberArgument, OtherString } from '../src/types';
 import { dictDe, dictEn, dictEnCa } from './_helpers';
-import { Temporal } from '@js-temporal/polyfill';
 
 const { getTranslator } = createTranslator({
   sourceDictionary: dictEn,
@@ -18,6 +18,7 @@ test('simple', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
+  expectTypeOf(en<'key1'>).parameters.toEqualTypeOf<[id: 'key1', values?: {}, options?: any]>();
   expect(en('key1')).toBe('key1:en');
   expect(de('key1')).toBe('key1:de');
 });
@@ -26,6 +27,7 @@ test('with value', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
+  expectTypeOf(en<'nested.key2'>).parameters.toEqualTypeOf<[id: 'nested.key2', values: { value2: ICUArgument }, options?: any]>();
   expect(en('nested.key2', { value2: 'v2' })).toBe('key2:en v2');
   expect(de('nested.key2', { value2: 'v2' })).toBe('key2:de v2');
 });
@@ -34,6 +36,19 @@ test('with complex values', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
+  expectTypeOf(en<'nested.key3'>).parameters.toEqualTypeOf<
+    [
+      id: 'nested.key3',
+      values: {
+        number: ICUNumberArgument;
+        plural: ICUNumberArgument;
+        selectordinal: ICUNumberArgument;
+        date: ICUDateArgument;
+        time: ICUDateArgument;
+      },
+      options?: any,
+    ]
+  >();
   expect(en('nested.key3', { number: 1, plural: 1, selectordinal: 1, date, time: date })).toBe('key3:en 1 one 1st 2/2/2000 3:04 AM');
   expect(de('nested.key3', { number: 1, plural: 1, selectordinal: 1, date, time: date })).toBe('key3:de 1 eins 1te 2.2.2000 03:04');
 });
@@ -42,6 +57,9 @@ test('format', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
+  expectTypeOf(en.format<'{date, date}'>).parameters.toEqualTypeOf<
+    [template: '{date, date}', values: { date: ICUDateArgument }, options?: any]
+  >();
   expect(en.format('{date, date}', { date })).toBe('2/2/2000');
   expect(de.format('{date, date}', { date })).toBe('2.2.2000');
 });
@@ -49,6 +67,50 @@ test('format', async () => {
 test('wrong format', async () => {
   const en = await getTranslator('en');
   expect(en.format('{number, numbr}', { number: 1 })).toBe('Wrong format: SyntaxError: INVALID_ARGUMENT_TYPE');
+});
+
+test('unknown', async () => {
+  const en = await getTranslator('en');
+
+  expectTypeOf(en.unknown).parameters.toEqualTypeOf<[id: string, values?: Record<string, unknown>, options?: any]>();
+  expect(en.unknown('unknownKey', { value: 1 })).toBe('unknownKey');
+});
+
+test('dynamic', async () => {
+  const en = await getTranslator('en');
+
+  expectTypeOf(en.dynamic<'nested.key2'>).parameters.toEqualTypeOf<[id: 'nested.key2', values: { value2: ICUArgument }, options?: any]>();
+  expect(en.dynamic('nested.key2', { value2: 1 })).toBe('key2:en 1');
+
+  expectTypeOf(en.dynamic<'unknownKey'>).parameters.toEqualTypeOf<[id: 'unknownKey', values?: Record<string, unknown>, options?: any]>();
+  expect(en.dynamic('unknownKey', { value: 1 })).toBe('unknownKey');
+});
+
+test('union', async () => {
+  const { getTranslator } = createTranslator({
+    sourceDictionary: {
+      a: 'a',
+      b: 'b {valueB}',
+      c: ['c1 {valueC1}', 'c2 {valueC2}'],
+    } as const,
+    sourceLocale: 'en',
+  });
+
+  const en = await getTranslator('en');
+
+  expectTypeOf(en.dynamic<'a' | 'b' | 'c'>).parameters.toEqualTypeOf<
+    [
+      id: 'a' | 'b' | 'c',
+      values: {
+        valueB: ICUArgument;
+        valueC1: ICUArgument;
+        valueC2: ICUArgument;
+      },
+      options?: any,
+    ]
+  >();
+
+  expect(en.dynamic('a' as 'a' | 'b' | 'c', { valueB: 1, valueC1: 2, valueC2: 3 })).toBe('a');
 });
 
 test('warn', async () => {
@@ -377,6 +439,7 @@ describe('ignoreMissingArgs', () => {
   describe('select types', () => {
     test('select', async () => {
       const _t = await getTranslator('en');
+
       expect(_t('select', { value: 'option1' })).toBe('text text1 text');
       expect(_t('select', { value: 'option2' })).toBe('text text2 text');
       // @ts-expect-error only listed options are allowed
@@ -448,6 +511,25 @@ describe('ignoreMissingArgs', () => {
       expect(_t('selectWithOtherNested', { value: 'foo' as string, nested1: 'n1', nested2: 'n2', nested3: 'n3' })).toBe(
         'text text3 n3 text',
       );
+
+      expectTypeOf(_t.dynamic<'nested.key2' | 'selectWithOtherNested'>).parameters.toEqualTypeOf<
+        [
+          id: 'nested.key2' | 'selectWithOtherNested',
+          ...args:
+            | [values: { value2: ICUArgument } & { value: 'option1'; nested1: ICUArgument }, options?: any]
+            | [values: { value2: ICUArgument } & { value: 'option2'; nested2: ICUArgument }, options?: any]
+            | [values: { value2: ICUArgument } & { value: OtherString; nested3: ICUArgument }, options?: any]
+            | [
+                values: { value2: ICUArgument } & {
+                  value: (string & {}) | 'option1' | 'option2';
+                  nested1: ICUArgument;
+                  nested2: ICUArgument;
+                  nested3: ICUArgument;
+                },
+                options?: any,
+              ],
+        ]
+      >();
     });
   });
 

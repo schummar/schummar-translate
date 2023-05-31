@@ -47,6 +47,7 @@ export const createGetTranslator =
       locale,
 
       unknown: t as Translator<FD>['unknown'],
+      dynamic: t as Translator<FD>['dynamic'],
 
       format(template, ...[values]) {
         return format({
