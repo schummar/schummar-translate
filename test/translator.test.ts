@@ -5,7 +5,10 @@ import { Cache } from '../src/cache';
 import { ICUArgument, ICUDateArgument, ICUNumberArgument, OtherString } from '../src/types';
 import { dictDe, dictEn, dictEnCa } from './_helpers';
 
-const { getTranslator } = createTranslator({
+type EnDict = typeof dictEn;
+interface Dict extends EnDict {}
+
+const { getTranslator } = createTranslator<Dict>({
   sourceDictionary: dictEn,
   sourceLocale: 'en',
   dicts: (locale) => (locale === 'de' ? dictDe : null),
@@ -96,7 +99,7 @@ describe('dynamic', () => {
   test('with unknown value', async () => {
     const en = await getTranslator('en');
 
-    expectTypeOf(en.dynamic<'unknownKey'>).parameters.toEqualTypeOf<[id: never, values: unknown, options?: any]>();
+    expectTypeOf(en.dynamic<'unknownKey'>).parameters.toEqualTypeOf<[never, ...never]>();
     // @ts-expect-error unknownKey is known not to be in the dictionary
     expect(en.dynamic('unknownKey')).toBe('unknownKey');
   });

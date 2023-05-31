@@ -120,7 +120,7 @@ export interface Translator<D extends FlatDict, Options = GetTranslatorOptions, 
     TString extends D[TMatchingKey] = D[TMatchingKey],
   >(
     id: TMatchingKey extends never ? never : TKey,
-    ...values: Values<TString, Options>
+    ...values: TMatchingKey extends never ? never : Values<TString, Options>
   ): Output extends string ? string | readonly string[] : Output;
 
   /** Format the given template directly. */
