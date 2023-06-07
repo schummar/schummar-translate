@@ -121,7 +121,7 @@ export interface Translator<D extends FlatDict, Options = GetTranslatorOptions, 
   >(
     id: TMatchingKey extends never ? never : TKey,
     ...values: TMatchingKey extends never ? never : Values<TString, Options>
-  ): Output extends string ? string | readonly string[] : Output;
+  ): TString extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output;
 
   /** Format the given template directly. */
   format<T extends string>(template: T, ...values: Values<T>): Output;
