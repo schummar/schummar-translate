@@ -2,16 +2,17 @@ import { ElementType, ReactNode } from 'react';
 import { CreateTranslatorResult } from '..';
 import { CreateTranslatorOptions, Dict, FlatDict, Translator } from '../types';
 
-export interface ReactCreateTranslatorOptions<D extends Dict> extends CreateTranslatorOptions<D> {
+export type ReactCreateTranslatorOptions<D extends Dict, ProvidedArgs extends string = never> = CreateTranslatorOptions<D, ProvidedArgs> & {
   /** Display while a locale is loading */
   placeholder?: string | ((id: string, sourceTranslation?: string | readonly string[]) => string);
-}
+};
 
-export interface ReactCreateTranslatorResult<D extends FlatDict> extends CreateTranslatorResult<D> {
+export interface ReactCreateTranslatorResult<D extends FlatDict, ProvidedArgs extends string = never>
+  extends CreateTranslatorResult<D, ProvidedArgs> {
   /** Returns a translator instance in a hook, which updates as locales changes or dictionaries are loaded */
-  useTranslator: (locale?: string) => HookTranslator<D>;
+  useTranslator: (locale?: string) => HookTranslator<D, ProvidedArgs>;
   /** Returns an inline translator instance, which updates as locales changes or dictionaries are loaded */
-  t: InlineTranslator<D>;
+  t: InlineTranslator<D, ProvidedArgs>;
 }
 
 export interface HookTranslatorOptions {
@@ -21,8 +22,8 @@ export interface HookTranslatorOptions {
   placeholder?: string;
 }
 
-export interface HookTranslator<D extends FlatDict, Options = HookTranslatorOptions, Output = string>
-  extends Translator<D, Options, Output> {}
+export interface HookTranslator<D extends FlatDict, ProvidedArgs extends string = never, Options = HookTranslatorOptions, Output = string>
+  extends Translator<D, ProvidedArgs, Options, Output> {}
 
 export interface InlineTranslatorOptions {
   /** Override locale */
@@ -35,10 +36,11 @@ export interface InlineTranslatorOptions {
   component?: ElementType;
 }
 
-export interface InlineTranslator<D extends FlatDict> extends HookTranslator<D, InlineTranslatorOptions, ReactNode> {
+export interface InlineTranslator<D extends FlatDict, ProvidedArgs extends string = never>
+  extends HookTranslator<D, ProvidedArgs, InlineTranslatorOptions, ReactNode> {
   /** Render something using the currently active locale
    * @param renderFn your custom render function
    * @param dependencies if provided, will memoize the result of renderFn as long as dependencies stay the same (shallow compare)
    */
-  render(renderFn: (t: HookTranslator<D>) => ReactNode, dependencies?: any[]): ReactNode;
+  render(renderFn: (t: HookTranslator<D, ProvidedArgs>) => ReactNode, dependencies?: any[]): ReactNode;
 }

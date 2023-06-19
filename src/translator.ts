@@ -6,7 +6,7 @@ import { format, translate } from './translate';
 import { CreateTranslatorOptions, CreateTranslatorResult, Dict, FlattenDict, Translator } from './types';
 
 export const createGetTranslator =
-  <D extends Dict>(
+  <D extends Dict, ProvidedArgs extends string = never>(
     store: Store<D>,
     {
       fallbackLocale,
@@ -20,15 +20,16 @@ export const createGetTranslator =
       pluralRulesOptions,
       relativeTimeFormatOptions,
       ignoreMissingArgs,
-    }: CreateTranslatorOptions<D>,
-  ): ((locale: string) => Promise<Translator<FlattenDict<D>>>) =>
+      provideArgs,
+    }: CreateTranslatorOptions<D, ProvidedArgs>,
+  ): ((locale: string) => Promise<Translator<FlattenDict<D>, ProvidedArgs>>) =>
   async (locale: string) => {
     type FD = FlattenDict<D>;
 
     const dicts = await store.loadAll(locale, ...calcLocales(locale, fallbackToLessSpecific, fallbackLocale));
     const sourceDict = await store.load(sourceLocale);
 
-    const t: TranslatorFn<FD> = (id, ...[values, options]) => {
+    const t: TranslatorFn<FD, ProvidedArgs> = (id, ...[values, options]) => {
       const fallback = options?.fallback ?? globalFallback;
       return translate({
         dicts,
@@ -40,14 +41,15 @@ export const createGetTranslator =
         warn,
         cache: store.cache,
         ignoreMissingArgs,
+        provideArgs,
       }) as any;
     };
 
-    return Object.assign<TranslatorFn<FD>, Omit<Translator<FD>, keyof TranslatorFn<FD>>>(t, {
+    return Object.assign<TranslatorFn<FD, ProvidedArgs>, Omit<Translator<FD, ProvidedArgs>, keyof TranslatorFn<FD, ProvidedArgs>>>(t, {
       locale,
 
-      unknown: t as Translator<FD>['unknown'],
-      dynamic: t as Translator<FD>['dynamic'],
+      unknown: t as Translator<FD, ProvidedArgs>['unknown'],
+      dynamic: t as Translator<FD, ProvidedArgs>['dynamic'],
 
       format(template, ...[values]) {
         return format({
@@ -55,6 +57,8 @@ export const createGetTranslator =
           values: values as any,
           locale,
           cache: store.cache,
+          ignoreMissingArgs,
+          provideArgs,
         });
       },
 
@@ -70,7 +74,9 @@ export const createGetTranslator =
     });
   };
 
-export function createTranslator<D extends Dict>(options: CreateTranslatorOptions<D>): CreateTranslatorResult<FlattenDict<D>> {
+export function createTranslator<D extends Dict, ProvidedArgs extends string = never>(
+  options: CreateTranslatorOptions<D, ProvidedArgs>,
+): CreateTranslatorResult<FlattenDict<D>, ProvidedArgs> {
   const store = new Store(options);
 
   return {
