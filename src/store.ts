@@ -4,12 +4,12 @@ import { flattenDict } from './flattenDict';
 import { arrEquals } from './helpers';
 import { CreateTranslatorOptions, Dict, FlatDict, MaybePromise } from './types';
 
-export class Store<D extends Dict = any> {
+export class Store<D extends Dict = any, ProvidedArgs extends string = never> {
   dicts = new Map<string, MaybePromise<FlatDict | null>>();
   cache = new Cache(this.options.cacheOptions);
   subs = new Set<() => void>();
 
-  constructor(public options: CreateTranslatorOptions<D>) {}
+  constructor(public options: CreateTranslatorOptions<D, ProvidedArgs>) {}
 
   load(locale: string): MaybePromise<FlatDict | null> {
     let entry = this.dicts.get(locale);

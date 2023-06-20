@@ -1,4 +1,4 @@
-import { ICUArgument, ICUDateArgument, ICUNumberArgument, OtherString } from './types';
+import { Flatten, ICUArgument, ICUDateArgument, ICUNumberArgument, OtherString } from './types';
 
 type Whitespace = ' ' | '\t' | '\n' | '\r';
 
@@ -85,13 +85,18 @@ type TupleStripEscapes<T> = T extends readonly [infer First, ...infer Rest] ? [S
 ////////////////////////////////////////////////////////////////////////////////
 
 // Makes type readable
-type Flatten<T> = T extends object
-  ? {
-      [P in keyof T]: T[P];
-    }
-  : T;
+
+// Make provided args optional
+type MakeProvidedOptional<T, ProvidedArgs extends string = never> = {
+  [K in keyof T as K extends ProvidedArgs ? never : K]: T[K];
+} & {
+  [K in ProvidedArgs & keyof T]?: T[K];
+};
 
 /** Calculates an object type with all variables and their types in the given ICU format string */
-export type GetICUArgs<T extends string | readonly string[]> = Flatten<
-  TupleParseBlock<T extends readonly string[] ? TupleFindBlocks<TupleStripEscapes<T>> : FindBlocks<StripEscapes<T>>>
+export type GetICUArgs<T extends string | readonly string[], ProvidedArgs extends string = never> = Flatten<
+  MakeProvidedOptional<
+    TupleParseBlock<T extends readonly string[] ? TupleFindBlocks<TupleStripEscapes<T>> : FindBlocks<StripEscapes<T>>>,
+    ProvidedArgs
+  >
 >;

@@ -4,7 +4,7 @@ import { MaybePromise } from '.';
 import { Cache } from './cache';
 import { customDateTimeFormat, customDateTimeFormatRange } from './intlHelpers';
 import { mapPotentialArray } from './mapPotentialArray';
-import { FlatDict } from './types';
+import { FlatDict, ICUArgument, ICUDateArgument } from './types';
 
 export function translate<F = never>({
   dicts,
@@ -17,6 +17,7 @@ export function translate<F = never>({
   warn,
   cache,
   ignoreMissingArgs,
+  providedArgs,
 }: {
   dicts: MaybePromise<FlatDict>[];
   sourceDict?: MaybePromise<FlatDict> | null;
@@ -27,7 +28,8 @@ export function translate<F = never>({
   locale: string;
   warn?: (locale: string, id: string) => void;
   cache: Cache;
-  ignoreMissingArgs?: boolean | string | ((id: string, template: string) => string);
+  ignoreMissingArgs: boolean | string | ((id: string, template: string) => string) | undefined;
+  providedArgs: Record<string, ICUArgument | ICUDateArgument> | undefined;
 }): string | F | (string | F)[] | F {
   if (fallback !== undefined) {
     dicts = dicts.slice(0, 1);
@@ -45,6 +47,8 @@ export function translate<F = never>({
             values,
             locale,
             cache,
+            ignoreMissingArgs,
+            providedArgs,
           })
         : undefined,
       (sourceTranslation) => {
@@ -68,6 +72,8 @@ export function translate<F = never>({
               values,
               locale,
               cache,
+              ignoreMissingArgs,
+              providedArgs,
             })
           : undefined;
       return fallback(id, sourceTranslation);
@@ -78,7 +84,7 @@ export function translate<F = never>({
     return id;
   }
 
-  return mapPotentialArray(template, (template) => format({ template, values, locale, cache, ignoreMissingArgs }));
+  return mapPotentialArray(template, (template) => format({ template, values, locale, cache, ignoreMissingArgs, providedArgs }));
 }
 
 export function format({
@@ -87,13 +93,17 @@ export function format({
   locale,
   cache,
   ignoreMissingArgs,
+  providedArgs,
 }: {
   template: string;
   values?: Record<string, unknown>;
   locale?: string;
   cache: Cache;
-  ignoreMissingArgs?: boolean | string | ((id: string, template: string) => string);
+  ignoreMissingArgs: boolean | string | ((id: string, template: string) => string) | undefined;
+  providedArgs: Record<string, ICUArgument | ICUDateArgument> | undefined;
 }): string {
+  values = { ...providedArgs, ...values };
+
   try {
     const ast = parse(template, { requiresOtherClause: false });
 

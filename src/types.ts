@@ -10,10 +10,18 @@ export type MaybePromise<T> = T | Promise<T>;
 /** Merge tuple into intersection */
 export type Merge<T> = T extends [infer A, ...infer Rest] ? (Rest extends [any, ...any] ? A & Merge<Rest> : A) : T;
 
-export type FlatKeys<D extends Dict> = string &
-  keyof {
-    [K in keyof D as D[K] extends Dict ? `${string & K}.${FlatKeys<D[K]>}` : K]: 1;
-  };
+export type IsAny<T> = 0 extends 1 & T ? true : false;
+
+export type IsNever<T> = [T] extends [never] ? true : false;
+
+export type OnlyOptional<T> = Partial<T> extends T ? true : false;
+
+export type FlatKeys<D extends Dict> = IsAny<D> extends true
+  ? string
+  : string &
+      keyof {
+        [K in keyof D as D[K] extends Dict ? `${string & K}.${FlatKeys<D[K]>}` : K]: 1;
+      };
 
 export type DeepValue<D extends Dict, K extends FlatKeys<D>> = K extends `${infer Head}.${infer Rest}`
   ? DeepValue<D[Head] & Dict, Rest & FlatKeys<D[Head] & Dict>>
@@ -27,68 +35,88 @@ export type FlattenDict<D extends Dict> = {
 
 type MatchingKeys<D extends FlatDict, Pattern> = keyof D extends infer K ? (K extends Pattern ? K : never) : never;
 
+export type Flatten<T> = T extends object
+  ? {
+      [P in keyof T]: T[P];
+    }
+  : T;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Public types
 ////////////////////////////////////////////////////////////////////////////////
 export type Dict = { [id: string]: Dict | string | readonly string[] };
 export type FlatDict = Record<string, string | readonly string[]>;
 
-export interface CreateTranslatorOptions<D extends Dict> {
-  /** The source dictionary. It's type determines the available ids. */
-  sourceDictionary?: D;
-  /** The source dictionary's locale */
-  sourceLocale: string;
-  /** Locale(s) to fall back to if a string is not available in the active locale */
-  fallbackLocale?: string | readonly string[] | ((locale: string) => string | readonly string[]);
-  /** Fall back to less specific language versions. E.g. en-US -> en
-   * @default true
-   */
-  fallbackToLessSpecific?: boolean;
-  /** Dictionaries. Either a record with locales as keys or a function that takes a locale and returns a promise of a dictionary
-   * @param locale the active locale
-   */
-  dicts?: { [locale: string]: Dict | (() => MaybePromise<Dict>) } | ((locale: string) => MaybePromise<Dict | null>);
-  /** Custom fallback handler. Will be called when a string is not available in the active locale.
-   * @param id flat dictionary key
-   * @param sourceTranslation translated string in source locale
-   */
-  fallback?: string | ((id: string, sourceTranslation?: string | readonly string[]) => string);
-  ignoreMissingArgs?: boolean | string | ((id: string, template: string) => string);
-  /** Receive warning when strings are missing. */
-  warn?: (locale: string, id: string) => void;
-  /** Configure cache for intl instances */
-  cacheOptions?: CacheOptions;
-  /** Default options */
-  dateTimeFormatOptions?: Intl.DateTimeFormatOptions;
-  /** Default options */
-  listFormatOptions?: Intl.ListFormatOptions;
-  /** Default options */
-  numberFormatOptions?: Intl.NumberFormatOptions;
-  /** Default options */
-  pluralRulesOptions?: Intl.PluralRulesOptions;
-  /** Default options */
-  relativeTimeFormatOptions?: Intl.RelativeTimeFormatOptions;
-}
+export type CreateTranslatorOptions<D extends Dict, ProvidedArgs extends string = never> = Flatten<
+  {
+    /** The source dictionary. It's type determines the available ids. */
+    sourceDictionary?: D;
+    /** The source dictionary's locale */
+    sourceLocale: string;
+    /** Locale(s) to fall back to if a string is not available in the active locale */
+    fallbackLocale?: string | readonly string[] | ((locale: string) => string | readonly string[]);
+    /** Fall back to less specific language versions. E.g. en-US -> en
+     * @default true
+     */
+    fallbackToLessSpecific?: boolean;
+    /** Dictionaries. Either a record with locales as keys or a function that takes a locale and returns a promise of a dictionary
+     * @param locale the active locale
+     */
+    dicts?: { [locale: string]: Dict | (() => MaybePromise<Dict>) } | ((locale: string) => MaybePromise<Dict | null>);
+    /** Custom fallback handler. Will be called when a string is not available in the active locale.
+     * @param id flat dictionary key
+     * @param sourceTranslation translated string in source locale
+     */
+    fallback?: string | ((id: string, sourceTranslation?: string | readonly string[]) => string);
+    ignoreMissingArgs?: boolean | string | ((id: string, template: string) => string);
+    /** Receive warning when strings are missing. */
+    warn?: (locale: string, id: string) => void;
+    /** Configure cache for intl instances */
+    cacheOptions?: CacheOptions;
+    /** Default options */
+    dateTimeFormatOptions?: Intl.DateTimeFormatOptions;
+    /** Default options */
+    listFormatOptions?: Intl.ListFormatOptions;
+    /** Default options */
+    numberFormatOptions?: Intl.NumberFormatOptions;
+    /** Default options */
+    pluralRulesOptions?: Intl.PluralRulesOptions;
+    /** Default options */
+    relativeTimeFormatOptions?: Intl.RelativeTimeFormatOptions;
+  } & (IsNever<ProvidedArgs> extends true
+    ? { provideArgs?: Record<string, never> }
+    : {
+        provideArgs: Record<
+          ProvidedArgs,
+          | ICUArgument
+          | ICUDateArgument
+          | {
+              get(): ICUArgument | ICUDateArgument;
+              subscribe(callback: () => void): () => void;
+            }
+        >;
+      })
+>;
 
-export interface CreateTranslatorResult<D extends FlatDict> {
+export interface CreateTranslatorResult<D extends FlatDict, ProvidedArgs extends string = never> {
   /** Returns a promise for a translator instance */
-  getTranslator: (locale: string) => Promise<Translator<D>>;
+  getTranslator: (locale: string) => Promise<Translator<D, ProvidedArgs>>;
 
   /** Clear all dictionary data. As needed the dictionaries will be reloaded. Useful for OTA translation updates. */
   clearDicts: () => void;
 }
 
-export type Values<T extends string | readonly string[], Options = never> =
+export type Values<T extends string | readonly string[], ProvidedArgs extends string = never, Options = never> =
   // any string => unknown arguments
   string extends T
     ? [value?: Record<string, unknown>, options?: Options]
     : string[] extends T
     ? [value?: Record<string, unknown>, options?: Options]
     : // for unions, extract arguments for each union member individually
-    (T extends any ? (k: GetICUArgs<T>) => void : never) extends (k: infer Args) => void
-    ? Args extends Record<string, never>
+    (T extends any ? (k: GetICUArgs<T, ProvidedArgs>) => void : never) extends (k: infer Args) => void
+    ? OnlyOptional<Args> extends true
       ? // if no arguments are found, allow omitting values
-        [values?: {}, options?: Options]
+        [values?: Args, options?: Options]
       : [values: Args, options?: Options]
     : never;
 
@@ -97,16 +125,16 @@ export interface GetTranslatorOptions {
   fallback?: string;
 }
 
-export interface TranslatorFn<D extends FlatDict, Options = GetTranslatorOptions, Output = string> {
+export interface TranslatorFn<D extends FlatDict, ProvidedArgs extends string = never, Options = GetTranslatorOptions, Output = string> {
   /** Translate a dictionary id to a string in the active locale */
   <TKey extends keyof D, TString extends D[TKey] = D[TKey]>(
     id: TKey,
-    ...values: Values<TString, Options>
+    ...values: Values<TString, ProvidedArgs, Options>
   ): TString extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output;
 }
 
-export interface Translator<D extends FlatDict, Options = GetTranslatorOptions, Output = string>
-  extends TranslatorFn<D, Options, Output>,
+export interface Translator<D extends FlatDict, ProvidedArgs extends string = never, Options = GetTranslatorOptions, Output = string>
+  extends TranslatorFn<D, ProvidedArgs, Options, Output>,
     IntlHelpers<Output> {
   locale: Output;
 
@@ -120,11 +148,11 @@ export interface Translator<D extends FlatDict, Options = GetTranslatorOptions, 
     TString extends D[TMatchingKey] = D[TMatchingKey],
   >(
     id: TMatchingKey extends never ? never : TKey,
-    ...values: TMatchingKey extends never ? never : Values<TString, Options>
+    ...values: TMatchingKey extends never ? never : Values<TString, ProvidedArgs, Options>
   ): TString extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output;
 
   /** Format the given template directly. */
-  format<T extends string>(template: T, ...values: Values<T>): Output;
+  format<T extends string>(template: T, ...values: Values<T, ProvidedArgs>): Output;
 }
 
 export interface IntlHelpers<Output = string> {

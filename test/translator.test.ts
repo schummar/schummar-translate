@@ -535,16 +535,18 @@ describe('ignoreMissingArgs', () => {
         [
           id: 'nested.key2' | 'selectWithOtherNested',
           ...args:
-            | [values: { value2: ICUArgument } & { value: 'option1'; nested1: ICUArgument }, options?: any]
-            | [values: { value2: ICUArgument } & { value: 'option2'; nested2: ICUArgument }, options?: any]
-            | [values: { value2: ICUArgument } & { value: OtherString; nested3: ICUArgument }, options?: any]
             | [
-                values: { value2: ICUArgument } & {
-                  value: (string & {}) | 'option1' | 'option2';
-                  nested1: ICUArgument;
-                  nested2: ICUArgument;
-                  nested3: ICUArgument;
-                },
+                values: { value2: ICUArgument } & (
+                  | { value: 'option1'; nested1: ICUArgument }
+                  | { value: 'option2'; nested2: ICUArgument }
+                  | { value: OtherString; nested3: ICUArgument }
+                  | {
+                      value: (string & {}) | 'option1' | 'option2';
+                      nested1: ICUArgument;
+                      nested2: ICUArgument;
+                      nested3: ICUArgument;
+                    }
+                ),
                 options?: any,
               ],
         ]
@@ -582,6 +584,52 @@ describe('ignoreMissingArgs', () => {
     test('escape sharp outside plural', async () => {
       const _t = await getTranslator('en');
       expect(_t('escapeSharpOutsidePlural', { word: 'text' })).toBe(`text '# times text`);
+    });
+  });
+
+  describe('provided args', () => {
+    test('provided args directly', async () => {
+      const { getTranslator } = createTranslator({
+        sourceDictionary: {
+          foo: '{foo}',
+          bar: '{bar}',
+          baz: '{foo} and {bar}',
+        } as const,
+        sourceLocale: 'en',
+        provideArgs: { bar: 'x' },
+      });
+
+      const t = await getTranslator('en');
+      expectTypeOf(t<'foo'>).parameters.toEqualTypeOf<[key: 'foo', values: { foo: ICUArgument }, options?: any]>();
+      expectTypeOf(t<'bar'>).parameters.toEqualTypeOf<[key: 'bar', values?: { bar?: ICUArgument }, options?: any]>();
+      expectTypeOf(t<'baz'>).parameters.toEqualTypeOf<[key: 'baz', values: { foo: ICUArgument; bar: ICUArgument }, options?: any]>;
+
+      expect(t('bar')).toBe('x');
+      expect(t('bar', { bar: 'y' })).toBe('y');
+    });
+
+    test('provided args subscribed', async () => {
+      let value = 0;
+
+      const { getTranslator } = createTranslator({
+        sourceDictionary: {
+          foo: '{value}',
+        } as const,
+        sourceLocale: 'en',
+        provideArgs: {
+          value: {
+            get: () => value,
+            subscribe: () => () => undefined,
+          },
+        },
+      });
+
+      const t = await getTranslator('en');
+      expect(t('foo')).toBe('0');
+
+      value = 1;
+      // listener?.();
+      expect(t('foo')).toBe('1');
     });
   });
 });

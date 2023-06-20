@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import React, { ReactNode, useState } from 'react';
 import { beforeEach, expect, test } from 'vitest';
 import { FlattenDict } from '../src';
-import { createTranslator, HookTranslator, MaybePromise, TranslationContextProvider } from '../src/react';
+import { HookTranslator, MaybePromise, TranslationContextProvider, createTranslator } from '../src/react';
 import { dictDe, dictEn, dictEs, wait } from './_helpers';
 
 type D = FlattenDict<typeof dictEn>;
@@ -406,4 +406,38 @@ test('placeholder', async () => {
   });
 
   expect(div.textContent).toBe('key1:de');
+});
+
+test('provided args', async () => {
+  let value = 0;
+  let listener: (() => void) | undefined;
+
+  const { t: _t } = createTranslator({
+    sourceDictionary: {
+      foo: '{value}',
+    } as const,
+    sourceLocale: 'en',
+    provideArgs: {
+      value: {
+        get: () => value,
+        subscribe(callback) {
+          listener = callback;
+          return () => {
+            listener = undefined;
+          };
+        },
+      },
+    },
+  });
+
+  render(<App id={'provided args'}>{_t('foo')}</App>);
+  const div = screen.getByTestId('provided args');
+  expect(div.textContent).toBe('0');
+
+  act(() => {
+    value = 1;
+    listener?.();
+  });
+
+  expect(div.textContent).toBe('1');
 });
