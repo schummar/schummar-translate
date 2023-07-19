@@ -59,6 +59,12 @@ export type CreateTranslatorOptions<D extends Dict, ProvidedArgs extends string 
      * @default true
      */
     fallbackToLessSpecific?: boolean;
+    /** If a fallback is provided to a translation string
+     * - if `fallbackIgnoresFallbackLocales` is true, the fallback will be used if there is no match in the current locale
+     * - if `fallbackIgnoresFallbackLocales` is false, the fallback will be used if there is no match in the current or any fallback locales
+     * @default false
+     */
+    fallbackIgnoresFallbackLocales?: boolean;
     /** Dictionaries. Either a record with locales as keys or a function that takes a locale and returns a promise of a dictionary
      * @param locale the active locale
      */

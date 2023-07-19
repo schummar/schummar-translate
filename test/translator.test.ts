@@ -406,6 +406,40 @@ describe('fallback order', () => {
     expect(_t('key1')).toBe('key1:de');
     expect(_t('deOnly')).toBe('deOnly:de');
   });
+
+  test('with fallbackIgnoresFallbackLocales=true', async () => {
+    const { getTranslator } = createTranslator({
+      sourceLocale: 'de',
+      sourceDictionary: dictDe,
+      fallbackLocale: 'de',
+      dicts: {
+        de: { key1: 'value' },
+        en: {},
+      },
+      fallbackIgnoresFallbackLocales: true,
+    });
+
+    const _t = await getTranslator('en');
+    expect(_t('key1', {}, { fallback: 'fallback' })).toBe('fallback');
+    expect(_t.unknown('key2', {}, { fallback: 'fallback' })).toBe('fallback');
+  });
+
+  test('with fallbackIgnoresFallbackLocales=false', async () => {
+    const { getTranslator } = createTranslator({
+      sourceLocale: 'de',
+      sourceDictionary: dictDe,
+      fallbackLocale: 'de',
+      dicts: {
+        de: { key1: 'value' },
+        en: {},
+      },
+      fallbackIgnoresFallbackLocales: false,
+    });
+
+    const _t = await getTranslator('en');
+    expect(_t('key1', {}, { fallback: 'fallback' })).toBe('key1:de');
+    expect(_t.unknown('key2', {}, { fallback: 'fallback' })).toBe('fallback');
+  });
 });
 
 describe('ignoreMissingArgs', () => {

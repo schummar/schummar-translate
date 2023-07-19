@@ -12,6 +12,7 @@ export function translate<F = never>({
   id,
   values,
   fallback,
+  fallbackIgnoresFallbackLocales,
   placeholder,
   locale,
   warn,
@@ -24,6 +25,7 @@ export function translate<F = never>({
   id: string;
   values?: any;
   fallback?: F | ((id: string, sourceTranslation?: string | readonly string[]) => F);
+  fallbackIgnoresFallbackLocales?: boolean;
   placeholder?: F | ((id: string, sourceTranslation?: string | readonly string[]) => F);
   locale: string;
   warn?: (locale: string, id: string) => void;
@@ -31,7 +33,7 @@ export function translate<F = never>({
   ignoreMissingArgs: boolean | string | ((id: string, template: string) => string) | undefined;
   providedArgs: Record<string, ICUArgument | ICUDateArgument> | undefined;
 }): string | F | (string | F)[] | F {
-  if (fallback !== undefined) {
+  if (fallback !== undefined && fallbackIgnoresFallbackLocales) {
     dicts = dicts.slice(0, 1);
   }
 
