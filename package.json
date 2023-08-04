@@ -20,11 +20,13 @@
   "module": "dist/es/index.js",
   "exports": {
     ".": {
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/es/index.js",
       "require": "./dist/cjs/index.js",
       "default": "./dist/es/index.js"
     },
     "./react": {
+      "types": "./dist/types/react/index.d.ts",
       "import": "./dist/es/react.js",
       "require": "./dist/cjs/react.js",
       "default": "./dist/es/react.js"
