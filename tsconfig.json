@@ -18,7 +18,8 @@
     "noUncheckedIndexedAccess": true,
     "jsx": "react-jsx",
     "useDefineForClassFields": false,
-    "noErrorTruncation": true
+    "noErrorTruncation": true,
+    "skipLibCheck": true
   },
   "include": ["src", "test"]
 }

@@ -15,19 +15,26 @@ export default defineConfig({
     minify: false,
 
     lib: {
-      entry: './src/index.ts',
-      formats: ['es', 'cjs'],
+      entry: {
+        index: './src/index.ts',
+        react: './src/react/index.ts',
+        astro: './src/astro/index.ts',
+      },
     },
 
     rollupOptions: {
-      input: {
-        index: './src/index.ts',
-        react: './src/react/index.ts',
-      },
-      output: {
-        entryFileNames: '[format]/[name].js',
-        chunkFileNames: '[format]/[name].js',
-      },
+      output: [
+        {
+          format: 'es',
+          entryFileNames: '[format]/[name].mjs',
+          chunkFileNames: '[format]/[name].mjs',
+        },
+        {
+          format: 'cjs',
+          entryFileNames: '[format]/[name].cjs',
+          chunkFileNames: '[format]/[name].cjs',
+        },
+      ],
       external: (source) => {
         return !(isAbsolute(source) || source.startsWith('.'));
       },
