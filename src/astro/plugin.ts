@@ -10,6 +10,8 @@ export function schummarTranslatePlugin({ param, availableLanguages }: Translate
         return;
       }
 
+      if (id.includes('pages/[lang]/index.astro')) console.log(code);
+
       const params = id
         .split('/')
         .map((x) => x.match(/^\[(.*)\]$/)?.[1])
@@ -40,6 +42,7 @@ export function schummarTranslatePlugin({ param, availableLanguages }: Translate
 
             return availableLanguages.flatMap(lang => {
               return paths.map(path => ({
+                ...path,
                 params: {
                   ...path.params,
                   ['${param}']: lang

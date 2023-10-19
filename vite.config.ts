@@ -19,6 +19,7 @@ export default defineConfig({
         index: './src/index.ts',
         react: './src/react/index.ts',
         astro: './src/astro/index.ts',
+        astroIntegration: './src/astro/integration.ts',
       },
     },
 

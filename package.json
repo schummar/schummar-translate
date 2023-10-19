@@ -36,6 +36,12 @@
       "import": "./dist/es/astro.mjs",
       "require": "./dist/cjs/astro.cjs",
       "default": "./dist/es/astro.mjs"
+    },
+    "./astroIntegration": {
+      "types": "./dist/types/astro/integration.d.ts",
+      "import": "./dist/es/astroIntegration.mjs",
+      "require": "./dist/cjs/astroIntegration.cjs",
+      "default": "./dist/es/astroIntegration.mjs"
     }
   },
   "types": "dist/types/index.d.ts",
