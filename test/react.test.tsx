@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import React, { ReactNode, useState } from 'react';
-import { beforeEach, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { FlattenDict } from '../src';
 import { HookTranslator, MaybePromise, TranslationContextProvider, createTranslator } from '../src/react';
 import { dictDe, dictEn, dictEs, wait } from './_helpers';
@@ -23,6 +23,11 @@ beforeEach(() => {
     fallback: () => '-',
     dateTimeFormatOptions: { dateStyle: 'medium', timeStyle: 'medium' },
   }));
+});
+
+const originalConsoleWarn = console.warn;
+afterEach(() => {
+  console.warn = originalConsoleWarn;
 });
 
 function App({
@@ -440,4 +445,56 @@ test('provided args', async () => {
   });
 
   expect(div.textContent).toBe('1');
+});
+
+describe('error in dict loader', () => {
+  test('sync error', async () => {
+    console.warn = vi.fn();
+
+    const { t: _t } = createTranslator({
+      sourceLocale: 'en',
+      sourceDictionary: dictEn,
+      fallbackLocale: 'en',
+      dicts(locale) {
+        throw new Error(`dicts error: ${locale}`);
+      },
+    });
+
+    render(
+      <App id={'error'} locales={['de']}>
+        {_t('key1')}
+      </App>,
+    );
+    const div = screen.getByTestId('error');
+
+    expect(div.textContent).toBe('key1:en');
+    expect(console.warn).toHaveBeenCalledWith('Failed to load dictionary for locale "de"');
+  });
+
+  test('async error', async () => {
+    console.warn = vi.fn();
+
+    const { t: _t } = createTranslator({
+      sourceLocale: 'en',
+      sourceDictionary: dictEn,
+      fallbackLocale: 'en',
+      placeholder: '...',
+      dicts(locale) {
+        return Promise.reject(new Error(`dicts error: ${locale}`));
+      },
+    });
+
+    render(
+      <App id={'error'} locales={['de']}>
+        {_t('key1')}
+      </App>,
+    );
+    const div = screen.getByTestId('error');
+    await act(async () => {
+      await wait(10);
+    });
+
+    expect(div.textContent).toBe('key1:en');
+    expect(console.warn).toHaveBeenCalledWith('Failed to load dictionary for locale "de"');
+  });
 });

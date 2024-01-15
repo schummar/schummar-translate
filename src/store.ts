@@ -19,7 +19,19 @@ export class Store<D extends Dict = any, ProvidedArgs extends string = never> {
     if (match([locale], [this.options.sourceLocale], '') && this.options.sourceDictionary) {
       dict = this.options.sourceDictionary;
     } else if (this.options.dicts instanceof Function) {
-      dict = this.options.dicts(locale);
+      try {
+        dict = this.options.dicts(locale);
+
+        if (dict instanceof Promise) {
+          dict = dict.catch(() => {
+            console.warn(`Failed to load dictionary for locale "${locale}"`);
+            return null;
+          });
+        }
+      } catch {
+        console.warn(`Failed to load dictionary for locale "${locale}"`);
+        dict = null;
+      }
     } else if (this.options.dicts) {
       const availableLocales = Object.keys(this.options.dicts);
       const matching = match([locale], availableLocales, locale);
@@ -28,15 +40,13 @@ export class Store<D extends Dict = any, ProvidedArgs extends string = never> {
     }
 
     if (dict instanceof Promise) {
-      entry = dict
-        .then((resolvedDict) => {
-          const flatDict = resolvedDict && flattenDict(resolvedDict);
-          if (this.dicts.get(locale) === entry) {
-            this.dicts.set(locale, flatDict);
-          }
-          return flatDict;
-        })
-        .catch(() => null);
+      entry = dict.then((resolvedDict) => {
+        const flatDict = resolvedDict && flattenDict(resolvedDict);
+        if (this.dicts.get(locale) === entry) {
+          this.dicts.set(locale, flatDict);
+        }
+        return flatDict;
+      });
     } else {
       entry = dict && flattenDict(dict);
     }
