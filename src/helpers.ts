@@ -86,3 +86,7 @@ export function calcLocales(
 
   return requestedLocales;
 }
+
+export function isPromise(x: unknown): x is Promise<unknown> {
+  return typeof x === 'object' && x !== null && 'then' in x;
+}

@@ -1,7 +1,7 @@
 import { match } from '@formatjs/intl-localematcher';
 import { Cache } from './cache';
 import { flattenDict } from './flattenDict';
-import { arrEquals } from './helpers';
+import { arrEquals, isPromise } from './helpers';
 import { CreateTranslatorOptions, Dict, FlatDict, MaybePromise } from './types';
 
 export class Store<D extends Dict = any, ProvidedArgs extends string = never> {
@@ -22,7 +22,7 @@ export class Store<D extends Dict = any, ProvidedArgs extends string = never> {
       try {
         dict = this.options.dicts(locale);
 
-        if (dict instanceof Promise) {
+        if (isPromise(dict)) {
           dict = dict.catch(() => {
             console.warn(`Failed to load dictionary for locale "${locale}"`);
             return null;
@@ -39,7 +39,7 @@ export class Store<D extends Dict = any, ProvidedArgs extends string = never> {
       if (dict instanceof Function) dict = dict();
     }
 
-    if (dict instanceof Promise) {
+    if (isPromise(dict)) {
       entry = dict.then((resolvedDict) => {
         const flatDict = resolvedDict && flattenDict(resolvedDict);
         if (this.dicts.get(locale) === entry) {
@@ -53,7 +53,7 @@ export class Store<D extends Dict = any, ProvidedArgs extends string = never> {
 
     this.dicts.set(locale, entry);
 
-    if (entry instanceof Promise) {
+    if (isPromise(entry)) {
       entry.then(() => this.notify());
     } else {
       this.notify();
@@ -65,7 +65,7 @@ export class Store<D extends Dict = any, ProvidedArgs extends string = never> {
   loadAll(...locales: string[]): MaybePromise<FlatDict[]> {
     const dicts = locales.map((locale) => this.load(locale));
 
-    if (dicts.some((dict) => dict instanceof Promise)) {
+    if (dicts.some(isPromise)) {
       return Promise.all(dicts).then((dicts) => dicts.filter(Boolean) as FlatDict[]);
     }
 

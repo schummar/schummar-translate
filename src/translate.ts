@@ -5,6 +5,7 @@ import { Cache } from './cache';
 import { customDateTimeFormat, customDateTimeFormatRange } from './intlHelpers';
 import { mapPotentialArray } from './mapPotentialArray';
 import { FlatDict, ICUArgument, ICUDateArgument } from './types';
+import { isPromise } from './helpers';
 
 export function translate<F = never>({
   dicts,
@@ -37,11 +38,11 @@ export function translate<F = never>({
     dicts = dicts.slice(0, 1);
   }
 
-  const dict = dicts.find((dict) => dict instanceof Promise || id in dict);
+  const dict = dicts.find((dict) => isPromise(dict) || id in dict);
 
-  if (dict instanceof Promise) {
+  if (isPromise(dict)) {
     return mapPotentialArray(
-      sourceDict && !(sourceDict instanceof Promise)
+      sourceDict && !isPromise(sourceDict)
         ? translate<string>({
             dicts: [sourceDict],
             sourceDict,
@@ -66,7 +67,7 @@ export function translate<F = never>({
   if (!template) {
     if (fallback instanceof Function) {
       const sourceTranslation =
-        sourceDict && !(sourceDict instanceof Promise)
+        sourceDict && !isPromise(sourceDict)
           ? translate<string>({
               dicts: [sourceDict],
               sourceDict,
