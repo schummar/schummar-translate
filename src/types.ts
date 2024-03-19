@@ -1,6 +1,7 @@
 import { CacheOptions } from './cache';
 import { GetICUArgs } from './extractICU';
 import { TemporalLike } from './polyfill/temporal';
+import { DurationFormat } from '@formatjs/intl-durationformat';
 
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers
@@ -40,6 +41,9 @@ export type Flatten<T> = T extends object
       [P in keyof T]: T[P];
     }
   : T;
+
+export type DurationFormatOptions = Partial<ReturnType<DurationFormat['resolvedOptions']>>;
+export type DurationInput = Parameters<DurationFormat['format']>[0];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Public types
@@ -89,6 +93,8 @@ export type CreateTranslatorOptions<D extends Dict, ProvidedArgs extends string 
     pluralRulesOptions?: Intl.PluralRulesOptions;
     /** Default options */
     relativeTimeFormatOptions?: Intl.RelativeTimeFormatOptions;
+    /** Default options */
+    durationFormatOptions?: DurationFormatOptions;
   } & (IsNever<ProvidedArgs> extends true
     ? { provideArgs?: Record<string, never> }
     : {
@@ -189,6 +195,8 @@ export interface IntlHelpers<Output = string> {
 
   /** Wraps Intl.RelativeTimeFormat.format */
   relativeTimeFormat(value: number, unit: Intl.RelativeTimeFormatUnit, options?: Intl.RelativeTimeFormatOptions): Output;
+  /** Wraps Intl.DurationFormat.format */
+  durationFormat(duration: DurationInput, options?: DurationFormatOptions): Output;
 }
 
 export type ICUArgument = string | number | boolean | Date;

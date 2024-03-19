@@ -21,6 +21,7 @@ export const createGetTranslator =
       numberFormatOptions,
       pluralRulesOptions,
       relativeTimeFormatOptions,
+      durationFormatOptions,
       ignoreMissingArgs,
       provideArgs,
     }: CreateTranslatorOptions<D, ProvidedArgs>,
@@ -73,6 +74,7 @@ export const createGetTranslator =
         numberFormatOptions,
         pluralRulesOptions,
         relativeTimeFormatOptions,
+        durationFormatOptions,
       }),
     });
   };

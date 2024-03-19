@@ -313,6 +313,20 @@ forCases(
 );
 
 forCases(
+  'durationFormat',
+  () => t.durationFormat({ seconds: 1 }, { style: 'long' }),
+  async (div) => {
+    expect(div.textContent).toBe('1 second');
+
+    act(() => {
+      div.click();
+    });
+
+    expect(div.textContent).toBe('1 Sekunde');
+  },
+);
+
+forCases(
   'match locales',
   () => t('key1'),
   (div) => {

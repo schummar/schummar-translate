@@ -325,6 +325,14 @@ test('relativeTimeFormat', async () => {
   expect(de.relativeTimeFormat(-30, 'seconds')).toBe('vor 30 Sekunden');
 });
 
+test('durationFormat', async () => {
+  const en = await getTranslator('en');
+  const de = await getTranslator('de');
+
+  expect(en.durationFormat({ seconds: 1 }, { style: 'long' })).toBe('1 second');
+  expect(de.durationFormat({ seconds: 1 }, { style: 'long' })).toBe('1 Sekunde');
+});
+
 test('clear', async () => {
   let count = 0;
 

@@ -2,6 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@formatjs/icu-messageformat-parser': ^2.6.0
+  '@formatjs/intl-durationformat': ^0.2.2
   '@formatjs/intl-localematcher': ^0.4.0
   '@js-temporal/polyfill': ^0.4.4
   '@schummar/runp': 1.12.0
@@ -32,6 +33,7 @@ dependencies:
   intl-messageformat: 10.5.0
 
 devDependencies:
+  '@formatjs/intl-durationformat': 0.2.2
   '@js-temporal/polyfill': 0.4.4
   '@schummar/runp': 1.12.0
   '@testing-library/react': 14.0.0_biqbaboplfbrettd7655fr4n2y
@@ -352,6 +354,13 @@ packages:
       tslib: 2.5.2
     dev: false
 
+  /@formatjs/ecma402-abstract/1.18.2:
+    resolution: {integrity: sha512-+QoPW4csYALsQIl8GbN14igZzDbuwzcpWrku9nyMXlaqAlwRBgl5V+p0vWMGFqHOw37czNXaP/lEk4wbLgcmtA==}
+    dependencies:
+      '@formatjs/intl-localematcher': 0.5.4
+      tslib: 2.5.2
+    dev: true
+
   /@formatjs/fast-memoize/2.2.0:
     resolution: {integrity: sha512-hnk/nY8FyrL5YxwP9e4r9dqeM6cAbo8PeU9UjyXojZMNvVad2Z06FAVHyR3Ecw6fza+0GH7vdJgiKIVXTMbSBA==}
     dependencies:
@@ -373,11 +382,25 @@ packages:
       tslib: 2.5.2
     dev: false
 
+  /@formatjs/intl-durationformat/0.2.2:
+    resolution: {integrity: sha512-8cBgB9ejg9a2pmGVmcVoF0OlK4XifRtm7Se5F9kMj+Ex+5x8QVBLEuqnTHEyV584VMNR2ngUP1dNR36MeTWG3A==}
+    dependencies:
+      '@formatjs/ecma402-abstract': 1.18.2
+      '@formatjs/intl-localematcher': 0.5.4
+      tslib: 2.5.2
+    dev: true
+
   /@formatjs/intl-localematcher/0.4.0:
     resolution: {integrity: sha512-bRTd+rKomvfdS4QDlVJ6TA/Jx1F2h/TBVO5LjvhQ7QPPHp19oPNMIum7W2CMEReq/zPxpmCeB31F9+5gl/qtvw==}
     dependencies:
       tslib: 2.5.2
     dev: false
+
+  /@formatjs/intl-localematcher/0.5.4:
+    resolution: {integrity: sha512-zTwEpWOzZ2CiKcB93BLngUX59hQkuZjT2+SAQEscSm52peDW/getsawMcWF1rGRpMCX6D7nSJA3CzJ8gn13N/g==}
+    dependencies:
+      tslib: 2.5.2
+    dev: true
 
   /@humanwhocodes/config-array/0.11.10:
     resolution: {integrity: sha512-KVVjQmNUepDVGXNuoRRdmmEjruj0KfiGSbS8LVc12LMsWDQzRXJ0qdhN8L8uUigKpfEHRhlaQFY0ib1tnUbNeQ==}

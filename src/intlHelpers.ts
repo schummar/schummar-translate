@@ -1,7 +1,7 @@
 import { Cache } from './cache';
 import { toDate } from './helpers';
 import { TemporalLike } from './polyfill/temporal';
-import { IntlHelpers } from './types';
+import { DurationFormatOptions, IntlHelpers } from './types';
 
 export function intlHelpers<Output>({
   cache,
@@ -19,6 +19,7 @@ export function intlHelpers<Output>({
   numberFormatOptions?: Intl.NumberFormatOptions;
   pluralRulesOptions?: Intl.PluralRulesOptions;
   relativeTimeFormatOptions?: Intl.RelativeTimeFormatOptions;
+  durationFormatOptions?: DurationFormatOptions;
 }): IntlHelpers<Output> {
   return {
     dateTimeFormat(date, options = dateTimeFormatOptions) {
@@ -51,6 +52,14 @@ export function intlHelpers<Output>({
 
     relativeTimeFormat(value, unit, options = relativeTimeFormatOptions) {
       return transform((locale) => cache.get(Intl.RelativeTimeFormat, locale, options).format(value, unit));
+    },
+
+    durationFormat(duration, options) {
+      const intl = Intl as { DurationFormat?: any };
+      if (!intl.DurationFormat) {
+        throw new Error('Intl.DurationFormat is not available in this environment. Try using the polyfill');
+      }
+      return transform((locale) => cache.get(intl.DurationFormat, locale, options).format(duration));
     },
   };
 }
