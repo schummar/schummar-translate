@@ -15,7 +15,7 @@ type Trim<T> = T extends `${Whitespace}${infer Rest}`
 type FindBlocks<Text> = Text extends `${string}{${infer Right}` //find first {
   ? ReadBlock<'', Right, ''> extends [infer Block, infer Tail]
     ? [Block, ...FindBlocks<Tail>] // read block and find next block for tail
-    : never
+    : [{}]
   : []; // no {, return empty result
 
 /** Find blocks for each tuple entry */

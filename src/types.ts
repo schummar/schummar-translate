@@ -118,7 +118,7 @@ export interface CreateTranslatorResult<D extends FlatDict, ProvidedArgs extends
   clearDicts: () => void;
 }
 
-export type Values<T extends string | readonly string[], ProvidedArgs extends string = never, Options = never> =
+export type Values<T extends string | readonly string[], ProvidedArgs extends string, Options> =
   // any string => unknown arguments
   string extends T
     ? [value?: Record<string, unknown>, options?: Options]
@@ -139,7 +139,7 @@ export interface GetTranslatorOptions {
 
 export interface TranslatorFn<D extends FlatDict, ProvidedArgs extends string = never, Options = GetTranslatorOptions, Output = string> {
   /** Translate a dictionary id to a string in the active locale */
-  <TKey extends keyof D, TString extends D[TKey] = D[TKey]>(
+  <TKey extends keyof D, TString extends D[TKey] = NoInfer<D[TKey]>>(
     id: TKey,
     ...values: Values<TString, ProvidedArgs, Options>
   ): TString extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output;
@@ -164,7 +164,7 @@ export interface Translator<D extends FlatDict, ProvidedArgs extends string = ne
   ): TString extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output;
 
   /** Format the given template directly. */
-  format<T extends string>(template: T, ...values: Values<T, ProvidedArgs>): Output;
+  format<T extends string>(template: T, ...values: Values<T, ProvidedArgs, never>): Output;
 }
 
 export interface IntlHelpers<Output = string> {
