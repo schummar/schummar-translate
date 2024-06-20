@@ -17,30 +17,32 @@ export type IsNever<T> = [T] extends [never] ? true : false;
 
 export type OnlyOptional<T> = Partial<T> extends T ? true : false;
 
-export type FlatKeys<D extends Dict> = IsAny<D> extends true
-  ? string
-  : string &
-      keyof {
-        [K in keyof D as D[K] extends Dict ? `${string & K}.${FlatKeys<D[K]>}` : K]: 1;
-      };
+export type FlatKeys<D extends Dict> =
+  IsAny<D> extends true
+    ? string
+    : string &
+        keyof {
+          [K in keyof D as D[K] extends Dict ? `${string & K}.${FlatKeys<D[K]>}` : K]: 1;
+        };
 
 export type DeepValue<D extends Dict, K extends FlatKeys<D>> = K extends `${infer Head}.${infer Rest}`
   ? DeepValue<D[Head] & Dict, Rest & FlatKeys<D[Head] & Dict>>
   : D[K] extends string | readonly string[]
-  ? D[K]
-  : '';
+    ? D[K]
+    : '';
 
 export type FlattenDict<D extends Dict> = {
   [K in FlatKeys<D>]: DeepValue<D, K>;
 };
-
-type MatchingKeys<D extends FlatDict, Pattern> = keyof D extends infer K ? (K extends Pattern ? K : never) : never;
 
 export type Flatten<T> = T extends object
   ? {
       [P in keyof T]: T[P];
     }
   : T;
+
+declare const tags: unique symbol;
+type Tagged<BaseType, Tags extends Record<string, any>> = BaseType & { [tags]?: Tags };
 
 export type DurationFormatOptions = Partial<ReturnType<DurationFormat['resolvedOptions']>>;
 export type DurationInput = Parameters<DurationFormat['format']>[0];
@@ -123,14 +125,14 @@ export type Values<T extends string | readonly string[], ProvidedArgs extends st
   string extends T
     ? [value?: Record<string, unknown>, options?: Options]
     : string[] extends T
-    ? [value?: Record<string, unknown>, options?: Options]
-    : // for unions, extract arguments for each union member individually
-    (T extends any ? (k: GetICUArgs<T, ProvidedArgs>) => void : never) extends (k: infer Args) => void
-    ? OnlyOptional<Args> extends true
-      ? // if no arguments are found, allow omitting values
-        [values?: Args, options?: Options]
-      : [values: Args, options?: Options]
-    : never;
+      ? [value?: Record<string, unknown>, options?: Options]
+      : // for unions, extract arguments for each union member individually
+        (T extends any ? (k: GetICUArgs<T, ProvidedArgs>) => void : never) extends (k: infer Args) => void
+        ? OnlyOptional<Args> extends true
+          ? // if no arguments are found, allow omitting values
+            [values?: Flatten<Args>, options?: Options]
+          : [values: Flatten<Args>, options?: Options]
+        : never;
 
 export interface GetTranslatorOptions {
   /** Override fallback to use if string is not available in active locale */
@@ -139,10 +141,15 @@ export interface GetTranslatorOptions {
 
 export interface TranslatorFn<D extends FlatDict, ProvidedArgs extends string = never, Options = GetTranslatorOptions, Output = string> {
   /** Translate a dictionary id to a string in the active locale */
-  <TKey extends keyof D, TString extends D[TKey] = NoInfer<D[TKey]>>(
+  <TKey extends keyof D>(
     id: TKey,
-    ...values: Values<TString, ProvidedArgs, Options>
-  ): TString extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output;
+    ...values: Values<D[TKey], ProvidedArgs, Options>
+  ): Tagged<
+    D[TKey] extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output,
+    {
+      sourceString: D[TKey];
+    }
+  >;
 }
 
 export interface Translator<D extends FlatDict, ProvidedArgs extends string = never, Options = GetTranslatorOptions, Output = string>
@@ -154,14 +161,16 @@ export interface Translator<D extends FlatDict, ProvidedArgs extends string = ne
   unknown(id: string, values?: Record<string, unknown>, options?: Options): Output extends string ? string | readonly string[] : Output;
 
   /** Translate a dictionary id to a string in the active locale. Without type checking the id. */
-  dynamic<
-    TKey extends keyof D | (string & {}),
-    TMatchingKey extends MatchingKeys<D, TKey> = MatchingKeys<D, TKey>,
-    TString extends D[TMatchingKey] = D[TMatchingKey],
-  >(
-    id: TMatchingKey extends never ? never : TKey,
-    ...values: TMatchingKey extends never ? never : Values<TString, ProvidedArgs, Options>
-  ): TString extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output;
+  dynamic<TKey extends keyof D | (string & {})>(
+    id: keyof D & TKey extends never ? never : TKey,
+    ...values: Values<D[keyof D & TKey], ProvidedArgs, Options>
+  ): Tagged<
+    D[keyof D & TKey] extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output,
+    {
+      matchingKeys: keyof D & TKey;
+      sourceString: D[keyof D & TKey];
+    }
+  >;
 
   /** Format the given template directly. */
   format<T extends string>(template: T, ...values: Values<T, ProvidedArgs, never>): Output;

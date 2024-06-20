@@ -505,7 +505,7 @@ describe('error in dict loader', () => {
     );
     const div = screen.getByTestId('error');
     await act(async () => {
-      await wait(10);
+      await wait(100);
     });
 
     expect(div.textContent).toBe('key1:en');

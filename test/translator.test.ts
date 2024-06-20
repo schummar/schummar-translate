@@ -2,7 +2,7 @@ import { Temporal } from '@js-temporal/polyfill';
 import { describe, expect, expectTypeOf, test } from 'vitest';
 import { createTranslator } from '../src';
 import { Cache } from '../src/cache';
-import { ICUArgument, ICUDateArgument, ICUNumberArgument, OtherString } from '../src/types';
+import { ICUArgument, ICUDateArgument, ICUNumberArgument, OtherString, type GetTranslatorOptions } from '../src/types';
 import { dictDe, dictEn, dictEnCa } from './_helpers';
 
 type EnDict = typeof dictEn;
@@ -21,7 +21,7 @@ test('simple', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
-  expectTypeOf(en<'key1'>).parameters.toEqualTypeOf<[id: 'key1', values?: {}, options?: any]>();
+  expectTypeOf(en<'key1'>).parameters.toEqualTypeOf<[id: 'key1', values?: {}, options?: GetTranslatorOptions]>();
   expect(en('key1')).toBe('key1:en');
   expect(de('key1')).toBe('key1:de');
 });
@@ -30,7 +30,9 @@ test('with value', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
-  expectTypeOf(en<'nested.key2'>).parameters.toEqualTypeOf<[id: 'nested.key2', values: { value2: ICUArgument }, options?: any]>();
+  expectTypeOf(en<'nested.key2'>).parameters.toEqualTypeOf<
+    [id: 'nested.key2', values: { value2: ICUArgument }, options?: GetTranslatorOptions]
+  >();
   expect(en('nested.key2', { value2: 'v2' })).toBe('key2:en v2');
   expect(de('nested.key2', { value2: 'v2' })).toBe('key2:de v2');
 });
@@ -49,7 +51,7 @@ test('with complex values', async () => {
         date: ICUDateArgument;
         time: ICUDateArgument;
       },
-      options?: any,
+      options?: GetTranslatorOptions,
     ]
   >();
   expect(en('nested.key3', { number: 1, plural: 1, selectordinal: 1, date, time: date })).toBe('key3:en 1 one 1st 2/2/2000 3:04 AM');
@@ -61,7 +63,7 @@ test('format', async () => {
   const de = await getTranslator('de');
 
   expectTypeOf(en.format<'{date, date}'>).parameters.toEqualTypeOf<
-    [template: '{date, date}', values: { date: ICUDateArgument }, options?: any]
+    [template: '{date, date}', values: { date: ICUDateArgument }, options?: undefined]
   >();
   expect(en.format('{date, date}', { date })).toBe('2/2/2000');
   expect(de.format('{date, date}', { date })).toBe('2.2.2000');
@@ -75,7 +77,7 @@ test('wrong format', async () => {
 test('unknown', async () => {
   const en = await getTranslator('en');
 
-  expectTypeOf(en.unknown).parameters.toEqualTypeOf<[id: string, values?: Record<string, unknown>, options?: any]>();
+  expectTypeOf(en.unknown).parameters.toEqualTypeOf<[id: string, values?: Record<string, unknown>, options?: GetTranslatorOptions]>();
   expect(en.unknown('unknownKey', { value: 1 })).toBe('unknownKey');
 });
 
@@ -83,7 +85,9 @@ describe('dynamic', () => {
   test('with known key', async () => {
     const en = await getTranslator('en');
 
-    expectTypeOf(en.dynamic<'nested.key2'>).parameters.toEqualTypeOf<[id: 'nested.key2', values: { value2: ICUArgument }, options?: any]>();
+    expectTypeOf(en.dynamic<'nested.key2'>).parameters.toEqualTypeOf<
+      [id: 'nested.key2', values: { value2: ICUArgument }, options?: GetTranslatorOptions]
+    >();
     expect(en.dynamic('nested.key2', { value2: 1 })).toBe('key2:en 1');
   });
 
@@ -91,7 +95,14 @@ describe('dynamic', () => {
     const en = await getTranslator('en');
 
     expectTypeOf(en.dynamic<`pattern${number}`>).parameters.toEqualTypeOf<
-      [id: `pattern${number}`, values: { value1: ICUArgument; value2: ICUArgument }, options?: any]
+      [
+        id: `pattern${number}`,
+        values: {
+          value1: ICUArgument;
+          value2: ICUArgument;
+        },
+        options?: GetTranslatorOptions | undefined,
+      ]
     >();
     expect(en.dynamic('pattern1' as `pattern${number}`, { value1: 1, value2: 2 })).toBe('pattern1 1');
   });
@@ -99,7 +110,7 @@ describe('dynamic', () => {
   test('with unknown value', async () => {
     const en = await getTranslator('en');
 
-    expectTypeOf(en.dynamic<'unknownKey'>).parameters.toEqualTypeOf<[never, ...never]>();
+    expectTypeOf(en.dynamic<'unknownKey'>).parameters.toEqualTypeOf<[id: never, values?: unknown, options?: GetTranslatorOptions]>();
     // @ts-expect-error unknownKey is known not to be in the dictionary
     expect(en.dynamic('unknownKey')).toBe('unknownKey');
   });
@@ -125,7 +136,7 @@ test('union', async () => {
         valueC1: ICUArgument;
         valueC2: ICUArgument;
       },
-      options?: any,
+      options?: GetTranslatorOptions | undefined,
     ]
   >();
 
@@ -460,7 +471,7 @@ describe('ignoreMissingArgs', () => {
     const _t = await getTranslator('en');
 
     expect(_t('nested.key2', {} as any)).toMatchInlineSnapshot(
-      '"Wrong format: Error: The intl string context variable \\"value2\\" was not provided to the string \\"undefined\\""',
+      `"Wrong format: Error: The intl string context variable "value2" was not provided to the string "undefined""`,
     );
   });
 
@@ -506,7 +517,7 @@ describe('select types', () => {
     expect(_t('select', { value: 'option2' })).toBe('text text2 text');
     // @ts-expect-error only listed options are allowed
     expect(_t('select', { value: 'foo' })).toMatchInlineSnapshot(
-      '"Wrong format: Error: Invalid values for \\"value\\": \\"foo\\". Options are \\"0\\", \\"1\\""',
+      `"Wrong format: Error: Invalid values for "value": "foo". Options are "0", "1""`,
     );
   });
 
@@ -521,7 +532,7 @@ describe('select types', () => {
     const _t = await getTranslator('en');
     //@ts-expect-error for options1, nested is required
     expect(_t('selectWithNested', { value: 'option1' })).toMatchInlineSnapshot(
-      '"Wrong format: Error: The intl string context variable \\"nested\\" was not provided to the string \\"undefined\\""',
+      `"Wrong format: Error: The intl string context variable "nested" was not provided to the string "undefined""`,
     );
     expect(_t('selectWithNested', { value: 'option1', nested: 'nestedText' })).toBe('text text1 nestedText text');
     expect(_t('selectWithNested', { value: 'option2' })).toBe('text text2 text');
@@ -531,34 +542,34 @@ describe('select types', () => {
     const _t = await getTranslator('en');
     //@ts-expect-error for option1, nested1 is required
     expect(_t('selectWithOtherNested', { value: 'option1' })).toMatchInlineSnapshot(
-      '"Wrong format: Error: The intl string context variable \\"nested1\\" was not provided to the string \\"undefined\\""',
+      `"Wrong format: Error: The intl string context variable "nested1" was not provided to the string "undefined""`,
     );
     expect(_t('selectWithOtherNested', { value: 'option1', nested1: 'n1' })).toBe('text text1 n1 text');
     //@ts-expect-error for option1, nested1 is required
     expect(_t('selectWithOtherNested', { value: 'option1', nested3: 'n3' })).toMatchInlineSnapshot(
-      '"Wrong format: Error: The intl string context variable \\"nested1\\" was not provided to the string \\"undefined\\""',
+      `"Wrong format: Error: The intl string context variable "nested1" was not provided to the string "undefined""`,
     );
     expect(_t('selectWithOtherNested', { value: 'option1', nested1: 'n1', nested2: 'n2', nested3: 'n3' })).toBe('text text1 n1 text');
 
     //@ts-expect-error for option2, nested2 is required
     expect(_t('selectWithOtherNested', { value: 'option2' })).toMatchInlineSnapshot(
-      '"Wrong format: Error: The intl string context variable \\"nested2\\" was not provided to the string \\"undefined\\""',
+      `"Wrong format: Error: The intl string context variable "nested2" was not provided to the string "undefined""`,
     );
     expect(_t('selectWithOtherNested', { value: 'option2', nested2: 'n2' })).toBe('text text2 n2 text');
     //@ts-expect-error for option2, nested2 is required
     expect(_t('selectWithOtherNested', { value: 'option2', nested3: 'n3' })).toMatchInlineSnapshot(
-      '"Wrong format: Error: The intl string context variable \\"nested2\\" was not provided to the string \\"undefined\\""',
+      `"Wrong format: Error: The intl string context variable "nested2" was not provided to the string "undefined""`,
     );
     expect(_t('selectWithOtherNested', { value: 'option2', nested1: 'n1', nested2: 'n2', nested3: 'n3' })).toBe('text text2 n2 text');
 
     // @ts-expect-error for other, nested3 is required
     expect(_t('selectWithOtherNested', { value: 'foo' as OtherString })).toMatchInlineSnapshot(
-      '"Wrong format: Error: The intl string context variable \\"nested3\\" was not provided to the string \\"undefined\\""',
+      `"Wrong format: Error: The intl string context variable "nested3" was not provided to the string "undefined""`,
     );
     expect(_t('selectWithOtherNested', { value: 'foo' as OtherString, nested3: 'n3' })).toBe('text text3 n3 text');
     // @ts-expect-error for other, nested3 is required
     expect(_t('selectWithOtherNested', { value: 'foo' as OtherString, nested1: 'n1' })).toMatchInlineSnapshot(
-      '"Wrong format: Error: The intl string context variable \\"nested3\\" was not provided to the string \\"undefined\\""',
+      `"Wrong format: Error: The intl string context variable "nested3" was not provided to the string "undefined""`,
     );
     expect(_t('selectWithOtherNested', { value: 'foo' as OtherString, nested1: 'n1', nested2: 'n2', nested3: 'n3' })).toBe(
       'text text3 n3 text',
@@ -566,7 +577,7 @@ describe('select types', () => {
 
     // @ts-expect-error for string, all nested args are required
     expect(_t('selectWithOtherNested', { value: 'foo' as string })).toMatchInlineSnapshot(
-      '"Wrong format: Error: The intl string context variable \\"nested3\\" was not provided to the string \\"undefined\\""',
+      `"Wrong format: Error: The intl string context variable "nested3" was not provided to the string "undefined""`,
     );
     // @ts-expect-error for string, all nested args are required
     expect(_t('selectWithOtherNested', { value: 'foo' as string, nested3: 'n3' })).toBe('text text3 n3 text');
@@ -575,21 +586,20 @@ describe('select types', () => {
     expectTypeOf(_t.dynamic<'nested.key2' | 'selectWithOtherNested'>).parameters.toEqualTypeOf<
       [
         id: 'nested.key2' | 'selectWithOtherNested',
-        ...args:
-          | [
-              values: { value2: ICUArgument } & (
-                | { value: 'option1'; nested1: ICUArgument }
-                | { value: 'option2'; nested2: ICUArgument }
-                | { value: OtherString; nested3: ICUArgument }
-                | {
-                    value: (string & {}) | 'option1' | 'option2';
-                    nested1: ICUArgument;
-                    nested2: ICUArgument;
-                    nested3: ICUArgument;
-                  }
-              ),
-              options?: any,
-            ],
+        ...args: [
+          values:
+            | { value2: ICUArgument; value: 'option1'; nested1: ICUArgument }
+            | { value2: ICUArgument; value: 'option2'; nested2: ICUArgument }
+            | { value2: ICUArgument; value: OtherString; nested3: ICUArgument }
+            | {
+                value2: ICUArgument;
+                value: (string & {}) | 'option1' | 'option2';
+                nested1: ICUArgument;
+                nested2: ICUArgument;
+                nested3: ICUArgument;
+              },
+          options?: GetTranslatorOptions,
+        ],
       ]
     >();
   });
@@ -640,9 +650,11 @@ describe('provided args', () => {
     });
 
     const t = await getTranslator('en');
-    expectTypeOf(t<'foo'>).parameters.toEqualTypeOf<[key: 'foo', values: { foo: ICUArgument }, options?: any]>();
-    expectTypeOf(t<'bar'>).parameters.toEqualTypeOf<[key: 'bar', values?: { bar?: ICUArgument }, options?: any]>();
-    expectTypeOf(t<'baz'>).parameters.toEqualTypeOf<[key: 'baz', values: { foo: ICUArgument; bar: ICUArgument }, options?: any]>;
+    expectTypeOf(t<'foo'>).parameters.toEqualTypeOf<[key: 'foo', values: { foo: ICUArgument }, options?: GetTranslatorOptions]>();
+    expectTypeOf(t<'bar'>).parameters.toEqualTypeOf<[key: 'bar', values?: { bar?: ICUArgument }, options?: GetTranslatorOptions]>();
+    expectTypeOf(t<'baz'>).parameters.toEqualTypeOf<
+      [key: 'baz', values: { foo: ICUArgument; bar?: ICUArgument }, options?: GetTranslatorOptions]
+    >;
 
     expect(t('bar')).toBe('x');
     expect(t('bar', { bar: 'y' })).toBe('y');

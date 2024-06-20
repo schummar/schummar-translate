@@ -104,7 +104,7 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
           locale,
 
           unknown: t as HookTranslator<FD>['unknown'],
-          dynamic: t as HookTranslator<FD>['dynamic'],
+          dynamic: t as any,
 
           format(template, ...[values]) {
             return format({
@@ -213,7 +213,7 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
     locale: render((t) => t.locale, []),
 
     unknown: createTranslatorComponent as InlineTranslator<FD>['unknown'],
-    dynamic: createTranslatorComponent as InlineTranslator<FD>['dynamic'],
+    dynamic: createTranslatorComponent as any,
 
     format(template, ...[values]) {
       return render(
