@@ -41,8 +41,7 @@ export type Flatten<T> = T extends object
     }
   : T;
 
-declare const tags: unique symbol;
-type Tagged<BaseType, Tags extends Record<string, any>> = BaseType & { [tags]?: Tags };
+type Tagged<BaseType, Tags extends Record<string, any>> = BaseType & { __tags?: Tags };
 
 export type DurationFormatOptions = Partial<ReturnType<DurationFormat['resolvedOptions']>>;
 export type DurationInput = Parameters<DurationFormat['format']>[0];
