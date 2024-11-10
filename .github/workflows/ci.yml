@@ -55,10 +55,12 @@ jobs:
         env:
           GIT_USER: ${{ env.GIT_USER }}
           GIT_EMAIL: ${{ env.GIT_EMAIL }}
+          NPM_USER: ${{ env.NPM_USER }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "${{ env.GIT_USER }}"
           git config user.email "${{ env.GIT_EMAIL }}"
           npm config set //registry.npmjs.org/:_authToken=$NPM_TOKEN
+          npm config set username $NPM_USER
           pnpm release

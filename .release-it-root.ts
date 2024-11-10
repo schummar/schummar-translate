@@ -19,6 +19,7 @@ export default {
     release: true,
   },
   npm: {
+    ignoreVersion: true,
     publish: false,
   },
 } satisfies Config;
