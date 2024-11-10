@@ -52,7 +52,7 @@
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "prepublishOnly": "runp lint test build :p publint",
-    "release": "release-it -d --ci -c ../../.release-it-package.ts"
+    "release": "release-it --ci -c ../../.release-it-package.ts"
   },
   "dependencies": {
     "@formatjs/icu-messageformat-parser": "^2.9.3",

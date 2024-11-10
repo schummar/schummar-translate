@@ -20,7 +20,7 @@
     "publint": "runp *:publint",
     "test": "runp *:test",
     "prepare-release": "runp *:prepublishOnly",
-    "release": "runp :s *:release :s \"release-it -d --ci -c ./.release-it-root.ts\""
+    "release": "runp :s *:release :s \"release-it --ci -c ./.release-it-root.ts\""
   },
   "volta": {
     "node": "22.11.0",
