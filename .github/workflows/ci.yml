@@ -50,13 +50,13 @@ jobs:
 
       - name: Publint
         run: pnpm publint
-
-      - name: Set npm token
-        run: npm config set //registry.npmjs.org/:_authToken=$NPM_TOKEN
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
+          
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm release
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          git config --global user.email "${{ github.actor }}"
+          git config user.email "${{ github.actor}}@users.noreply.github.com"
+          npm config set //registry.npmjs.org/:_authToken=$NPM_TOKEN
+          pnpm release

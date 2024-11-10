@@ -3,6 +3,7 @@
   "repository": "schummar/schummar-translate",
   "version": "0.0.0",
   "description": "TypeScript powered translation library for React and Node.js.",
+  "readme": "../../README.md",
   "keywords": [
     "typescript",
     "react",
@@ -44,7 +45,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && cp ../../README.md ./",
     "lint": "runp lint:*",
     "lint:eslint": "eslint src test",
     "lint:tsc": "tsc --noEmit --emitDeclarationOnly false",
