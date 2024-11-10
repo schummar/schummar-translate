@@ -58,6 +58,6 @@ jobs:
         run: |
           git config user.name "${{ vars.GIT_USER }}"
           git config user.email "${{ vars.GIT_EMAIL }}"
-          npm config set //registry.npmjs.org/:_authToken=$NPM_TOKEN
+          npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN}}
           npm config set username $NPM_USER
           pnpm release
