@@ -1,0 +1,44 @@
+{
+  "name": "@schummar/icu-type-parser",
+  "repository": "schummar/schummar-translate",
+  "version": "0.0.0",
+  "description": "TypeScript powered ICU message parser.",
+  "keywords": [
+    "typescript",
+    "i18n",
+    "localization",
+    "icu",
+    "message",
+    "parser",
+    "type checking",
+    "autocomplete",
+    "IntelliSense"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "author": {
+    "name": "Marco Schumacher",
+    "email": "marco@schumacher.dev"
+  },
+  "contributors": [
+    {
+      "name": "Marco Schumacher",
+      "email": "marco@schumacher.dev"
+    }
+  ],
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "publint": "publint",
+    "prepublishOnly": "runp build",
+    "release": "release-it -d --ci -c ../../.release-it-package.ts"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "name": "schummar-translate",
+  "repository": "schummar/schummar-translate",
+  "version": "0.0.0",
+  "description": "TypeScript powered translation library for React and Node.js.",
+  "keywords": [
+    "typescript",
+    "react",
+    "node",
+    "translation",
+    "i18n",
+    "localization",
+    "type checking",
+    "autocomplete",
+    "IntelliSense"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      },
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./react": {
+      "require": {
+        "types": "./dist/react.d.cts",
+        "default": "./dist/react.cjs"
+      },
+      "import": {
+        "types": "./dist/react.d.ts",
+        "default": "./dist/react.js"
+      }
+    }
+  },
+  "author": {
+    "name": "Marco Schumacher",
+    "email": "marco@schumacher.dev"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "tsup",
+    "lint": "runp lint:*",
+    "lint:eslint": "eslint src test",
+    "lint:tsc": "tsc --noEmit --emitDeclarationOnly false",
+    "publint": "publint",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest",
+    "prepublishOnly": "runp lint test build :p publint",
+    "release": "release-it -d --ci -c ../../.release-it-package.ts"
+  },
+  "dependencies": {
+    "@formatjs/icu-messageformat-parser": "^2.9.3",
+    "@formatjs/intl-localematcher": "^0.5.7",
+    "intl-messageformat": "^10.7.5"
+  },
+  "peerDependencies": {
+    "@formatjs/intl-durationformat": "^0.2.2",
+    "@types/react": ">=16.8.0",
+    "react": ">=16.8.0"
+  },
+  "peerDependenciesMeta": {
+    "@types/react": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@formatjs/intl-durationformat": "0.6.3",
+    "@js-temporal/polyfill": "0.4.4",
+    "@testing-library/react": "16.0.1",
+    "@types/node": "22.8.7",
+    "@types/react": "18.3.12",
+    "@vitest/coverage-v8": "2.1.4",
+    "jsdom": "25.0.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "files": [
+    "dist"
+  ]
+}

@@ -1,6 +1,6 @@
 import { Cache } from './cache';
 import { toDate } from './helpers';
-import { TemporalLike } from './polyfill/temporal';
+import { TemporalLike } from './temporal-polyfill';
 import { DurationFormatOptions, IntlHelpers } from './types';
 
 export function intlHelpers<Output>({

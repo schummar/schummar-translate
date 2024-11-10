@@ -12,5 +12,6 @@ module.exports = {
     '@typescript-eslint/no-empty-interface': 'off',
     'prettier/prettier': 'warn',
     '@typescript-eslint/ban-types': 'off',
+    '@typescript-eslint/no-empty-object-type': ['error', { allowInterfaces: 'with-single-extends' }],
   },
 };

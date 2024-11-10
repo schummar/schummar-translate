@@ -2,8 +2,9 @@ import { Temporal } from '@js-temporal/polyfill';
 import { describe, expect, expectTypeOf, test } from 'vitest';
 import { createTranslator } from '../src';
 import { Cache } from '../src/cache';
-import { ICUArgument, ICUDateArgument, ICUNumberArgument, OtherString, type GetTranslatorOptions } from '../src/types';
+import { ICUArgument, ICUDateArgument, ICUNumberArgument, OtherString, type EmptyObject, type GetTranslatorOptions } from '../src/types';
 import { dictDe, dictEn, dictEnCa } from './_helpers';
+import type { GetICUArgs } from '../src/extractICU';
 
 type EnDict = typeof dictEn;
 interface Dict extends EnDict {}
@@ -21,7 +22,7 @@ test('simple', async () => {
   const en = await getTranslator('en');
   const de = await getTranslator('de');
 
-  expectTypeOf(en<'key1'>).parameters.toEqualTypeOf<[id: 'key1', values?: {}, options?: GetTranslatorOptions]>();
+  expectTypeOf(en<'key1'>).parameters.toEqualTypeOf<[id: 'key1', values?: EmptyObject, options?: GetTranslatorOptions]>();
   expect(en('key1')).toBe('key1:en');
   expect(de('key1')).toBe('key1:de');
 });
@@ -654,7 +655,7 @@ describe('provided args', () => {
     expectTypeOf(t<'bar'>).parameters.toEqualTypeOf<[key: 'bar', values?: { bar?: ICUArgument }, options?: GetTranslatorOptions]>();
     expectTypeOf(t<'baz'>).parameters.toEqualTypeOf<
       [key: 'baz', values: { foo: ICUArgument; bar?: ICUArgument }, options?: GetTranslatorOptions]
-    >;
+    >();
 
     expect(t('bar')).toBe('x');
     expect(t('bar', { bar: 'y' })).toBe('y');
@@ -682,5 +683,12 @@ describe('provided args', () => {
     value = 1;
     // listener?.();
     expect(t('foo')).toBe('1');
+  });
+
+  test('override icu types', () => {
+    type Config = { ICUNumberArgument: 'mynum'; ICUDateArgument: 'mydate'; ICUArgument: 'myarg' };
+    expectTypeOf<GetICUArgs<'{var, number}', Config>>().toEqualTypeOf<{ var: 'mynum' }>();
+    expectTypeOf<GetICUArgs<'{var, date}', Config>>().toEqualTypeOf<{ var: 'mydate' }>();
+    expectTypeOf<GetICUArgs<'{var}', Config>>().toEqualTypeOf<{ var: 'myarg' }>();
   });
 });

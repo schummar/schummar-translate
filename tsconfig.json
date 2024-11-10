@@ -2,7 +2,7 @@
   "compilerOptions": {
     "declarationDir": "dist/types",
     "module": "ES2020",
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "declaration": true,
     "emitDeclarationOnly": true,
@@ -20,6 +20,5 @@
     "useDefineForClassFields": false,
     "noErrorTruncation": true,
     "skipLibCheck": true
-  },
-  "include": ["src", "test"]
+  }
 }

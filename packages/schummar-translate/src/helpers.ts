@@ -1,4 +1,4 @@
-import { TemporalLike } from './polyfill/temporal';
+import { TemporalLike } from './temporal-polyfill';
 
 export function toDate(
   date: Date | number | string | TemporalLike | undefined,

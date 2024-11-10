@@ -1,6 +1,6 @@
 import { CacheOptions } from './cache';
 import { GetICUArgs } from './extractICU';
-import { TemporalLike } from './polyfill/temporal';
+import { TemporalLike } from './temporal-polyfill';
 import { DurationFormat } from '@formatjs/intl-durationformat';
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -45,6 +45,8 @@ type Tagged<BaseType, Tags extends Record<string, any>> = BaseType & { __tags?: 
 
 export type DurationFormatOptions = Partial<ReturnType<DurationFormat['resolvedOptions']>>;
 export type DurationInput = Parameters<DurationFormat['format']>[0];
+
+export type EmptyObject = Record<never, never>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Public types
@@ -126,7 +128,9 @@ export type Values<T extends string | readonly string[], ProvidedArgs extends st
     : string[] extends T
       ? [value?: Record<string, unknown>, options?: Options]
       : // for unions, extract arguments for each union member individually
-        (T extends any ? (k: GetICUArgs<T, ProvidedArgs>) => void : never) extends (k: infer Args) => void
+        (T extends any ? (k: GetICUArgs<T, { ProvidedArgs: ProvidedArgs } & DefaultGetICUArgsOptions>) => void : never) extends (
+            k: infer Args,
+          ) => void
         ? OnlyOptional<Args> extends true
           ? // if no arguments are found, allow omitting values
             [values?: Flatten<Args>, options?: Options]
@@ -210,5 +214,10 @@ export interface IntlHelpers<Output = string> {
 export type ICUArgument = string | number | boolean | Date;
 export type ICUNumberArgument = number;
 export type ICUDateArgument = Date | number | string | TemporalLike;
+export type DefaultGetICUArgsOptions = {
+  ICUArgument: ICUArgument;
+  ICUNumberArgument: ICUNumberArgument;
+  ICUDateArgument: ICUDateArgument;
+};
 
 export type OtherString = string & { __type: 'other' };

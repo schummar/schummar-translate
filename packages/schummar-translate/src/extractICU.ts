@@ -1,4 +1,11 @@
-import { Flatten, ICUArgument, ICUDateArgument, ICUNumberArgument, OtherString } from './types';
+import type { Flatten, OtherString, EmptyObject } from './types';
+
+export interface GetICUArgsOptions {
+  ProvidedArgs?: string;
+  ICUNumberArgument?: unknown;
+  ICUDateArgument?: unknown;
+  ICUArgument?: unknown;
+}
 
 type Whitespace = ' ' | '\t' | '\n' | '\r';
 
@@ -15,7 +22,7 @@ type Trim<T> = T extends `${Whitespace}${infer Rest}`
 type FindBlocks<Text> = Text extends `${string}{${infer Right}` //find first {
   ? ReadBlock<'', Right, ''> extends [infer Block, infer Tail]
     ? [Block, ...FindBlocks<Tail>] // read block and find next block for tail
-    : [{}]
+    : [EmptyObject]
   : []; // no {, return empty result
 
 /** Find blocks for each tuple entry */
@@ -31,30 +38,32 @@ type ReadBlock<Block extends string, Tail extends string, Depth extends string> 
   : []; // no }, return emptry result
 
 /** Parse block, return variables with types and recursively find nested blocks within */
-type ParseBlock<Block> = Block extends `${infer Name},${infer Format},${infer Rest}`
+type ParseBlock<Block, Opts extends GetICUArgsOptions> = Block extends `${infer Name},${infer Format},${infer Rest}`
   ? Trim<Format> extends 'select'
-    ? SelectOptions<Trim<Name>, Trim<Rest>>
-    : { [K in Trim<Name>]: VariableType<Trim<Format>> } & TupleParseBlock<TupleFindBlocks<FindBlocks<Rest>>>
+    ? SelectOptions<Trim<Name>, Trim<Rest>, Opts>
+    : { [K in Trim<Name>]: VariableType<Trim<Format>, Opts> } & TupleParseBlock<TupleFindBlocks<FindBlocks<Rest>>, Opts>
   : Block extends `${infer Name},${infer Format}`
-    ? { [K in Trim<Name>]: VariableType<Trim<Format>> }
-    : { [K in Trim<Block>]: ICUArgument };
+    ? { [K in Trim<Name>]: VariableType<Trim<Format>, Opts> }
+    : { [K in Trim<Block>]: Opts['ICUArgument'] };
 
 /** Parse block for each tuple entry */
-type TupleParseBlock<T> = T extends readonly [infer First, ...infer Rest] ? ParseBlock<First> & TupleParseBlock<Rest> : {};
+type TupleParseBlock<T, C extends GetICUArgsOptions> = T extends readonly [infer First, ...infer Rest]
+  ? ParseBlock<First, C> & TupleParseBlock<Rest, C>
+  : EmptyObject;
 
-type VariableType<T extends string> = T extends 'number' | 'plural' | 'selectordinal'
-  ? ICUNumberArgument
+type VariableType<T extends string, Opts extends GetICUArgsOptions> = T extends 'number' | 'plural' | 'selectordinal'
+  ? Opts['ICUNumberArgument']
   : T extends 'date' | 'time'
-    ? ICUDateArgument
-    : ICUArgument;
+    ? Opts['ICUDateArgument']
+    : Opts['ICUArgument'];
 
 // Select //////////////////////////////////////////////////////////////////////
 
-type SelectOptions<Name extends string, Rest> = KeepAndMerge<ParseSelectBlock<Name, Rest>>;
+type SelectOptions<Name extends string, Rest, Opts extends GetICUArgsOptions> = KeepAndMerge<ParseSelectBlock<Name, Rest, Opts>>;
 
-type ParseSelectBlock<Name extends string, Rest> = Rest extends `${infer Left}{${infer Right}`
+type ParseSelectBlock<Name extends string, Rest, Opts extends GetICUArgsOptions> = Rest extends `${infer Left}{${infer Right}`
   ? ReadBlock<'', Right, ''> extends [infer Block, infer Tail]
-    ? ({ [K in Name]: HandleOther<Trim<Left>> } & TupleParseBlock<FindBlocks<Block>>) | ParseSelectBlock<Name, Tail>
+    ? ({ [K in Name]: HandleOther<Trim<Left>> } & TupleParseBlock<FindBlocks<Block>, Opts>) | ParseSelectBlock<Name, Tail, Opts>
     : never
   : never;
 
@@ -87,16 +96,16 @@ type TupleStripEscapes<T> = T extends readonly [infer First, ...infer Rest] ? [S
 // Makes type readable
 
 // Make provided args optional
-type MakeProvidedOptional<T, ProvidedArgs extends string = never> = {
+type MakeProvidedOptional<T, ProvidedArgs> = {
   [K in keyof T as K extends ProvidedArgs ? never : K]: T[K];
 } & {
   [K in ProvidedArgs & keyof T]?: T[K];
 };
 
 /** Calculates an object type with all variables and their types in the given ICU format string */
-export type GetICUArgs<T extends string | readonly string[], ProvidedArgs extends string = never> = Flatten<
+export type GetICUArgs<T extends string | readonly string[], TOptions extends GetICUArgsOptions = GetICUArgsOptions> = Flatten<
   MakeProvidedOptional<
-    TupleParseBlock<T extends readonly string[] ? TupleFindBlocks<TupleStripEscapes<T>> : FindBlocks<StripEscapes<T>>>,
-    ProvidedArgs
+    TupleParseBlock<T extends readonly string[] ? TupleFindBlocks<TupleStripEscapes<T>> : FindBlocks<StripEscapes<T>>, TOptions>,
+    'ProvidedArgs' extends keyof TOptions ? TOptions['ProvidedArgs'] : never
   >
 >;
