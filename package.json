@@ -1,7 +1,7 @@
 {
   "devDependencies": {
     "@release-it/conventional-changelog": "^9.0.2",
-    "@schummar/runp": "2.0.6",
+    "@schummar/runp": "2.0.7",
     "@typescript-eslint/eslint-plugin": "8.13.0",
     "@typescript-eslint/parser": "8.13.0",
     "eslint": "8.57.0",
@@ -11,7 +11,7 @@
     "publint": "0.2.12",
     "release-it": "^17.10.0",
     "tsup": "^8.3.5",
-    "typescript": "5.4.5",
+    "typescript": "5.6.3",
     "vitest": "2.1.4"
   },
   "scripts": {
@@ -20,7 +20,7 @@
     "publint": "runp *:publint",
     "test": "runp *:test",
     "prepare-release": "runp *:prepublishOnly",
-    "release": "runp :s *:release :s \"release-it --ci -c ./.release-it-root.ts\""
+    "release": "runp :s *:release \"release-it --ci -c ./.release-it-root.ts\""
   },
   "volta": {
     "node": "22.11.0",
