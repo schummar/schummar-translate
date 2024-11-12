@@ -32,6 +32,14 @@
       "types": "./dist/index.d.ts"
     }
   },
+  "typesVersions": {
+    ".": {
+      "*": [
+        "dist/index.d.ts"
+      ]
+    }
+  },
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsup",
     "publint": "publint",
