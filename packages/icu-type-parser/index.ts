@@ -1,1 +1,1 @@
-export { GetICUArgs } from '../schummar-translate/src/extractICU';
+export type { GetICUArgs, GetICUArgsOptions } from '../schummar-translate/src/extractICU';
