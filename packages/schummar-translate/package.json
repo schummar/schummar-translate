@@ -39,6 +39,19 @@
       }
     }
   },
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      ".": [
+        "dist/index.d.ts"
+      ],
+      "./react": [
+        "dist/react.d.ts"
+      ]
+    }
+  },
   "author": {
     "name": "Marco Schumacher",
     "email": "marco@schumacher.dev"
