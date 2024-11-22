@@ -58,7 +58,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "build": "tsup && cp ../../README.md ./",
+    "build": "tsup && cp ../../README.md ../../LICENSE ./",
     "lint": "runp lint:*",
     "lint:eslint": "eslint src test",
     "lint:tsc": "tsc --noEmit --emitDeclarationOnly false",
@@ -98,6 +98,8 @@
     "react-dom": "18.3.1"
   },
   "files": [
-    "dist"
+    "dist",
+    "react.js",
+    "react.d.ts"
   ]
 }

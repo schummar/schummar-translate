@@ -4,3 +4,4 @@ dist
 coverage
 test-results.xml
 packages/schummar-translate/README.md
+packages/schummar-translate/LICENSE
