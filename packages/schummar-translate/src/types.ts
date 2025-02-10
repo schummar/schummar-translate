@@ -144,8 +144,8 @@ export interface GetTranslatorOptions {
 
 export interface TranslatorFn<D extends FlatDict, ProvidedArgs extends string = never, Options = GetTranslatorOptions, Output = string> {
   /** Translate a dictionary id to a string in the active locale */
-  <TKey extends keyof D>(
-    id: TKey,
+  <TKey extends string>(
+    id: TKey extends keyof D ? TKey : keyof D,
     ...values: Values<D[TKey], ProvidedArgs, Options>
   ): Tagged<
     D[TKey] extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output,
@@ -164,14 +164,14 @@ export interface Translator<D extends FlatDict, ProvidedArgs extends string = ne
   unknown(id: string, values?: Record<string, unknown>, options?: Options): Output extends string ? string | readonly string[] : Output;
 
   /** Translate a dictionary id to a string in the active locale. Without type checking the id. */
-  dynamic<TKey extends keyof D | (string & {})>(
-    id: keyof D & TKey extends never ? never : TKey,
-    ...values: Values<D[keyof D & TKey], ProvidedArgs, Options>
+  dynamic<TKey extends string, TResolved extends string = TKey & keyof D>(
+    id: TKey & keyof D extends never ? keyof D : TKey,
+    ...values: Values<D[TResolved], ProvidedArgs, Options>
   ): Tagged<
-    D[keyof D & TKey] extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output,
+    D[TResolved] extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output,
     {
-      matchingKeys: keyof D & TKey;
-      sourceString: D[keyof D & TKey];
+      matchingKeys: TResolved;
+      sourceString: D[TResolved];
     }
   >;
 
