@@ -13,10 +13,11 @@
       "cache": true
     },
     "lint": {
-      "outputs": ["{projectRoot}/test-results.xml", "{projectRoot}/coverage"],
       "cache": true
     },
     "test": {
+      "inputs": ["default", { "env": "CI" }],
+      "outputs": ["{projectRoot}/test-results.xml", "{projectRoot}/coverage"],
       "cache": true
     }
   },
