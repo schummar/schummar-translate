@@ -13,6 +13,7 @@
       "cache": true
     },
     "lint": {
+      "outputs": ["{projectRoot}/test-results.xml", "{projectRoot}/coverage"],
       "cache": true
     },
     "test": {

@@ -5,7 +5,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./test/_setup.ts'],
     coverage: {
-      reporter: process.env.CI ? ['json-summary', 'json'] : ['text'],
+      reporter: ['text', 'json-summary', 'json'],
       reportOnFailure: true,
     },
     reporters: process.env.CI ? ['dot', 'github-actions', ['junit', { outputFile: 'test-results.xml' }]] : ['default'],
