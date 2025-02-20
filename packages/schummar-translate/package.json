@@ -60,7 +60,7 @@
   "scripts": {
     "build": "tsup && cp ../../README.md ../../LICENSE ./",
     "lint": "runp lint:*",
-    "lint:eslint": "eslint src test",
+    "lint:oxlint": "oxlint",
     "lint:tsc": "tsc --noEmit --emitDeclarationOnly false",
     "publint": "publint",
     "test": "vitest run --coverage",

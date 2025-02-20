@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["import", "typescript"],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-empty-interface": "off",
+    "prettier/prettier": "warn",
+    "@typescript-eslint/ban-types": "off",
+    "@typescript-eslint/no-empty-object-type": ["error", { "allowInterfaces": "with-single-extends" }]
+  }
+}
