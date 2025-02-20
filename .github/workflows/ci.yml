@@ -61,4 +61,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-        run: npx nx release
+        run: |
+          git config user.name "${{ vars.GIT_USER }}"
+          git config user.email "${{ vars.GIT_EMAIL }}"
+          npx nx release
