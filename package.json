@@ -1,12 +1,15 @@
 {
   "devDependencies": {
-    "@release-it/conventional-changelog": "9.0.2",
+    "@nx/js": "^20.4.5",
     "@schummar/runp": "2.0.7",
+    "@swc-node/register": "^1.10.9",
+    "@swc/core": "^1.10.18",
     "@typescript-eslint/eslint-plugin": "8.13.0",
     "@typescript-eslint/parser": "8.13.0",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-prettier": "5.2.1",
+    "nx": "20.4.5",
     "prettier": "3.3.3",
     "publint": "0.2.12",
     "release-it": "17.10.0",
@@ -15,12 +18,10 @@
     "vitest": "2.1.4"
   },
   "scripts": {
-    "build": "runp *:build",
-    "lint": "runp *:lint",
-    "publint": "runp *:publint",
-    "test": "runp *:test",
-    "prepare-release": "runp *:prepublishOnly",
-    "release": "runp :s *:release \"release-it --ci -c ./.release-it-root.ts\""
+    "build": "nx run-many --target=build --all",
+    "lint": "nx run-many --target=lint --all",
+    "publint": "nx run-many --target=publint --all",
+    "test": "nx run-many --target=test --all"
   },
   "volta": {
     "node": "22.11.0",

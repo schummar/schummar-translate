@@ -5,3 +5,5 @@ coverage
 test-results.xml
 packages/schummar-translate/README.md
 packages/schummar-translate/LICENSE
+.nx/cache
+.nx/workspace-data

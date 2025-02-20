@@ -1,0 +1,38 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "nxCloudId": "67b79d08cd527a7b2f8df48f",
+  "nxCloudEncryptionKey": "eQBdO-DMEUBVWX8PQ7avD",
+  "defaultBase": "master",
+
+  "targetDefaults": {
+    "build": {
+      "outputs": ["{projectRoot}/dist"],
+      "cache": true
+    },
+    "publint": {
+      "cache": true
+    },
+    "lint": {
+      "cache": true
+    },
+    "test": {
+      "cache": true
+    }
+  },
+
+  "release": {
+    "git": {
+      "tag": true,
+      "commit": false
+    },
+    "version": {
+      "conventionalCommits": true
+    },
+    "changelog": {
+      "workspaceChangelog": {
+        "file": false,
+        "createRelease": "github"
+      }
+    }
+  }
+}
