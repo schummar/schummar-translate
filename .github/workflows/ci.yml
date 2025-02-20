@@ -9,7 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      issues: read
       id-token: write
+      checks: write
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -58,4 +61,4 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-        run: npx nx release publish
+        run: npx nx release
