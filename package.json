@@ -22,5 +22,10 @@
   "volta": {
     "node": "22.11.0",
     "pnpm": "9.12.3"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "@nx/js": "patches/@nx__js.patch"
+    }
   }
 }

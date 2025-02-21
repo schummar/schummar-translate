@@ -1,0 +1,16 @@
+diff --git a/src/executors/release-publish/release-publish.impl.js b/src/executors/release-publish/release-publish.impl.js
+index 08cd58274d308bcb2ca644e8af5bd99a153c9e91..c80a0dfdbb2a1f6cb704445de2d044bb1773488b 100644
+--- a/src/executors/release-publish/release-publish.impl.js
++++ b/src/executors/release-publish/release-publish.impl.js
+@@ -266,8 +266,9 @@ Please update the local dependency on "${depName}" to be a valid semantic versio
+                 success: false,
+             };
+         }
+-        catch (err) {
+-            console.error(`Something unexpected went wrong when processing the ${pm} publish output\n`, err);
++        catch (parseError) {
++            console.error(`Something unexpected went wrong when processing the ${pm} publish output\n`, parseError);
++            console.error(`stdout: ${err.stdout?.toString()}`);
+             return {
+                 success: false,
+             };
