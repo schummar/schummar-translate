@@ -58,12 +58,12 @@
   },
   "license": "MIT",
   "scripts": {
-    "build": "tsup && cp ../../README.md ../../LICENSE ./",
-    "lint": "runp lint:*",
+    "build": "nx exec -- tsup && cp ../../README.md ../../LICENSE ./",
+    "lint": "nx exec -- runp lint:*",
     "lint:oxlint": "oxlint",
     "lint:tsc": "tsc --noEmit --emitDeclarationOnly false",
-    "publint": "publint",
-    "test": "vitest run --coverage",
+    "publint": "nx exec -- publint",
+    "test": "nx exec -- vitest run --coverage",
     "test:watch": "vitest",
     "prepublishOnly": "runp lint test build :p publint",
     "release": "release-it --ci -c ../../.release-it-package.ts"
