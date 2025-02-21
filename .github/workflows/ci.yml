@@ -59,4 +59,4 @@ jobs:
         run: |
           git config user.name "${{ vars.GIT_USER }}"
           git config user.email "${{ vars.GIT_EMAIL }}"
-          npx nx release
+          npx nx release -y
