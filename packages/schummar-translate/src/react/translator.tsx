@@ -125,7 +125,7 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
           }),
         },
       );
-    }, [locale, dicts, sourceDict]);
+    }, [locale, dicts, sourceDict, providedArgs]);
   };
 
   /////////////////////////////////////////////////////////////////////////////

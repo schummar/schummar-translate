@@ -427,38 +427,83 @@ test('placeholder', async () => {
   expect(div.textContent).toBe('key1:de');
 });
 
-test('provided args', async () => {
-  let value = 0;
-  let listener: (() => void) | undefined;
+describe('provided args', () => {
+  test('with hook', async () => {
+    let value = 0;
+    let listener: (() => void) | undefined;
 
-  const { t: _t } = createTranslator({
-    sourceDictionary: {
-      foo: '{value}',
-    } as const,
-    sourceLocale: 'en',
-    provideArgs: {
-      value: {
-        get: () => value,
-        subscribe(callback) {
-          listener = callback;
-          return () => {
-            listener = undefined;
-          };
+    const { useTranslator } = createTranslator({
+      sourceDictionary: {
+        foo: '{value}',
+      } as const,
+      sourceLocale: 'en',
+      provideArgs: {
+        value: {
+          get: () => value,
+          subscribe(callback) {
+            listener = callback;
+            return () => {
+              listener = undefined;
+            };
+          },
         },
       },
-    },
+    });
+
+    function Component() {
+      const _t = useTranslator();
+      return <>{_t('foo')}</>;
+    }
+
+    render(
+      <App id={'provided args hook'}>
+        <Component />
+      </App>,
+    );
+    const div = screen.getByTestId('provided args hook');
+    expect(div.textContent).toBe('0');
+
+    act(() => {
+      value = 1;
+      listener?.();
+    });
+
+    expect(div.textContent).toBe('1');
   });
 
-  render(<App id={'provided args'}>{_t('foo')}</App>);
-  const div = screen.getByTestId('provided args');
-  expect(div.textContent).toBe('0');
+  test('with component', async () => {
+    let value = 0;
+    let listener: (() => void) | undefined;
 
-  act(() => {
-    value = 1;
-    listener?.();
+    const { t: _t } = createTranslator({
+      sourceDictionary: {
+        foo: '{value}',
+      } as const,
+      sourceLocale: 'en',
+      provideArgs: {
+        value: {
+          get: () => value,
+          subscribe(callback) {
+            listener = callback;
+            return () => {
+              listener = undefined;
+            };
+          },
+        },
+      },
+    });
+
+    render(<App id={'provided args'}>{_t('foo')}</App>);
+    const div = screen.getByTestId('provided args');
+    expect(div.textContent).toBe('0');
+
+    act(() => {
+      value = 1;
+      listener?.();
+    });
+
+    expect(div.textContent).toBe('1');
   });
-
-  expect(div.textContent).toBe('1');
 });
 
 describe('error in dict loader', () => {
