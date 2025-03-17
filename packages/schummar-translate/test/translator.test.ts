@@ -2,7 +2,15 @@ import { Temporal } from '@js-temporal/polyfill';
 import { describe, expect, expectTypeOf, test } from 'vitest';
 import { createTranslator } from '../src';
 import { Cache } from '../src/cache';
-import { ICUArgument, ICUDateArgument, ICUNumberArgument, OtherString, type EmptyObject, type GetTranslatorOptions } from '../src/types';
+import {
+  ICUArgument,
+  ICUDateArgument,
+  ICUNumberArgument,
+  OtherString,
+  type EmptyObject,
+  type FlattenDict,
+  type GetTranslatorOptions,
+} from '../src/types';
 import { dictDe, dictEn, dictEnCa } from './_helpers';
 import type { GetICUArgs } from '../src/extractICU';
 
@@ -111,7 +119,9 @@ describe('dynamic', () => {
   test('with unknown value', async () => {
     const en = await getTranslator('en');
 
-    expectTypeOf(en.dynamic<'unknownKey'>).parameters.toEqualTypeOf<[id: never, values?: unknown, options?: GetTranslatorOptions]>();
+    expectTypeOf(en.dynamic<'unknownKey'>).parameters.toEqualTypeOf<
+      [id: keyof FlattenDict<Dict>, values?: unknown, options?: GetTranslatorOptions]
+    >();
     // @ts-expect-error unknownKey is known not to be in the dictionary
     expect(en.dynamic('unknownKey')).toBe('unknownKey');
   });
