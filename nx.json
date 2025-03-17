@@ -1,7 +1,5 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
-  "nxCloudId": "67b79d08cd527a7b2f8df48f",
-  "nxCloudEncryptionKey": "eQBdO-DMEUBVWX8PQ7avD",
   "defaultBase": "master",
 
   "targetDefaults": {
