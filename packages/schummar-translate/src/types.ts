@@ -175,6 +175,9 @@ export interface Translator<D extends FlatDict, ProvidedArgs extends string = ne
     }
   >;
 
+  keys(): (keyof D)[];
+  keys<TPrefix extends string>(prefix: TPrefix): (keyof D & (TPrefix | `${TPrefix}.${string}`))[];
+
   /** Format the given template directly. */
   format<T extends string>(template: T, ...values: Values<T, ProvidedArgs, never>): Output;
 }

@@ -556,4 +556,35 @@ describe('error in dict loader', () => {
     expect(div.textContent).toBe('key1:en');
     expect(console.warn).toHaveBeenCalledWith('Failed to load dictionary for locale "de"');
   });
+
+  describe('get keys', () => {
+    test('with hook', async () => {
+      function Component() {
+        const _t = useTranslator();
+        return <>{_t.keys('nested').join(', ')}</>;
+      }
+
+      render(
+        <App id={'get keys with hook'}>
+          <Component />
+        </App>,
+      );
+      const div = screen.getByTestId('get keys with hook');
+      expect(div.textContent).toBe('nested.key2, nested.key3');
+    });
+
+    test('with component', async () => {
+      function Component() {
+        return <>{t.keys('nested').join(', ')}</>;
+      }
+
+      render(
+        <App id={'get keys with component'}>
+          <Component />
+        </App>,
+      );
+      const div = screen.getByTestId('get keys with component');
+      expect(div.textContent).toBe('nested.key2, nested.key3');
+    });
+  });
 });

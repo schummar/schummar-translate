@@ -2,6 +2,8 @@ import { Temporal } from '@js-temporal/polyfill';
 import { describe, expect, expectTypeOf, test } from 'vitest';
 import { createTranslator } from '../src';
 import { Cache } from '../src/cache';
+import type { GetICUArgs } from '../src/extractICU';
+import { flattenDict } from '../src/flattenDict';
 import {
   ICUArgument,
   ICUDateArgument,
@@ -12,7 +14,6 @@ import {
   type GetTranslatorOptions,
 } from '../src/types';
 import { dictDe, dictEn, dictEnCa } from './_helpers';
-import type { GetICUArgs } from '../src/extractICU';
 
 type EnDict = typeof dictEn;
 interface Dict extends EnDict {}
@@ -700,5 +701,22 @@ describe('provided args', () => {
     expectTypeOf<GetICUArgs<'{var, number}', Config>>().toEqualTypeOf<{ var: 'mynum' }>();
     expectTypeOf<GetICUArgs<'{var, date}', Config>>().toEqualTypeOf<{ var: 'mydate' }>();
     expectTypeOf<GetICUArgs<'{var}', Config>>().toEqualTypeOf<{ var: 'myarg' }>();
+  });
+
+  describe('get keys', () => {
+    test('without prefix', async () => {
+      const _t = await getTranslator('en');
+      expect(_t.keys()).toEqual(Object.keys(flattenDict(dictEn)).sort());
+    });
+
+    test('with prefix', async () => {
+      const _t = await getTranslator('en');
+      expect(_t.keys('nested')).toEqual(['nested.key2', 'nested.key3']);
+    });
+
+    test('array as one', async () => {
+      const _t = await getTranslator('en');
+      expect(_t.keys('arr')).toEqual(['arr']);
+    });
   });
 });

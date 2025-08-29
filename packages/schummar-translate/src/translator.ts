@@ -1,4 +1,5 @@
 import { TranslatorFn } from '.';
+import getKeys from './getKeys';
 import { calcLocales } from './helpers';
 import { intlHelpers } from './intlHelpers';
 import { resolveProvidedArgs } from './resolveProvidedArgs';
@@ -30,7 +31,7 @@ export const createGetTranslator =
     type FD = FlattenDict<D>;
 
     const dicts = await store.loadAll(locale, ...calcLocales(locale, fallbackToLessSpecific, fallbackLocale));
-    const sourceDict = await store.load(sourceLocale);
+    const sourceDict = store.load(sourceLocale) as FD;
 
     const t: TranslatorFn<FD, ProvidedArgs> = (id, ...[values, options]) => {
       const fallback = options?.fallback ?? globalFallback;
@@ -54,6 +55,8 @@ export const createGetTranslator =
 
       unknown: t as Translator<FD, ProvidedArgs>['unknown'],
       dynamic: t as Translator<FD, ProvidedArgs>['dynamic'],
+
+      keys: getKeys(sourceDict),
 
       format(template, ...[values]) {
         return format({
