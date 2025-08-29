@@ -20,6 +20,21 @@ import {
 } from './types';
 import { useStore } from './useStore';
 
+function isEqual<T extends Record<string, ICUArgument | ICUDateArgument>>(a: T, b: T): boolean {
+  const keysA = Object.keys(a)
+  const keysB = Object.keys(b)
+
+  if (keysA.length !== keysB.length) {
+    return false
+  }
+
+  return keysA.every((key) => {
+    const valueA = a[key]
+    const valueB = b[key]
+    return valueA === valueB
+  })
+}
+
 export function createTranslator<D extends Dict, ProvidedArgs extends string = never>(
   options: ReactCreateTranslatorOptions<D, ProvidedArgs>,
 ): ReactCreateTranslatorResult<FlattenDict<D>, ProvidedArgs> {
@@ -54,7 +69,13 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
       for (const [, value] of Object.entries(provideArgs ?? {})) {
         if (typeof value === 'object' && value !== null && 'subscribe' in value) {
           const handle = (value as any).subscribe(() => {
-            setArgs(resolveProvidedArgs(provideArgs));
+            setArgs((args) => {
+              const newArgs = resolveProvidedArgs(provideArgs);
+              if (isEqual(args, newArgs)) {
+                return args
+              }
+              return newArgs
+            });
           });
 
           handles.push(handle);
