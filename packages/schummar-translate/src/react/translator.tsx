@@ -3,7 +3,7 @@ import { TranslationContext } from '.';
 import { TranslatorFn } from '..';
 import { hash } from '../cache';
 import getKeys from '../getKeys';
-import { calcLocales, castArray } from '../helpers';
+import { calcLocales, castArray, objEquals } from '../helpers';
 import { intlHelpers } from '../intlHelpers';
 import { resolveProvidedArgs } from '../resolveProvidedArgs';
 import { Store } from '../store';
@@ -50,11 +50,15 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
 
     useEffect(() => {
       const handles: (() => void)[] = [];
+      let currentArgs = args;
 
       for (const [, value] of Object.entries(provideArgs ?? {})) {
         if (typeof value === 'object' && value !== null && 'subscribe' in value) {
           const handle = (value as any).subscribe(() => {
-            setArgs(resolveProvidedArgs(provideArgs));
+            const newArgs = resolveProvidedArgs(provideArgs);
+            if (!objEquals(newArgs, currentArgs)) {
+              setArgs(newArgs);
+            }
           });
 
           handles.push(handle);
