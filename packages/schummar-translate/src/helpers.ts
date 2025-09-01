@@ -56,6 +56,13 @@ export function arrEquals(a?: any[], b?: any[]): boolean {
   return a.every((value, index) => value === b[index]) ?? false;
 }
 
+export function objEquals(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+  return keysA.every((key) => a[key] === b[key]);
+}
+
 export function castArray<T>(x: T | readonly T[] = []): readonly T[] {
   if (x instanceof Array) return x;
   return [x];

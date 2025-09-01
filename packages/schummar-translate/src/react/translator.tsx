@@ -3,7 +3,7 @@ import { TranslationContext } from '.';
 import { TranslatorFn } from '..';
 import { hash } from '../cache';
 import getKeys from '../getKeys';
-import { calcLocales, castArray } from '../helpers';
+import { calcLocales, castArray, objEquals } from '../helpers';
 import { intlHelpers } from '../intlHelpers';
 import { resolveProvidedArgs } from '../resolveProvidedArgs';
 import { Store } from '../store';
@@ -19,21 +19,6 @@ import {
   ReactCreateTranslatorResult,
 } from './types';
 import { useStore } from './useStore';
-
-function isEqual<T extends Record<string, ICUArgument | ICUDateArgument>>(a: T, b: T): boolean {
-  const keysA = Object.keys(a)
-  const keysB = Object.keys(b)
-
-  if (keysA.length !== keysB.length) {
-    return false
-  }
-
-  return keysA.every((key) => {
-    const valueA = a[key]
-    const valueB = b[key]
-    return valueA === valueB
-  })
-}
 
 export function createTranslator<D extends Dict, ProvidedArgs extends string = never>(
   options: ReactCreateTranslatorOptions<D, ProvidedArgs>,
@@ -65,17 +50,15 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
 
     useEffect(() => {
       const handles: (() => void)[] = [];
+      let currentArgs = args;
 
       for (const [, value] of Object.entries(provideArgs ?? {})) {
         if (typeof value === 'object' && value !== null && 'subscribe' in value) {
           const handle = (value as any).subscribe(() => {
-            setArgs((args) => {
-              const newArgs = resolveProvidedArgs(provideArgs);
-              if (isEqual(args, newArgs)) {
-                return args
-              }
-              return newArgs
-            });
+            const newArgs = resolveProvidedArgs(provideArgs);
+            if (!objEquals(newArgs, currentArgs)) {
+              setArgs(newArgs);
+            }
           });
 
           handles.push(handle);

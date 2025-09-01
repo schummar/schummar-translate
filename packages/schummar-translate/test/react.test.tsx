@@ -504,6 +504,52 @@ describe('provided args', () => {
 
     expect(div.textContent).toBe('1');
   });
+
+  test('prevent unnecessary rerenders', async () => {
+    let value = 0;
+    let listener: (() => void) | undefined;
+
+    const { useTranslator } = createTranslator({
+      sourceDictionary: {
+        foo: '{value}',
+      } as const,
+      sourceLocale: 'en',
+      provideArgs: {
+        value: {
+          get: () => value,
+          subscribe(callback) {
+            listener = callback;
+            return () => {
+              listener = undefined;
+            };
+          },
+        },
+      },
+    });
+
+    const Component = vi.fn(function Component() {
+      const _t = useTranslator();
+      return <>{_t('foo')}</>;
+    });
+
+    render(
+      <App id={'prevent unnecessary rerenders'}>
+        <Component />
+      </App>,
+    );
+    expect(Component).toHaveBeenCalledTimes(2);
+
+    act(() => {
+      listener?.();
+    });
+    expect(Component).toHaveBeenCalledTimes(2);
+
+    act(() => {
+      value = 1;
+      listener?.();
+    });
+    expect(Component).toHaveBeenCalledTimes(3);
+  });
 });
 
 describe('error in dict loader', () => {
