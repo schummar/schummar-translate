@@ -43,7 +43,13 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
     provideArgs,
   } = options;
 
-  const sourceDict = store.load(sourceLocale) as FD;
+  let _sourceDict: FD | undefined;
+  function getSourceDict() {
+    if (!_sourceDict) {
+      _sourceDict = store.load(sourceLocale) as FD;
+    }
+    return _sourceDict;
+  }
 
   function useProvidedArgs() {
     const [args, setArgs] = useState(resolveProvidedArgs(provideArgs));
@@ -81,6 +87,7 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
   const useTranslator: ReactCreateTranslatorResult<FD, ProvidedArgs>['useTranslator'] = (overrideLocale) => {
     const contextLocale = useContext(TranslationContext).locale;
     const locale = overrideLocale ?? contextLocale ?? sourceLocale;
+    const sourceDict = getSourceDict();
     const dicts = useStore(store, locale, ...calcLocales(locale, fallbackToLessSpecific, fallbackLocale));
     const providedArgs = useProvidedArgs();
 
@@ -150,6 +157,7 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
   }) {
     const contextLocale = useContext(TranslationContext).locale;
     const locale = options?.locale ?? contextLocale ?? sourceLocale;
+    const sourceDict = getSourceDict();
     const dicts = useStore(store, locale, ...calcLocales(locale, fallbackToLessSpecific, fallbackLocale));
     const providedArgs = useProvidedArgs();
 
@@ -222,7 +230,7 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
     unknown: createTranslatorComponent as InlineTranslator<FD>['unknown'],
     dynamic: createTranslatorComponent as any,
 
-    keys: getKeys(sourceDict),
+    keys: getKeys(getSourceDict),
 
     format(template, ...[values]) {
       return render(
