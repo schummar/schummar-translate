@@ -3,7 +3,7 @@ import { TranslationContext } from '.';
 import { TranslatorFn } from '..';
 import { hash } from '../cache';
 import getKeys from '../getKeys';
-import { calcLocales, castArray, objEquals } from '../helpers';
+import { castArray, getPossibleLocales, objEquals } from '../helpers';
 import { intlHelpers } from '../intlHelpers';
 import { resolveProvidedArgs } from '../resolveProvidedArgs';
 import { Store } from '../store';
@@ -30,6 +30,7 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
     sourceLocale,
     fallbackLocale,
     fallbackToLessSpecific = true,
+    fallbackToMoreSpecific = true,
     fallback: defaultFallback,
     fallbackIgnoresFallbackLocales = false,
     placeholder: defaultPlaceholder,
@@ -88,7 +89,11 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
     const contextLocale = useContext(TranslationContext).locale;
     const locale = overrideLocale ?? contextLocale ?? sourceLocale;
     const sourceDict = getSourceDict();
-    const dicts = useStore(store, locale, ...calcLocales(locale, fallbackToLessSpecific, fallbackLocale));
+    const dicts = useStore(
+      store,
+      locale,
+      ...getPossibleLocales(locale, { fallbackToLessSpecific, fallbackToMoreSpecific, fallback: fallbackLocale }),
+    );
     const providedArgs = useProvidedArgs();
 
     return useMemo(() => {
@@ -158,7 +163,11 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
     const contextLocale = useContext(TranslationContext).locale;
     const locale = options?.locale ?? contextLocale ?? sourceLocale;
     const sourceDict = getSourceDict();
-    const dicts = useStore(store, locale, ...calcLocales(locale, fallbackToLessSpecific, fallbackLocale));
+    const dicts = useStore(
+      store,
+      locale,
+      ...getPossibleLocales(locale, { fallbackToLessSpecific, fallbackToMoreSpecific, fallback: fallbackLocale }),
+    );
     const providedArgs = useProvidedArgs();
 
     const fallback = options?.fallback ?? defaultFallback;

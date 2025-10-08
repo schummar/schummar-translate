@@ -1,7 +1,7 @@
+import { DurationFormat } from '@formatjs/intl-durationformat';
 import { CacheOptions } from './cache';
 import { GetICUArgs } from './extractICU';
 import { TemporalLike } from './temporal-polyfill';
-import { DurationFormat } from '@formatjs/intl-durationformat';
 
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers
@@ -66,6 +66,10 @@ export type CreateTranslatorOptions<D extends Dict, ProvidedArgs extends string 
      * @default true
      */
     fallbackToLessSpecific?: boolean;
+    /** Fall back to more specific language versions. E.g. en-US -> en -> en-*
+     * @default true
+     */
+    fallbackToMoreSpecific?: boolean;
     /** If a fallback is provided to a translation string
      * - if `fallbackIgnoresFallbackLocales` is true, the fallback will be used if there is no match in the current locale
      * - if `fallbackIgnoresFallbackLocales` is false, the fallback will be used if there is no match in the current or any fallback locales

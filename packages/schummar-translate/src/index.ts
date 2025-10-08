@@ -1,3 +1,4 @@
+export { getPossibleLocales } from './helpers';
 export { mergeDicts } from './mergeDicts';
 export { createTranslator } from './translator';
 export type {

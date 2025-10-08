@@ -68,10 +68,17 @@ export function castArray<T>(x: T | readonly T[] = []): readonly T[] {
   return [x];
 }
 
-export function calcLocales(
+export function getPossibleLocales(
   locale: string,
-  fallbackToLessSpecific: boolean,
-  fallback?: string | readonly string[] | ((locale: string) => string | readonly string[]),
+  {
+    fallbackToLessSpecific = true,
+    fallbackToMoreSpecific = true,
+    fallback,
+  }: {
+    fallbackToLessSpecific?: boolean;
+    fallbackToMoreSpecific?: boolean;
+    fallback?: string | readonly string[] | ((locale: string) => string | readonly string[]);
+  } = {},
 ): readonly string[] {
   const requestedLocales = [locale];
 
@@ -82,6 +89,16 @@ export function calcLocales(
       const index = prefix.lastIndexOf('-');
       prefix = prefix.slice(0, index);
       requestedLocales.push(prefix);
+    }
+  }
+
+  if (fallbackToMoreSpecific) {
+    let prefix = locale;
+
+    while (prefix.includes('-')) {
+      const index = prefix.indexOf('-');
+      prefix = prefix.slice(0, index);
+      requestedLocales.push(`${prefix}-XX`);
     }
   }
 
