@@ -10,9 +10,18 @@ export type ReactCreateTranslatorOptions<D extends Dict, ProvidedArgs extends st
 export interface ReactCreateTranslatorResult<D extends FlatDict, ProvidedArgs extends string = never>
   extends CreateTranslatorResult<D, ProvidedArgs> {
   /** Returns a translator instance in a hook, which updates as locales changes or dictionaries are loaded */
-  useTranslator: (locale?: string) => HookTranslator<D, ProvidedArgs>;
+  useTranslator(locale?: string): HookTranslator<D, ProvidedArgs>;
+
   /** Returns an inline translator instance, which updates as locales changes or dictionaries are loaded */
   t: InlineTranslator<D, ProvidedArgs>;
+
+  TranslationContextProvider: (props: {
+    locale?: string;
+    options?: Partial<ReactCreateTranslatorOptions<D, ProvidedArgs>>;
+    children?: ReactNode;
+  }) => JSX.Element;
+
+  updateOptions(newOptions: Partial<ReactCreateTranslatorOptions<any, ProvidedArgs>>): void;
 }
 
 export interface HookTranslatorOptions {

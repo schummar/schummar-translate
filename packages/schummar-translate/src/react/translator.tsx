@@ -1,15 +1,16 @@
-import { Fragment, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
-import { TranslationContext } from '.';
+import { createContext, Fragment, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { TranslatorFn } from '..';
 import { hash } from '../cache';
+import defaultOptions from '../defaultOptions';
 import getKeys from '../getKeys';
 import { castArray, getPossibleLocales, objEquals } from '../helpers';
 import { intlHelpers } from '../intlHelpers';
 import { resolveProvidedArgs } from '../resolveProvidedArgs';
 import { Store } from '../store';
 import { format, translate } from '../translate';
-import { createGetTranslator } from '../translator';
+import { getTranslator } from '../translator';
 import { Dict, FlattenDict, ICUArgument, ICUDateArgument, Values } from '../types';
+import { Observable, useObservable } from './observable';
 import {
   HookTranslator,
   HookTranslatorOptions,
@@ -21,53 +22,40 @@ import {
 import { useStore } from './useStore';
 
 export function createTranslator<D extends Dict, ProvidedArgs extends string = never>(
-  options: ReactCreateTranslatorOptions<D, ProvidedArgs>,
+  _options: ReactCreateTranslatorOptions<D, ProvidedArgs>,
 ): ReactCreateTranslatorResult<FlattenDict<D>, ProvidedArgs> {
   type FD = FlattenDict<D>;
 
-  const store = new Store<D, ProvidedArgs>(options);
-  const {
-    sourceLocale,
-    fallbackLocale,
-    fallbackToLessSpecific = true,
-    fallbackToMoreSpecific = true,
-    fallback: defaultFallback,
-    fallbackIgnoresFallbackLocales = false,
-    placeholder: defaultPlaceholder,
-    warn,
-    dateTimeFormatOptions,
-    listFormatOptions,
-    numberFormatOptions,
-    pluralRulesOptions,
-    relativeTimeFormatOptions,
-    ignoreMissingArgs,
-    provideArgs,
-  } = options;
+  const options = new Observable(defaultOptions(_options));
+  const store = new Observable(new Store<D, ProvidedArgs>(options.value));
 
-  let _sourceDict: FD | undefined;
-  function getSourceDict() {
-    if (!_sourceDict) {
-      _sourceDict = store.load(sourceLocale) as FD;
-    }
-    return _sourceDict;
+  const TranslationContext = createContext<{ locale?: string; options?: Partial<ReactCreateTranslatorOptions<D, ProvidedArgs>> }>({});
+
+  function useOptions(): ReactCreateTranslatorOptions<D, ProvidedArgs> {
+    const globalOptions = useObservable(options);
+    const contextOptions = useContext(TranslationContext).options;
+    return { ...globalOptions, ...contextOptions };
   }
 
   function useProvidedArgs() {
+    const { provideArgs } = useOptions();
     const [args, setArgs] = useState(resolveProvidedArgs(provideArgs));
 
     useEffect(() => {
       const handles: (() => void)[] = [];
       let currentArgs = args;
 
+      function update() {
+        const newArgs = resolveProvidedArgs(provideArgs);
+        if (!objEquals(newArgs, currentArgs)) {
+          setArgs(newArgs);
+        }
+      }
+      update();
+
       for (const [, value] of Object.entries(provideArgs ?? {})) {
         if (typeof value === 'object' && value !== null && 'subscribe' in value) {
-          const handle = (value as any).subscribe(() => {
-            const newArgs = resolveProvidedArgs(provideArgs);
-            if (!objEquals(newArgs, currentArgs)) {
-              setArgs(newArgs);
-            }
-          });
-
+          const handle = (value as any).subscribe(update);
           handles.push(handle);
         }
       }
@@ -77,7 +65,7 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
           handle();
         }
       };
-    }, []);
+    }, [provideArgs]);
 
     return args;
   }
@@ -86,32 +74,31 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
   // hook translator
   /////////////////////////////////////////////////////////////////////////////
   const useTranslator: ReactCreateTranslatorResult<FD, ProvidedArgs>['useTranslator'] = (overrideLocale) => {
+    const options = useOptions();
     const contextLocale = useContext(TranslationContext).locale;
-    const locale = overrideLocale ?? contextLocale ?? sourceLocale;
-    const sourceDict = getSourceDict();
-    const dicts = useStore(
-      store,
-      locale,
-      ...getPossibleLocales(locale, { fallbackToLessSpecific, fallbackToMoreSpecific, fallback: fallbackLocale }),
-    );
+    const locale = overrideLocale ?? contextLocale ?? options.sourceLocale;
+
+    const _store = useObservable(store);
+    const sourceDict = _store.load(options.sourceLocale) as FD;
+    const dicts = useStore(_store, locale, ...getPossibleLocales(locale, options));
     const providedArgs = useProvidedArgs();
 
     return useMemo(() => {
-      const t: TranslatorFn<FD, ProvidedArgs, HookTranslatorOptions, string> = (id, ...[values, options]) => {
-        const fallback = options?.fallback ?? defaultFallback;
-        const placeholder = options?.placeholder ?? defaultPlaceholder;
+      const t: TranslatorFn<FD, ProvidedArgs, HookTranslatorOptions, string> = (id, ...[values, translateOptions]) => {
+        const fallback = translateOptions?.fallback ?? options.fallback;
+        const placeholder = translateOptions?.placeholder ?? options.placeholder;
         return translate({
           dicts,
           sourceDict,
           id,
           values,
           fallback,
-          fallbackIgnoresFallbackLocales,
+          fallbackIgnoresFallbackLocales: options.fallbackIgnoresFallbackLocales,
           placeholder,
           locale,
-          warn,
-          cache: store.cache,
-          ignoreMissingArgs,
+          warn: options.warn,
+          cache: _store.cache,
+          ignoreMissingArgs: options.ignoreMissingArgs,
           providedArgs,
         }) as any;
       };
@@ -131,21 +118,21 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
               template,
               values: values as any,
               locale,
-              cache: store.cache,
-              ignoreMissingArgs,
+              cache: _store.cache,
+              ignoreMissingArgs: options.ignoreMissingArgs,
               providedArgs,
             });
           },
 
           ...intlHelpers({
-            cache: store.cache,
+            cache: _store.cache,
             transform: (fn) => fn(locale),
-            dateTimeFormatOptions,
-            listFormatOptions,
+            dateTimeFormatOptions: options.dateTimeFormatOptions,
+            listFormatOptions: options.listFormatOptions,
           }),
         },
       );
-    }, [locale, dicts, providedArgs]);
+    }, [options, locale, _store, sourceDict, dicts, providedArgs]);
   };
 
   /////////////////////////////////////////////////////////////////////////////
@@ -160,37 +147,39 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
     values: Values<FD[K], ProvidedArgs, InlineTranslatorOptions>[0];
     options?: Values<FD[K], ProvidedArgs, InlineTranslatorOptions>[1];
   }) {
-    const contextLocale = useContext(TranslationContext).locale;
-    const locale = options?.locale ?? contextLocale ?? sourceLocale;
-    const sourceDict = getSourceDict();
-    const dicts = useStore(
-      store,
-      locale,
-      ...getPossibleLocales(locale, { fallbackToLessSpecific, fallbackToMoreSpecific, fallback: fallbackLocale }),
-    );
-    const providedArgs = useProvidedArgs();
+    // const option = useOptions();
+    // const contextLocale = useContext(TranslationContext).locale;
+    // const locale = options?.locale ?? contextLocale ?? sourceLocale;
+    // const sourceDict = getSourceDict();
+    // const dicts = useStore(
+    //   store,
+    //   locale,
+    //   ...getPossibleLocales(locale, { fallbackToLessSpecific, fallbackToMoreSpecific, fallback: fallbackLocale }),
+    // );
+    // const providedArgs = useProvidedArgs();
 
-    const fallback = options?.fallback ?? defaultFallback;
-    const placeholder = options?.placeholder ?? defaultPlaceholder;
+    // const fallback = options?.fallback ?? defaultFallback;
+    // const placeholder = options?.placeholder ?? defaultPlaceholder;
 
-    const text = useMemo(
-      () =>
-        translate({
-          dicts,
-          sourceDict,
-          id,
-          values,
-          fallback,
-          fallbackIgnoresFallbackLocales,
-          placeholder,
-          locale,
-          warn,
-          cache: store.cache,
-          ignoreMissingArgs,
-          providedArgs,
-        }),
-      [locale, dicts, providedArgs, id, values, fallback, placeholder],
-    );
+    // const text = useMemo(
+    //   () =>
+    //     translate({
+    //       dicts,
+    //       sourceDict,
+    //       id,
+    //       values,
+    //       fallback,
+    //       fallbackIgnoresFallbackLocales,
+    //       placeholder,
+    //       locale,
+    //       warn,
+    //       cache: store.cache,
+    //       ignoreMissingArgs,
+    //       providedArgs,
+    //     }),
+    //   [locale, dicts, providedArgs, id, values, fallback, placeholder],
+    // );
+    const text = useTranslator()(id, values, options);
     const textArray = castArray(text);
     const Component = options?.component ?? Fragment;
 
@@ -215,13 +204,18 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
     dependecies?: any[];
   }) => {
     const t = useTranslator();
+    const options = useOptions();
     const providedArgs = useProvidedArgs();
+    const _store = useObservable(store);
+
     const value = useMemo(
       () =>
         renderFn(t, {
+          options,
           providedArgs: providedArgs as Record<ProvidedArgs, ICUArgument | ICUDateArgument>,
+          store: store,
         }),
-      [t, providedArgs, ...dependecies],
+      [t, providedArgs, _store, ...dependecies],
     );
     return <>{value}</>;
   };
@@ -239,17 +233,17 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
     unknown: createTranslatorComponent as InlineTranslator<FD>['unknown'],
     dynamic: createTranslatorComponent as any,
 
-    keys: getKeys(getSourceDict),
+    keys: getKeys(() => store.value.load(options.value.sourceLocale) as FD),
 
     format(template, ...[values]) {
       return render(
-        (t, { providedArgs }) =>
+        (t, { options, providedArgs, store }) =>
           format({
             template,
             values: values as any,
             locale: t.locale,
             cache: store.cache,
-            ignoreMissingArgs,
+            ignoreMissingArgs: options.ignoreMissingArgs,
             providedArgs,
           }),
         [template, hash(values)],
@@ -269,13 +263,33 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
     }),
   });
 
+  const TranslationContextProvider = ({
+    locale,
+    options,
+    children,
+  }: {
+    locale?: string;
+    options?: ReactCreateTranslatorOptions<D, ProvidedArgs>;
+    children?: React.ReactNode;
+  }): JSX.Element => {
+    const value = useMemo(() => ({ locale }), [locale]);
+    return <TranslationContext.Provider value={value}>{children}</TranslationContext.Provider>;
+  };
+
   return {
-    getTranslator: createGetTranslator(store, options),
+    getTranslator: getTranslator(store, options),
     useTranslator,
     t,
+    TranslationContextProvider,
 
     clearDicts() {
       store.clear();
+    },
+
+    updateOptions(newOptions) {
+      options = defaultOptions({ ...options, ...newOptions });
+      store = new Store<D, ProvidedArgs>(options);
+      _sourceDict = undefined;
     },
   };
 }

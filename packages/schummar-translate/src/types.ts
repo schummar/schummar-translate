@@ -93,6 +93,8 @@ export type CreateTranslatorOptions<D extends Dict, ProvidedArgs extends string 
     /** Default options */
     dateTimeFormatOptions?: Intl.DateTimeFormatOptions;
     /** Default options */
+    displayNamesOptions?: Intl.DisplayNamesOptions;
+    /** Default options */
     listFormatOptions?: Intl.ListFormatOptions;
     /** Default options */
     numberFormatOptions?: Intl.NumberFormatOptions;
@@ -119,10 +121,12 @@ export type CreateTranslatorOptions<D extends Dict, ProvidedArgs extends string 
 
 export interface CreateTranslatorResult<D extends FlatDict, ProvidedArgs extends string = never> {
   /** Returns a promise for a translator instance */
-  getTranslator: (locale: string) => Promise<Translator<D, ProvidedArgs>>;
+  getTranslator(locale: string): Promise<Translator<D, ProvidedArgs>>;
 
   /** Clear all dictionary data. As needed the dictionaries will be reloaded. Useful for OTA translation updates. */
-  clearDicts: () => void;
+  clearDicts(): void;
+
+  updateOptions(newOptions: Partial<CreateTranslatorOptions<any, ProvidedArgs>>): void;
 }
 
 export type Values<T extends string | readonly string[], ProvidedArgs extends string, Options> =

@@ -1,6 +1,6 @@
 import { Temporal } from '@js-temporal/polyfill';
 import { describe, expect, expectTypeOf, test } from 'vitest';
-import { createTranslator } from '../src';
+import { createTranslator, getPossibleLocales } from '../src';
 import { Cache } from '../src/cache';
 import type { GetICUArgs } from '../src/extractICU';
 import { flattenDict } from '../src/flattenDict';
@@ -369,11 +369,11 @@ test('clear', async () => {
 
   await getTranslator('en');
   await getTranslator('en');
-  expect(count).toBe(1);
+  expect(count).toBe(2);
 
   clearDicts();
   await getTranslator('en');
-  expect(count).toBe(2);
+  expect(count).toBe(4);
 });
 
 test('cache', async () => {
@@ -718,5 +718,27 @@ describe('provided args', () => {
       const _t = await getTranslator('en');
       expect(_t.keys('arr')).toEqual(['arr']);
     });
+  });
+});
+
+describe('updateOptions', () => {
+  test('updateOptions', async () => {
+    const { getTranslator, updateOptions } = createTranslator({
+      sourceLocale: 'en',
+      sourceDictionary: dictEn,
+      dicts: {
+        de: dictDe,
+      },
+      fallbackLocale: 'en',
+    });
+
+    const t1 = await getTranslator('es');
+    expect(t1('key1')).toBe('key1:en');
+
+    updateOptions({ fallbackLocale: 'de' });
+    const t2 = await getTranslator('es');
+    console.log(getPossibleLocales('es'));
+    expect(t1('key1')).toBe('key1:en');
+    expect(t2('key1')).toBe('key1:de');
   });
 });

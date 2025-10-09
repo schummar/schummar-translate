@@ -634,3 +634,5 @@ describe('error in dict loader', () => {
     });
   });
 });
+
+describe('update options', () => {});
