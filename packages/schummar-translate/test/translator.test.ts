@@ -672,27 +672,22 @@ describe('provided args', () => {
     expect(t('bar', { bar: 'y' })).toBe('y');
   });
 
-  test('provided args subscribed', async () => {
-    let value = 0;
-
-    const { getTranslator } = createTranslator({
+  test('update provided args', async () => {
+    const { getTranslator, updateOptions } = createTranslator({
       sourceDictionary: {
         foo: '{value}',
       } as const,
       sourceLocale: 'en',
       provideArgs: {
-        value: {
-          get: () => value,
-          subscribe: () => () => undefined,
-        },
+        value: 0,
       },
     });
 
-    const t = await getTranslator('en');
+    let t = await getTranslator('en');
     expect(t('foo')).toBe('0');
 
-    value = 1;
-    // listener?.();
+    updateOptions({ provideArgs: { value: 1 } });
+    t = await getTranslator('en');
     expect(t('foo')).toBe('1');
   });
 

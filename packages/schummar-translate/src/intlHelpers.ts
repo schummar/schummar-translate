@@ -5,7 +5,22 @@ import { TemporalLike } from './temporal-polyfill';
 import { IntlHelpers } from './types';
 
 export function intlHelpers<Output>(
-  render: (fn: (locale: string, cache: Cache, options: ReactCreateTranslatorOptions<any, any>) => string) => Output,
+  render: (
+    fn: (
+      locale: string,
+      cache: Cache,
+      options: Pick<
+        ReactCreateTranslatorOptions<any, any>,
+        | 'dateTimeFormatOptions'
+        | 'displayNamesOptions'
+        | 'listFormatOptions'
+        | 'numberFormatOptions'
+        | 'pluralRulesOptions'
+        | 'relativeTimeFormatOptions'
+        | 'durationFormatOptions'
+      >,
+    ) => string,
+  ) => Output,
 ): IntlHelpers<Output> {
   return {
     dateTimeFormat(date, dateTimeFormatOptions) {

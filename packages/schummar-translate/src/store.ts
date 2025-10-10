@@ -2,16 +2,18 @@ import { match } from '@formatjs/intl-localematcher';
 import { Cache } from './cache';
 import { flattenDict } from './flattenDict';
 import { arrEquals, isPromise } from './helpers';
-import { CreateTranslatorOptions, Dict, FlatDict, MaybePromise } from './types';
+import { CreateTranslatorOptions, Dict, MaybePromise, type FlattenDict } from './types';
 
-export class Store<D extends Dict = any, ProvidedArgs extends string = never> {
-  dicts = new Map<string, MaybePromise<FlatDict | null>>();
+export class Store<D extends Dict = any, FD extends FlattenDict<D> = FlattenDict<D>, ProvidedArgs extends string = never> {
+  dicts = new Map<string, MaybePromise<FD | null>>();
   cache = new Cache(this.options.cacheOptions);
   subs = new Set<() => void>();
 
-  constructor(public options: CreateTranslatorOptions<D, ProvidedArgs>) {}
+  constructor(
+    public options: Pick<CreateTranslatorOptions<D, ProvidedArgs>, 'sourceLocale' | 'sourceDictionary' | 'dicts' | 'cacheOptions'>,
+  ) {}
 
-  load(locale: string): MaybePromise<FlatDict | null> {
+  load(locale: string): MaybePromise<FD | null> {
     let entry = this.dicts.get(locale);
     if (entry !== undefined) return entry;
 
@@ -41,14 +43,14 @@ export class Store<D extends Dict = any, ProvidedArgs extends string = never> {
 
     if (isPromise(dict)) {
       entry = dict.then((resolvedDict) => {
-        const flatDict = resolvedDict && flattenDict(resolvedDict);
+        const flatDict = resolvedDict && (flattenDict(resolvedDict) as FD);
         if (this.dicts.get(locale) === entry) {
           this.dicts.set(locale, flatDict);
         }
         return flatDict;
       });
     } else {
-      entry = dict && flattenDict(dict);
+      entry = dict && (flattenDict(dict) as FD);
     }
 
     this.dicts.set(locale, entry);
@@ -62,23 +64,23 @@ export class Store<D extends Dict = any, ProvidedArgs extends string = never> {
     return entry;
   }
 
-  loadAll(...locales: string[]): MaybePromise<FlatDict[]> {
+  loadAll(...locales: string[]): MaybePromise<FD[]> {
     const dicts = locales.map((locale) => this.load(locale));
 
     if (dicts.some(isPromise)) {
-      return Promise.all(dicts).then((dicts) => dicts.filter(Boolean) as FlatDict[]);
+      return Promise.all(dicts).then((dicts) => dicts.filter(Boolean) as FD[]);
     }
 
-    return dicts.filter(Boolean) as unknown as FlatDict[];
+    return dicts.filter(Boolean) as unknown as FD[];
   }
 
-  getAll(...locales: string[]): MaybePromise<FlatDict>[] {
+  getAll(...locales: string[]): MaybePromise<FD>[] {
     const dicts = locales.map((locale) => this.load(locale));
-    return dicts.filter(Boolean) as MaybePromise<FlatDict>[];
+    return dicts.filter(Boolean) as MaybePromise<FD>[];
   }
 
-  subscribe(locales: string[], callback: (dicts?: MaybePromise<FlatDict>[]) => void): () => void {
-    let last: MaybePromise<FlatDict>[] | undefined;
+  subscribe(locales: string[], callback: (dicts?: MaybePromise<FD>[]) => void): () => void {
+    let last: MaybePromise<FD>[] | undefined;
 
     const sub = () => {
       const dicts = this.getAll(...locales);

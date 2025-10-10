@@ -107,21 +107,13 @@ export type CreateTranslatorOptions<D extends Dict, ProvidedArgs extends string 
   } & (IsNever<ProvidedArgs> extends true
     ? { provideArgs?: Record<string, never> }
     : {
-        provideArgs: Record<
-          ProvidedArgs,
-          | ICUArgument
-          | ICUDateArgument
-          | {
-              get(): ICUArgument | ICUDateArgument;
-              subscribe(callback: () => void): () => void;
-            }
-        >;
+        provideArgs: Record<ProvidedArgs, ICUArgument | ICUDateArgument>;
       })
 >;
 
-export interface CreateTranslatorResult<D extends FlatDict, ProvidedArgs extends string = never> {
+export interface CreateTranslatorResult<FD extends FlatDict, ProvidedArgs extends string = never> {
   /** Returns a promise for a translator instance */
-  getTranslator(locale: string): Promise<Translator<D, ProvidedArgs>>;
+  getTranslator(locale: string): Promise<Translator<FD, ProvidedArgs>>;
 
   /** Clear all dictionary data. As needed the dictionaries will be reloaded. Useful for OTA translation updates. */
   clearDicts(): void;
@@ -150,41 +142,41 @@ export interface GetTranslatorOptions {
   fallback?: string;
 }
 
-export interface TranslatorFn<D extends FlatDict, ProvidedArgs extends string = never, Options = GetTranslatorOptions, Output = string> {
+export interface TranslatorFn<FD extends FlatDict, ProvidedArgs extends string = never, Options = GetTranslatorOptions, Output = string> {
   /** Translate a dictionary id to a string in the active locale */
   <TKey extends string>(
-    id: TKey extends keyof D ? TKey : keyof D,
-    ...values: Values<D[TKey], ProvidedArgs, Options>
+    id: TKey extends keyof FD ? TKey : keyof FD,
+    ...values: Values<FD[TKey], ProvidedArgs, Options>
   ): Tagged<
-    D[TKey] extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output,
+    FD[TKey] extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output,
     {
-      sourceString: D[TKey];
+      sourceString: FD[TKey];
     }
   >;
 }
 
-export interface Translator<D extends FlatDict, ProvidedArgs extends string = never, Options = GetTranslatorOptions, Output = string>
-  extends TranslatorFn<D, ProvidedArgs, Options, Output>,
+export interface Translator<FD extends FlatDict, ProvidedArgs extends string = never, Options = GetTranslatorOptions, Output = string>
+  extends TranslatorFn<FD, ProvidedArgs, Options, Output>,
     IntlHelpers<Output> {
-  locale: Output;
-
   /** Translate a dictionary id to a string in the active locale. Without type checking the id. */
   unknown(id: string, values?: Record<string, unknown>, options?: Options): Output extends string ? string | readonly string[] : Output;
 
   /** Translate a dictionary id to a string in the active locale. Without type checking the id. */
-  dynamic<TKey extends string, TResolved extends string = TKey & keyof D>(
-    id: TKey & keyof D extends never ? keyof D : TKey,
-    ...values: Values<D[TResolved], ProvidedArgs, Options>
+  dynamic<TKey extends string, TResolved extends string = TKey & keyof FD>(
+    id: TKey & keyof FD extends never ? keyof FD : TKey,
+    ...values: Values<FD[TResolved], ProvidedArgs, Options>
   ): Tagged<
-    D[TResolved] extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output,
+    FD[TResolved] extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output,
     {
       matchingKeys: TResolved;
-      sourceString: D[TResolved];
+      sourceString: FD[TResolved];
     }
   >;
 
-  keys(): (keyof D)[];
-  keys<TPrefix extends string>(prefix: TPrefix): (keyof D & (TPrefix | `${TPrefix}.${string}`))[];
+  locale: Output;
+
+  keys(): Output extends string ? (keyof FD)[] : Output;
+  keys<TPrefix extends string>(prefix: TPrefix): Output extends string ? (keyof FD & (TPrefix | `${TPrefix}.${string}`))[] : Output;
 
   /** Format the given template directly. */
   format<T extends string>(template: T, ...values: Values<T, ProvidedArgs, never>): Output;

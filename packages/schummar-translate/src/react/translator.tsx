@@ -1,16 +1,14 @@
-import { createContext, Fragment, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, Fragment, ReactNode, useContext, useMemo, type Context } from 'react';
 import { TranslatorFn } from '..';
 import { hash } from '../cache';
 import defaultOptions from '../defaultOptions';
 import getKeys from '../getKeys';
-import { castArray, getPossibleLocales, objEquals } from '../helpers';
+import { castArray, getPossibleLocales } from '../helpers';
 import { intlHelpers } from '../intlHelpers';
-import { resolveProvidedArgs } from '../resolveProvidedArgs';
 import { Store } from '../store';
 import { format, translate } from '../translate';
 import { getTranslator } from '../translator';
-import { Dict, FlattenDict, ICUArgument, ICUDateArgument, Values } from '../types';
-import { Observable, useObservable } from './observable';
+import { Dict, FlattenDict } from '../types';
 import {
   HookTranslator,
   HookTranslatorOptions,
@@ -22,71 +20,36 @@ import {
 import { useStore } from './useStore';
 
 export function createTranslator<D extends Dict, ProvidedArgs extends string = never>(
-  _options: ReactCreateTranslatorOptions<D, ProvidedArgs>,
-): ReactCreateTranslatorResult<FlattenDict<D>, ProvidedArgs> {
+  originalOptions: ReactCreateTranslatorOptions<D, ProvidedArgs>,
+): ReactCreateTranslatorResult<D, FlattenDict<D>, ProvidedArgs> {
   type FD = FlattenDict<D>;
+  type TContext = typeof TranslationContext extends Context<infer T> ? T : never;
 
-  const options = new Observable(defaultOptions(_options));
-  const store = new Observable(new Store<D, ProvidedArgs>(options.value));
-
-  const TranslationContext = createContext<{ locale?: string; options?: Partial<ReactCreateTranslatorOptions<D, ProvidedArgs>> }>({});
-
-  function useOptions(): ReactCreateTranslatorOptions<D, ProvidedArgs> {
-    const globalOptions = useObservable(options);
-    const contextOptions = useContext(TranslationContext).options;
-    return { ...globalOptions, ...contextOptions };
-  }
-
-  function useProvidedArgs() {
-    const { provideArgs } = useOptions();
-    const [args, setArgs] = useState(resolveProvidedArgs(provideArgs));
-
-    useEffect(() => {
-      const handles: (() => void)[] = [];
-      let currentArgs = args;
-
-      function update() {
-        const newArgs = resolveProvidedArgs(provideArgs);
-        if (!objEquals(newArgs, currentArgs)) {
-          setArgs(newArgs);
-        }
-      }
-      update();
-
-      for (const [, value] of Object.entries(provideArgs ?? {})) {
-        if (typeof value === 'object' && value !== null && 'subscribe' in value) {
-          const handle = (value as any).subscribe(update);
-          handles.push(handle);
-        }
-      }
-
-      return () => {
-        for (const handle of handles) {
-          handle();
-        }
-      };
-    }, [provideArgs]);
-
-    return args;
-  }
+  const TranslationContext = createContext<{
+    locale: string;
+    options: ReactCreateTranslatorOptions<D, ProvidedArgs>;
+    store: Store<D, FD, ProvidedArgs>;
+  }>({
+    locale: originalOptions.sourceLocale,
+    options: originalOptions,
+    store: new Store(originalOptions),
+  });
 
   /////////////////////////////////////////////////////////////////////////////
   // hook translator
   /////////////////////////////////////////////////////////////////////////////
-  const useTranslator: ReactCreateTranslatorResult<FD, ProvidedArgs>['useTranslator'] = (overrideLocale) => {
-    const options = useOptions();
-    const contextLocale = useContext(TranslationContext).locale;
-    const locale = overrideLocale ?? contextLocale ?? options.sourceLocale;
 
-    const _store = useObservable(store);
-    const sourceDict = _store.load(options.sourceLocale) as FD;
-    const dicts = useStore(_store, locale, ...getPossibleLocales(locale, options));
-    const providedArgs = useProvidedArgs();
+  const useTranslator: ReactCreateTranslatorResult<D, FD, ProvidedArgs>['useTranslator'] = (overrideLocale) => {
+    const { locale: contextLocale, options, store } = useContext(TranslationContext);
+    const locale = overrideLocale ?? contextLocale;
+    const [sourceDict] = useStore(store, options.sourceLocale);
+    const dicts = useStore(store, ...getPossibleLocales(locale, options));
 
     return useMemo(() => {
       const t: TranslatorFn<FD, ProvidedArgs, HookTranslatorOptions, string> = (id, ...[values, translateOptions]) => {
         const fallback = translateOptions?.fallback ?? options.fallback;
         const placeholder = translateOptions?.placeholder ?? options.placeholder;
+
         return translate({
           dicts,
           sourceDict,
@@ -97,199 +60,187 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
           placeholder,
           locale,
           warn: options.warn,
-          cache: _store.cache,
+          cache: store.cache,
           ignoreMissingArgs: options.ignoreMissingArgs,
-          providedArgs,
+          providedArgs: options.provideArgs,
         }) as any;
       };
 
-      return Object.assign<TranslatorFn<FD, ProvidedArgs>, Omit<HookTranslator<FD, ProvidedArgs>, keyof TranslatorFn<FD, ProvidedArgs>>>(
-        t,
-        {
-          locale,
+      return Object.assign<typeof t, Omit<HookTranslator<D, FD, ProvidedArgs>, keyof typeof t>>(t, {
+        locale,
 
-          unknown: t as HookTranslator<FD>['unknown'],
-          dynamic: t as any,
+        unknown: t as HookTranslator<D, FD, ProvidedArgs>['unknown'],
+        dynamic: t as any,
 
-          keys: getKeys(sourceDict as FD),
+        keys: getKeys(sourceDict),
 
-          format(template, ...[values]) {
-            return format({
-              template,
-              values: values as any,
-              locale,
-              cache: _store.cache,
-              ignoreMissingArgs: options.ignoreMissingArgs,
-              providedArgs,
-            });
-          },
-
-          ...intlHelpers({
-            cache: _store.cache,
-            transform: (fn) => fn(locale),
-            dateTimeFormatOptions: options.dateTimeFormatOptions,
-            listFormatOptions: options.listFormatOptions,
-          }),
+        format(template, ...[values]) {
+          return format({
+            template,
+            values: values as any,
+            locale,
+            cache: store.cache,
+            ignoreMissingArgs: options.ignoreMissingArgs,
+            providedArgs: options.provideArgs,
+          });
         },
-      );
-    }, [options, locale, _store, sourceDict, dicts, providedArgs]);
+
+        ...intlHelpers((fn) => fn(locale, store.cache, options)),
+
+        clearDicts() {
+          store.clear();
+        },
+
+        options,
+      });
+    }, [options, locale, store, sourceDict, dicts]);
+  };
+
+  const useGetTranslator: ReactCreateTranslatorResult<D, FD, ProvidedArgs>['useGetTranslator'] = () => {
+    const { options, store } = useContext(TranslationContext);
+
+    return (locale: string) => {
+      return getTranslator(store, options, locale);
+    };
   };
 
   /////////////////////////////////////////////////////////////////////////////
   // inline translator
   /////////////////////////////////////////////////////////////////////////////
-  function TranslatorComponent<K extends keyof FD>({
-    id,
-    values,
-    options,
+
+  const InternalRenderComponent = ({
+    render,
+    dependecies,
   }: {
-    id: string;
-    values: Values<FD[K], ProvidedArgs, InlineTranslatorOptions>[0];
-    options?: Values<FD[K], ProvidedArgs, InlineTranslatorOptions>[1];
-  }) {
-    // const option = useOptions();
-    // const contextLocale = useContext(TranslationContext).locale;
-    // const locale = options?.locale ?? contextLocale ?? sourceLocale;
-    // const sourceDict = getSourceDict();
-    // const dicts = useStore(
-    //   store,
-    //   locale,
-    //   ...getPossibleLocales(locale, { fallbackToLessSpecific, fallbackToMoreSpecific, fallback: fallbackLocale }),
-    // );
-    // const providedArgs = useProvidedArgs();
-
-    // const fallback = options?.fallback ?? defaultFallback;
-    // const placeholder = options?.placeholder ?? defaultPlaceholder;
-
-    // const text = useMemo(
-    //   () =>
-    //     translate({
-    //       dicts,
-    //       sourceDict,
-    //       id,
-    //       values,
-    //       fallback,
-    //       fallbackIgnoresFallbackLocales,
-    //       placeholder,
-    //       locale,
-    //       warn,
-    //       cache: store.cache,
-    //       ignoreMissingArgs,
-    //       providedArgs,
-    //     }),
-    //   [locale, dicts, providedArgs, id, values, fallback, placeholder],
-    // );
-    const text = useTranslator()(id, values, options);
-    const textArray = castArray(text);
-    const Component = options?.component ?? Fragment;
-
-    return (
-      <>
-        {textArray.map((line, index) => (
-          <Component key={index}>{line}</Component>
-        ))}
-      </>
-    );
-  }
-
-  const createTranslatorComponent: TranslatorFn<FD, ProvidedArgs, InlineTranslatorOptions, ReactNode> = (id, ...[values, options]) => {
-    return <TranslatorComponent id={id} values={values} options={options} />;
-  };
-
-  const RenderComponent = ({
-    renderFn,
-    dependecies = [renderFn],
-  }: {
-    renderFn: Parameters<InlineTranslator<FD, ProvidedArgs>['render']>[0];
-    dependecies?: any[];
+    render(t: HookTranslator<D, FD, ProvidedArgs>, context: TContext): ReactNode;
+    dependecies: any[];
   }) => {
     const t = useTranslator();
-    const options = useOptions();
-    const providedArgs = useProvidedArgs();
-    const _store = useObservable(store);
+    const context = useContext(TranslationContext);
 
-    const value = useMemo(
-      () =>
-        renderFn(t, {
-          options,
-          providedArgs: providedArgs as Record<ProvidedArgs, ICUArgument | ICUDateArgument>,
-          store: store,
-        }),
-      [t, providedArgs, _store, ...dependecies],
-    );
+    const value = useMemo(() => render(t, context), [t, context, ...dependecies]);
     return <>{value}</>;
   };
 
-  const render: InlineTranslator<FD, ProvidedArgs>['render'] = (renderFn, dependecies) => {
-    return <RenderComponent renderFn={renderFn} dependecies={dependecies} />;
+  const RenderComponent = ({
+    render,
+    dependecies = [render],
+  }: {
+    render(t: HookTranslator<D, FD, ProvidedArgs>): ReactNode;
+    dependecies?: any[];
+  }) => {
+    const t = useTranslator();
+
+    const value = useMemo(() => render(t), [t, ...dependecies]);
+    return <>{value}</>;
   };
 
-  const t: InlineTranslator<FD, ProvidedArgs> = Object.assign<
-    TranslatorFn<FD, ProvidedArgs, InlineTranslatorOptions, ReactNode>,
-    Omit<InlineTranslator<FD, ProvidedArgs>, keyof TranslatorFn<FD, ProvidedArgs, InlineTranslatorOptions, ReactNode>>
-  >(createTranslatorComponent, {
-    locale: render((t) => t.locale, []),
+  const elementTranslate: TranslatorFn<FD, ProvidedArgs, InlineTranslatorOptions, ReactNode> = (id, ...[values, options]) => {
+    return (
+      <InternalRenderComponent
+        render={(t) => {
+          const text = t(id, ...([values, options] as any));
+          const textArray = castArray(text);
+          const Component = options?.component ?? Fragment;
 
-    unknown: createTranslatorComponent as InlineTranslator<FD>['unknown'],
-    dynamic: createTranslatorComponent as any,
+          return (
+            <>
+              {textArray.map((line, index) => (
+                <Component key={index}>{line}</Component>
+              ))}
+            </>
+          );
+        }}
+        dependecies={[id, values, options]}
+      />
+    );
+  };
 
-    keys: getKeys(() => store.value.load(options.value.sourceLocale) as FD),
+  const t: InlineTranslator<D, FD, ProvidedArgs> = Object.assign<
+    typeof elementTranslate,
+    Omit<InlineTranslator<D, FD, ProvidedArgs>, keyof typeof elementTranslate>
+  >(elementTranslate, {
+    unknown: elementTranslate as any,
+    dynamic: elementTranslate as any,
+
+    locale: <InternalRenderComponent render={(t) => t.locale} dependecies={[]} />,
+
+    keys(prefix?: any) {
+      return <InternalRenderComponent render={(t) => t.keys(prefix)} dependecies={[prefix]} />;
+    },
 
     format(template, ...[values]) {
-      return render(
-        (t, { options, providedArgs, store }) =>
-          format({
-            template,
-            values: values as any,
-            locale: t.locale,
-            cache: store.cache,
-            ignoreMissingArgs: options.ignoreMissingArgs,
-            providedArgs,
-          }),
-        [template, hash(values)],
+      return (
+        <InternalRenderComponent
+          render={(t, { options, store }) =>
+            format({
+              template,
+              values: values as Record<string, unknown> | undefined,
+              locale: t.locale,
+              cache: store.cache,
+              ignoreMissingArgs: options.ignoreMissingArgs,
+              providedArgs: options.provideArgs,
+            })
+          }
+          dependecies={[template, hash(values)]}
+        />
       );
     },
 
-    render,
+    render(fn, deps) {
+      return <RenderComponent render={fn} dependecies={deps} />;
+    },
 
-    ...intlHelpers({
-      cache: store.cache,
-      transform: (fn) => render((t) => fn(t.locale)),
-      dateTimeFormatOptions,
-      listFormatOptions,
-      numberFormatOptions,
-      pluralRulesOptions,
-      relativeTimeFormatOptions,
+    ...intlHelpers((fn) => {
+      return <InternalRenderComponent render={(t, { options, store }) => fn(t.locale, store.cache, options)} dependecies={[]} />;
     }),
   });
 
-  const TranslationContextProvider = ({
-    locale,
-    options,
+  const TranslationContextProvider: ReactCreateTranslatorResult<D, FD, ProvidedArgs>['TranslationContextProvider'] = ({
+    locale: newLocale,
+    options: newOptions,
     children,
-  }: {
-    locale?: string;
-    options?: ReactCreateTranslatorOptions<D, ProvidedArgs>;
-    children?: React.ReactNode;
-  }): JSX.Element => {
-    const value = useMemo(() => ({ locale }), [locale]);
-    return <TranslationContext.Provider value={value}>{children}</TranslationContext.Provider>;
+  }) => {
+    const parentContext = useContext(TranslationContext);
+    const locale = newLocale ?? parentContext.locale;
+    const options = newOptions ? defaultOptions({ ...parentContext.options, ...newOptions }) : parentContext.options;
+
+    const sourceDictionaryHash = useMemo(
+      () => newOptions?.sourceDictionary && hash(newOptions.sourceDictionary),
+      [newOptions?.sourceDictionary],
+    );
+    const cacheOptionsHash = useMemo(() => newOptions?.cacheOptions && hash(newOptions.cacheOptions), [newOptions?.cacheOptions]);
+
+    let store = useMemo(() => {
+      if (
+        (!newOptions?.sourceLocale || newOptions.sourceLocale === parentContext.options.sourceLocale) &&
+        (!sourceDictionaryHash || sourceDictionaryHash === hash(parentContext.options.sourceDictionary)) &&
+        (!newOptions?.dicts || newOptions.dicts === parentContext.options.dicts) &&
+        (!cacheOptionsHash || cacheOptionsHash === hash(parentContext.options.cacheOptions))
+      ) {
+        return parentContext.store;
+      }
+
+      return new Store<D, FD, ProvidedArgs>(options);
+    }, [newOptions?.sourceLocale, sourceDictionaryHash, newOptions?.dicts, cacheOptionsHash]);
+
+    return (
+      <TranslationContext.Provider
+        value={{
+          locale,
+          options,
+          store,
+        }}
+      >
+        {children}
+      </TranslationContext.Provider>
+    );
   };
 
   return {
-    getTranslator: getTranslator(store, options),
     useTranslator,
+    useGetTranslator,
     t,
     TranslationContextProvider,
-
-    clearDicts() {
-      store.clear();
-    },
-
-    updateOptions(newOptions) {
-      options = defaultOptions({ ...options, ...newOptions });
-      store = new Store<D, ProvidedArgs>(options);
-      _sourceDict = undefined;
-    },
   };
 }

@@ -19,7 +19,7 @@ describe('getPossibleLocales', () => {
   });
 
   test('should return en for de-DE if fallback is en', () => {
-    const locales = getPossibleLocales('de-DE', { fallback: 'en' });
+    const locales = getPossibleLocales('de-DE', { fallbackLocale: 'en' });
     expect(locales).toEqual(['de-DE', 'de', 'de-XX', 'en']);
   });
 });
@@ -68,7 +68,7 @@ describe('Store', () => {
   });
 
   test('should return strings for en if de-DE and de and de-XX are not available', async () => {
-    const locales = getPossibleLocales('de-DE', { fallback: 'en' });
+    const locales = getPossibleLocales('de-DE', { fallbackLocale: 'en' });
     const store = new Store({
       sourceLocale: 'en',
       sourceDictionary: { lang: 'en' },
