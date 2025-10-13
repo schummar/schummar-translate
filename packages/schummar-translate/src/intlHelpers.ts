@@ -1,65 +1,82 @@
 import { Cache } from './cache';
 import { toDate } from './helpers';
+import type { ReactCreateTranslatorOptions } from './react';
 import { TemporalLike } from './temporal-polyfill';
-import { DurationFormatOptions, IntlHelpers } from './types';
+import { IntlHelpers } from './types';
 
-export function intlHelpers<Output>({
-  cache,
-  transform,
-  dateTimeFormatOptions,
-  listFormatOptions,
-  numberFormatOptions,
-  pluralRulesOptions,
-  relativeTimeFormatOptions,
-}: {
-  cache: Cache;
-  transform: (fn: (locale: string) => string) => Output;
-  dateTimeFormatOptions?: Intl.DateTimeFormatOptions;
-  listFormatOptions?: Intl.ListFormatOptions;
-  numberFormatOptions?: Intl.NumberFormatOptions;
-  pluralRulesOptions?: Intl.PluralRulesOptions;
-  relativeTimeFormatOptions?: Intl.RelativeTimeFormatOptions;
-  durationFormatOptions?: DurationFormatOptions;
-}): IntlHelpers<Output> {
+export function intlHelpers<Output>(
+  render: (
+    fn: (
+      locale: string,
+      cache: Cache,
+      options: Pick<
+        ReactCreateTranslatorOptions<any, any>,
+        | 'dateTimeFormatOptions'
+        | 'displayNamesOptions'
+        | 'listFormatOptions'
+        | 'numberFormatOptions'
+        | 'pluralRulesOptions'
+        | 'relativeTimeFormatOptions'
+        | 'durationFormatOptions'
+      >,
+    ) => string,
+  ) => Output,
+): IntlHelpers<Output> {
   return {
-    dateTimeFormat(date, options = dateTimeFormatOptions) {
-      return transform((locale) => customDateTimeFormat(cache, locale, options, date));
+    dateTimeFormat(date, dateTimeFormatOptions) {
+      return render((locale, cache, options) =>
+        customDateTimeFormat(cache, locale, dateTimeFormatOptions ?? options.dateTimeFormatOptions, date),
+      );
     },
 
-    dateTimeFormatRange(startDate, endDate, options = dateTimeFormatOptions) {
-      return transform((locale) => customDateTimeFormatRange(cache, locale, options, startDate, endDate));
+    dateTimeFormatRange(startDate, endDate, dateTimeFormatOptions) {
+      return render((locale, cache, options) =>
+        customDateTimeFormatRange(cache, locale, dateTimeFormatOptions ?? options.dateTimeFormatOptions, startDate, endDate),
+      );
     },
 
-    displayNames(code, options) {
-      return transform((locale) => cache.get(Intl.DisplayNames, locale, options).of(code) ?? '');
+    displayNames(code, displayNamesOptions) {
+      return render(
+        (locale, cache, options) => cache.get(Intl.DisplayNames, locale, displayNamesOptions ?? options.displayNamesOptions).of(code) ?? '',
+      );
     },
 
-    listFormat(list, options = listFormatOptions) {
-      return transform((locale) => cache.get(Intl.ListFormat, locale, options).format(list));
+    listFormat(list, listFormatOptions) {
+      return render((locale, cache, options) =>
+        cache.get(Intl.ListFormat, locale, listFormatOptions ?? options.listFormatOptions).format(list),
+      );
     },
 
-    numberFormat(number, options = numberFormatOptions) {
-      return transform((locale) => cache.get(Intl.NumberFormat, locale, options).format(number));
+    numberFormat(number, numberFormatOptions) {
+      return render((locale, cache, options) =>
+        cache.get(Intl.NumberFormat, locale, numberFormatOptions ?? options.numberFormatOptions).format(number),
+      );
     },
 
     // numberFormatRange(start, end, options = numberFormatOptions) {
     //   return transform((locale) => cache.get(Intl.NumberFormat, locale, options).formatRange(start, end));
     // },
 
-    pluralRules(number, options = pluralRulesOptions) {
-      return transform((locale) => cache.get(Intl.PluralRules, locale, options).select(number));
+    pluralRules(number, pluralRulesOptions) {
+      return render((locale, cache, options) =>
+        cache.get(Intl.PluralRules, locale, pluralRulesOptions ?? options.pluralRulesOptions).select(number),
+      );
     },
 
-    relativeTimeFormat(value, unit, options = relativeTimeFormatOptions) {
-      return transform((locale) => cache.get(Intl.RelativeTimeFormat, locale, options).format(value, unit));
+    relativeTimeFormat(value, unit, relativeTimeFormatOptions) {
+      return render((locale, cache, options) =>
+        cache.get(Intl.RelativeTimeFormat, locale, relativeTimeFormatOptions ?? options.relativeTimeFormatOptions).format(value, unit),
+      );
     },
 
-    durationFormat(duration, options) {
+    durationFormat(duration, durationFormatOptions) {
       const intl = Intl as { DurationFormat?: any };
       if (!intl.DurationFormat) {
         throw new Error('Intl.DurationFormat is not available in this environment. Try using the polyfill');
       }
-      return transform((locale) => cache.get(intl.DurationFormat, locale, options).format(duration));
+      return render((locale, cache, options) =>
+        cache.get(intl.DurationFormat, locale, durationFormatOptions ?? options.durationFormatOptions).format(duration),
+      );
     },
   };
 }

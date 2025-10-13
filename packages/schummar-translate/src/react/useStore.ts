@@ -4,7 +4,7 @@ import { hash } from '../cache';
 import { arrEquals } from '../helpers';
 import { Store } from '../store';
 
-export function useStore(store: Store, ...locales: string[]): MaybePromise<FlatDict>[] {
+export function useStore<FD extends FlatDict>(store: Store<any, FD, any>, ...locales: string[]): MaybePromise<FD>[] {
   const [, setCounter] = useState(0);
 
   useEffect(() => {
@@ -15,9 +15,13 @@ export function useStore(store: Store, ...locales: string[]): MaybePromise<FlatD
 
   const dicts = store.getAll(...locales);
   const ref = useRef(dicts);
-  if (ref.current !== dicts && !arrEquals(ref.current, dicts)) {
-    ref.current = dicts;
-  }
+  const isEqual = arrEquals(ref.current, dicts);
 
-  return ref.current;
+  useEffect(() => {
+    if (!isEqual) {
+      ref.current = dicts;
+    }
+  });
+
+  return isEqual ? ref.current : dicts;
 }

@@ -73,11 +73,11 @@ export function getPossibleLocales(
   {
     fallbackToLessSpecific = true,
     fallbackToMoreSpecific = true,
-    fallback,
+    fallbackLocale,
   }: {
     fallbackToLessSpecific?: boolean;
     fallbackToMoreSpecific?: boolean;
-    fallback?: string | readonly string[] | ((locale: string) => string | readonly string[]);
+    fallbackLocale?: string | readonly string[] | ((locale: string) => string | readonly string[]);
   } = {},
 ): readonly string[] {
   const requestedLocales = [locale];
@@ -93,19 +93,14 @@ export function getPossibleLocales(
   }
 
   if (fallbackToMoreSpecific) {
-    let prefix = locale;
-
-    while (prefix.includes('-')) {
-      const index = prefix.indexOf('-');
-      prefix = prefix.slice(0, index);
-      requestedLocales.push(`${prefix}-XX`);
-    }
+    const prefix = locale.split('-')[0];
+    requestedLocales.push(`${prefix}-XX`);
   }
 
-  if (fallback instanceof Function) {
-    requestedLocales.push(...castArray(fallback(locale)));
-  } else if (fallback) {
-    requestedLocales.push(...castArray(fallback));
+  if (fallbackLocale instanceof Function) {
+    requestedLocales.push(...castArray(fallbackLocale(locale)));
+  } else if (fallbackLocale) {
+    requestedLocales.push(...castArray(fallbackLocale));
   }
 
   return requestedLocales;

@@ -1,13 +1,14 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
-import React, { ReactNode, useState } from 'react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import React, { act, ReactNode, useState } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { FlattenDict } from '../src';
-import { HookTranslator, MaybePromise, TranslationContextProvider, createTranslator } from '../src/react';
+import { createTranslator, HookTranslator, MaybePromise } from '../src/react';
 import { dictDe, dictEn, dictEs, wait } from './_helpers';
 
-type D = FlattenDict<typeof dictEn>;
+type D = typeof dictEn;
+type FD = FlattenDict<D>;
 
-let { t, useTranslator } = createTranslator({
+let { t, useTranslator, TranslationContextProvider } = createTranslator({
   sourceDictionary: dictEn,
   sourceLocale: 'en',
   dicts: { de: dictDe, es: dictEs },
@@ -16,7 +17,7 @@ let { t, useTranslator } = createTranslator({
 });
 
 beforeEach(() => {
-  ({ t, useTranslator } = createTranslator({
+  ({ t, useTranslator, TranslationContextProvider } = createTranslator({
     sourceDictionary: dictEn,
     sourceLocale: 'en',
     dicts: { de: dictDe, es: dictEs },
@@ -35,31 +36,27 @@ function App({
   locales = ['en', 'de', 'es'],
   initialLocale = locales[0],
   children,
+  TranslationContextProvider: _TranslationContextProvider = TranslationContextProvider,
 }: {
   id: string;
   locales?: string[];
   initialLocale?: string;
   children?: React.ReactNode;
+  TranslationContextProvider?: typeof TranslationContextProvider;
 }) {
   const [locale, setLocale] = useState(initialLocale);
   const toggleLocale = () => setLocale((l) => locales[(l ? locales.indexOf(l) + 1 : 0) % locales.length]);
 
   return (
-    <TranslationContextProvider locale={locale}>
+    <_TranslationContextProvider locale={locale}>
       <div data-testid={id} onClick={toggleLocale}>
         {children}
       </div>
-    </TranslationContextProvider>
+    </_TranslationContextProvider>
   );
 }
 
-function HookWrapper({
-  useTranslator,
-  renderFn,
-}: {
-  useTranslator: () => HookTranslator<D>;
-  renderFn: (t: HookTranslator<D>) => ReactNode;
-}) {
+function HookWrapper({ renderFn }: { renderFn: (t: HookTranslator<D>) => ReactNode }) {
   const t = useTranslator();
   const value = renderFn(t);
   return <>{value instanceof Array ? value.join('') : value}</>;
@@ -81,7 +78,7 @@ const forCases = (
       if (i === 0) {
         element = renderFn(t as any);
       } else {
-        element = <HookWrapper useTranslator={useTranslator} renderFn={renderFn} />;
+        element = <HookWrapper renderFn={renderFn} />;
       }
 
       render(
@@ -97,13 +94,12 @@ const forCases = (
 
 forCases(
   'simple',
-  () => t('key1'),
-  async (div) => {
+  (t) => t('key1'),
+  (div) => {
     expect(div.textContent).toBe('key1:en');
 
-    await act(async () => {
+    act(() => {
       div.click();
-      await wait(1);
     });
 
     expect(div.textContent).toBe('key1:de');
@@ -113,12 +109,11 @@ forCases(
 forCases(
   'with value',
   () => t('nested.key2', { value2: 'v2' }),
-  async (div) => {
+  (div) => {
     expect(div.textContent).toBe('key2:en v2');
 
-    await act(async () => {
+    act(() => {
       div.click();
-      await wait(1);
     });
 
     expect(div.textContent).toBe('key2:de v2');
@@ -128,7 +123,7 @@ forCases(
 forCases(
   'with complex values',
   () => t('nested.key3', { number: 1, plural: 1, selectordinal: 1, date, time: date }),
-  async (div) => {
+  (div) => {
     expect(div.textContent).toBe('key3:en 1 one 1st 2/2/2000 3:04 AM');
 
     act(() => {
@@ -142,7 +137,7 @@ forCases(
 forCases(
   'missing key global fallback',
   () => t('key4'),
-  async (div) => {
+  (div) => {
     expect(div.textContent).toBe('key4:en');
 
     act(() => {
@@ -156,7 +151,7 @@ forCases(
 forCases(
   'missing key local fallback',
   () => t('key4', undefined, { fallback: '--' }),
-  async (div) => {
+  (div) => {
     expect(div.textContent).toBe('key4:en');
 
     act(() => {
@@ -170,7 +165,7 @@ forCases(
 forCases(
   'switching twice',
   () => t('key1'),
-  async (div) => {
+  (div) => {
     expect(div.textContent).toBe('key1:en');
 
     act(() => {
@@ -201,12 +196,11 @@ forCases(
 forCases(
   'locale',
   () => t.locale,
-  async (div) => {
+  (div) => {
     expect(div.innerHTML).toBe('en');
 
-    await act(async () => {
+    act(() => {
       div.click();
-      await wait(1);
     });
 
     expect(div.innerHTML).toBe('de');
@@ -216,7 +210,7 @@ forCases(
 forCases(
   'dateTimeFormat',
   () => t.dateTimeFormat(date, { dateStyle: 'short', timeStyle: 'short' }),
-  async (div) => {
+  (div) => {
     expect(div.textContent).toBe('2/2/00, 3:04 AM');
 
     act(() => {
@@ -230,7 +224,7 @@ forCases(
 forCases(
   'dateTimeFormat default options',
   () => t.dateTimeFormat(date),
-  async (div) => {
+  (div) => {
     expect(div.textContent).toBe('Feb 2, 2000, 3:04:05 AM');
 
     act(() => {
@@ -244,7 +238,7 @@ forCases(
 forCases(
   'displayNames',
   () => t.displayNames('de', { type: 'language' }),
-  async (div) => {
+  (div) => {
     expect(div.textContent).toBe('German');
 
     act(() => {
@@ -258,7 +252,7 @@ forCases(
 forCases(
   'listFormat',
   () => t.listFormat(['a', 'b', 'c'], { type: 'conjunction' }),
-  async (div) => {
+  (div) => {
     expect(div.textContent).toBe('a, b, and c');
 
     act(() => {
@@ -272,7 +266,7 @@ forCases(
 forCases(
   'numberFormat',
   () => t.numberFormat(12.34, { maximumFractionDigits: 1 }),
-  async (div) => {
+  (div) => {
     expect(div.textContent).toBe('12.3');
 
     act(() => {
@@ -286,7 +280,7 @@ forCases(
 forCases(
   'pluralRules',
   () => t.pluralRules(4),
-  async (div) => {
+  (div) => {
     expect(div.textContent).toBe('other');
 
     act(() => {
@@ -301,7 +295,7 @@ forCases(
 forCases(
   'relativeTimeFormat',
   () => t.relativeTimeFormat(-30, 'seconds'),
-  async (div) => {
+  (div) => {
     expect(div.textContent).toBe('30 seconds ago');
 
     act(() => {
@@ -315,7 +309,7 @@ forCases(
 forCases(
   'durationFormat',
   () => t.durationFormat({ seconds: 1 }, { style: 'long' }),
-  async (div) => {
+  (div) => {
     expect(div.textContent).toBe('1 second');
 
     act(() => {
@@ -335,37 +329,35 @@ forCases(
   { initialLocale: 'en-US' },
 );
 
-test('arr with component', async () => {
+test('arr with component', () => {
   render(<App id={'arr with component'}>{t('arr', { pOne: 'p1', pTwo: 'p2' }, { component: 'div' })}</App>);
   const div = screen.getByTestId('arr with component');
   expect(div.innerHTML).toBe('<div>one p1</div><div>two p2</div>');
 
-  await act(async () => {
+  act(() => {
     div.click();
-    await wait(1);
   });
 
   expect(div.innerHTML).toBe('<div>eins p1</div><div>zwei p2</div>');
 });
 
-test('arr with hook', async () => {
+test('arr with hook', () => {
   render(
     <App id={'arr with hook'}>
-      <HookWrapper useTranslator={useTranslator} renderFn={(t) => t('arr', { pOne: 'p1', pTwo: 'p2' }).join(', ')} />
+      <HookWrapper renderFn={(t) => t('arr', { pOne: 'p1', pTwo: 'p2' }).join(', ')} />
     </App>,
   );
   const div = screen.getByTestId('arr with hook');
   expect(div.innerHTML).toBe('one p1, two p2');
 
-  await act(async () => {
+  act(() => {
     div.click();
-    await wait(1);
   });
 
   expect(div.innerHTML).toBe('eins p1, zwei p2');
 });
 
-test('render', async () => {
+test('render', () => {
   let renderCount = 0;
 
   const Comp = () => {
@@ -387,30 +379,32 @@ test('render', async () => {
   const div = screen.getByTestId('render');
   expect(div.innerHTML).toBe('Wednesday, February 2, 2000');
 
-  await act(async () => {
+  act(() => {
     div.click();
-    await wait(1);
   });
 
   expect(div.innerHTML).toBe('Mittwoch, 2. Februar 2000');
 
-  await act(async () => {
+  act(() => {
     div.click();
-    await wait(1);
   });
 
   expect(renderCount).toBe(2);
 });
 
 test('placeholder', async () => {
-  const { t: _t } = createTranslator<typeof dictEn>({
+  const { t: _t, TranslationContextProvider } = createTranslator<typeof dictEn>({
     sourceLocale: 'en',
     dicts: { en: dictEn, de: async () => dictDe },
     fallback: () => '-',
     placeholder: (id, st) => (typeof st === 'string' ? st.replace(/./g, '.') : '...'),
   });
 
-  render(<App id={'placeholder'}>{_t('key1')}</App>);
+  render(
+    <App id={'placeholder'} TranslationContextProvider={TranslationContextProvider}>
+      {_t('key1')}
+    </App>,
+  );
   const div = screen.getByTestId('placeholder');
   expect(div.textContent).toBe('key1:en');
 
@@ -428,25 +422,14 @@ test('placeholder', async () => {
 });
 
 describe('provided args', () => {
-  test('with hook', async () => {
-    let value = 0;
-    let listener: (() => void) | undefined;
-
-    const { useTranslator } = createTranslator({
+  test('with hook', () => {
+    const { useTranslator, TranslationContextProvider } = createTranslator({
       sourceDictionary: {
-        foo: '{value}',
+        foo: 'value={value}',
       } as const,
       sourceLocale: 'en',
       provideArgs: {
-        value: {
-          get: () => value,
-          subscribe(callback) {
-            listener = callback;
-            return () => {
-              listener = undefined;
-            };
-          },
-        },
+        value: 0,
       },
     });
 
@@ -455,75 +438,71 @@ describe('provided args', () => {
       return <>{_t('foo')}</>;
     }
 
-    render(
-      <App id={'provided args hook'}>
-        <Component />
-      </App>,
-    );
-    const div = screen.getByTestId('provided args hook');
-    expect(div.textContent).toBe('0');
+    function App() {
+      const [value, setValue] = useState(0);
+
+      return (
+        <TranslationContextProvider options={{ provideArgs: { value } }}>
+          <div data-testid="provided args hook" onClick={() => setValue(1)}>
+            <Component />
+          </div>
+        </TranslationContextProvider>
+      );
+    }
+
+    const { getByTestId } = render(<App />);
+    const div = getByTestId('provided args hook');
+    expect(div.textContent).toBe('value=0');
 
     act(() => {
-      value = 1;
-      listener?.();
+      div.click();
     });
 
-    expect(div.textContent).toBe('1');
+    expect(div.textContent).toBe('value=1');
   });
 
-  test('with component', async () => {
-    let value = 0;
-    let listener: (() => void) | undefined;
-
-    const { t: _t } = createTranslator({
+  test('with component', () => {
+    const { t: _t, TranslationContextProvider } = createTranslator({
       sourceDictionary: {
         foo: '{value}',
       } as const,
       sourceLocale: 'en',
       provideArgs: {
-        value: {
-          get: () => value,
-          subscribe(callback) {
-            listener = callback;
-            return () => {
-              listener = undefined;
-            };
-          },
-        },
+        value: 0,
       },
     });
 
-    render(<App id={'provided args'}>{_t('foo')}</App>);
-    const div = screen.getByTestId('provided args');
+    function App() {
+      const [value, setValue] = useState(0);
+
+      return (
+        <TranslationContextProvider options={{ provideArgs: { value } }}>
+          <div data-testid="provided args" onClick={() => setValue(1)}>
+            {_t('foo')}
+          </div>
+        </TranslationContextProvider>
+      );
+    }
+
+    const { getByTestId } = render(<App />);
+    const div = getByTestId('provided args');
     expect(div.textContent).toBe('0');
 
     act(() => {
-      value = 1;
-      listener?.();
+      div.click();
     });
 
     expect(div.textContent).toBe('1');
   });
 
-  test('prevent unnecessary rerenders', async () => {
-    let value = 0;
-    let listener: (() => void) | undefined;
-
-    const { useTranslator } = createTranslator({
+  test('prevent unnecessary rerenders', () => {
+    const { useTranslator, TranslationContextProvider } = createTranslator({
       sourceDictionary: {
         foo: '{value}',
       } as const,
       sourceLocale: 'en',
       provideArgs: {
-        value: {
-          get: () => value,
-          subscribe(callback) {
-            listener = callback;
-            return () => {
-              listener = undefined;
-            };
-          },
-        },
+        value: 0,
       },
     });
 
@@ -532,21 +511,29 @@ describe('provided args', () => {
       return <>{_t('foo')}</>;
     });
 
-    render(
-      <App id={'prevent unnecessary rerenders'}>
-        <Component />
-      </App>,
-    );
+    function App() {
+      const [value, setValue] = useState(0);
+
+      return (
+        <TranslationContextProvider options={{ provideArgs: { value } }}>
+          <div data-testid="prevent unnecessary rerenders" onClick={() => setValue(1)}>
+            <Component />
+          </div>
+        </TranslationContextProvider>
+      );
+    }
+
+    const { getByTestId } = render(<App />);
+    const div = getByTestId('prevent unnecessary rerenders');
     expect(Component).toHaveBeenCalledTimes(2);
 
     act(() => {
-      listener?.();
+      div.click();
     });
-    expect(Component).toHaveBeenCalledTimes(2);
+    expect(Component).toHaveBeenCalledTimes(3);
 
     act(() => {
-      value = 1;
-      listener?.();
+      div.click();
     });
     expect(Component).toHaveBeenCalledTimes(3);
   });
@@ -556,7 +543,7 @@ describe('error in dict loader', () => {
   test('sync error', async () => {
     console.warn = vi.fn();
 
-    const { t: _t } = createTranslator({
+    const { t: _t, TranslationContextProvider } = createTranslator({
       sourceLocale: 'en',
       sourceDictionary: dictEn,
       fallbackLocale: 'en',
@@ -566,7 +553,7 @@ describe('error in dict loader', () => {
     });
 
     render(
-      <App id={'error'} locales={['de']}>
+      <App TranslationContextProvider={TranslationContextProvider} id={'error'} locales={['de']}>
         {_t('key1')}
       </App>,
     );
@@ -579,7 +566,7 @@ describe('error in dict loader', () => {
   test('async error', async () => {
     console.warn = vi.fn();
 
-    const { t: _t } = createTranslator({
+    const { t: _t, TranslationContextProvider } = createTranslator({
       sourceLocale: 'en',
       sourceDictionary: dictEn,
       fallbackLocale: 'en',
@@ -590,7 +577,7 @@ describe('error in dict loader', () => {
     });
 
     render(
-      <App id={'error'} locales={['de']}>
+      <App TranslationContextProvider={TranslationContextProvider} id={'error'} locales={['de']}>
         {_t('key1')}
       </App>,
     );
@@ -621,7 +608,7 @@ describe('error in dict loader', () => {
 
     test('with component', async () => {
       function Component() {
-        return <>{t.keys('nested').join(', ')}</>;
+        return <>{t.keys('nested')}</>;
       }
 
       render(
@@ -630,7 +617,7 @@ describe('error in dict loader', () => {
         </App>,
       );
       const div = screen.getByTestId('get keys with component');
-      expect(div.textContent).toBe('nested.key2, nested.key3');
+      expect(div.textContent).toBe('nested.key2nested.key3');
     });
   });
 });

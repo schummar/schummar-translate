@@ -15,7 +15,6 @@ export type {
   TranslatorFn,
   Values,
 } from '../types';
-export { TranslationContext, TranslationContextProvider } from './translationContext';
 export { createTranslator } from './translator';
 export type {
   HookTranslator,
