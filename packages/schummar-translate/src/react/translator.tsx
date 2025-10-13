@@ -1,4 +1,4 @@
-import { createContext, Fragment, ReactNode, useContext, useMemo, type Context } from 'react';
+import { createContext, Fragment, ReactNode, useContext, useEffect, useMemo, type Context } from 'react';
 import { TranslatorFn } from '..';
 import { hash } from '../cache';
 import defaultOptions from '../defaultOptions';
@@ -25,14 +25,19 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
   type FD = FlattenDict<D>;
   type TContext = typeof TranslationContext extends Context<infer T> ? T : never;
 
+  let globalOptions = defaultOptions(originalOptions);
+  let globalStore = new Store(originalOptions);
+
   const TranslationContext = createContext<{
     locale: string;
     options: ReactCreateTranslatorOptions<D, ProvidedArgs>;
     store: Store<D, FD, ProvidedArgs>;
+    depth: number;
   }>({
     locale: originalOptions.sourceLocale,
-    options: originalOptions,
-    store: new Store(originalOptions),
+    options: globalOptions,
+    store: globalStore,
+    depth: 0,
   });
 
   /////////////////////////////////////////////////////////////////////////////
@@ -203,6 +208,7 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
   }) => {
     const parentContext = useContext(TranslationContext);
     const locale = newLocale ?? parentContext.locale;
+    const depth = parentContext.depth + 1;
     const options = newOptions ? defaultOptions({ ...parentContext.options, ...newOptions }) : parentContext.options;
 
     const sourceDictionaryHash = useMemo(
@@ -224,12 +230,20 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
       return new Store<D, FD, ProvidedArgs>(options);
     }, [newOptions?.sourceLocale, sourceDictionaryHash, newOptions?.dicts, cacheOptionsHash]);
 
+    useEffect(() => {
+      if (depth === 1) {
+        globalOptions = options;
+        globalStore = store;
+      }
+    });
+
     return (
       <TranslationContext.Provider
         value={{
           locale,
           options,
           store,
+          depth,
         }}
       >
         {children}
@@ -241,6 +255,7 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
     useTranslator,
     useGetTranslator,
     t,
+    getTranslator: (locale: string) => getTranslator(globalStore, globalOptions, locale),
     TranslationContextProvider,
   };
 }

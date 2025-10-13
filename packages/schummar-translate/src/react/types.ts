@@ -16,6 +16,9 @@ export interface ReactCreateTranslatorResult<D extends Dict, FD extends FlatDict
   /** Returns an inline translator instance, which updates as locales changes or dictionaries are loaded */
   t: InlineTranslator<D, FD, ProvidedArgs>;
 
+  /** Returns a promise for a translator instance for a specific locale. Note that this translators options are influenced by the top most TranslationContextProvider */
+  getTranslator(locale: string): Promise<Translator<FD, ProvidedArgs>>;
+
   /** Provide current locale and translation options for nested components */
   TranslationContextProvider: (props: {
     locale?: string;

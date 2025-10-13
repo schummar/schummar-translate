@@ -163,6 +163,20 @@ forCases(
 );
 
 forCases(
+  'missing key ReactNode fallback',
+  () => t('key4', undefined, { fallback: <span>--</span> }),
+  (div) => {
+    expect(div.textContent).toBe('key4:en');
+
+    act(() => {
+      div.click();
+    });
+
+    expect(div.textContent).toBe('--');
+  },
+);
+
+forCases(
   'switching twice',
   () => t('key1'),
   (div) => {
@@ -619,5 +633,41 @@ describe('error in dict loader', () => {
       const div = screen.getByTestId('get keys with component');
       expect(div.textContent).toBe('nested.key2nested.key3');
     });
+  });
+});
+
+describe('getTranslator', () => {
+  test('getTranslator', async () => {
+    const { getTranslator } = createTranslator({
+      sourceDictionary: dictEn,
+      sourceLocale: 'en',
+      dicts: { de: dictDe, es: dictEs },
+      fallback: () => '-',
+    });
+
+    const t1 = await getTranslator('de');
+    expect(t1('key1')).toBe('key1:de');
+  });
+
+  test('getTranslator influenced by context', async () => {
+    const { getTranslator, TranslationContextProvider } = createTranslator({
+      sourceDictionary: dictEn,
+      sourceLocale: 'en',
+      dicts: { de: dictDe, es: dictEs },
+      fallback: () => '-',
+    });
+
+    function App() {
+      return (
+        <TranslationContextProvider locale="de" options={{ fallback: '---' }}>
+          <TranslationContextProvider locale="de" options={{ fallback: '###' }} />
+        </TranslationContextProvider>
+      );
+    }
+
+    render(<App />);
+
+    const t1 = await getTranslator('es');
+    expect(t1.unknown('key123')).toBe('---');
   });
 });
