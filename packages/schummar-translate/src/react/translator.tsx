@@ -115,10 +115,10 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
 
   const InternalRenderComponent = ({
     render,
-    dependecies,
+    dependecies = [render],
   }: {
     render(t: HookTranslator<D, FD, ProvidedArgs>, context: TContext): ReactNode;
-    dependecies: any[];
+    dependecies?: any[];
   }) => {
     const t = useTranslator();
     const context = useContext(TranslationContext);
@@ -197,7 +197,7 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
     },
 
     ...intlHelpers((fn) => {
-      return <InternalRenderComponent render={(t, { options, store }) => fn(t.locale, store.cache, options)} dependecies={[]} />;
+      return <InternalRenderComponent render={(t, { options, store }) => fn(t.locale, store.cache, options)} />;
     }),
   });
 

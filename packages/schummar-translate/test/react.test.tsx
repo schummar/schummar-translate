@@ -671,3 +671,29 @@ describe('getTranslator', () => {
     expect(t1.unknown('key123')).toBe('---');
   });
 });
+
+describe('bugs', () => {
+  test('caching issue in dateTimeFormatRange', () => {
+    function Component() {
+      const [value, setValue] = useState(new Date(1970, 0, 1));
+      const nextDay = new Date(new Date(value).setDate(value.getDate() + 1));
+
+      return (
+        <div data-testid="date-time-format-range" onClick={() => setValue(nextDay)}>
+          {t.dateTimeFormatRange(value, nextDay)}
+        </div>
+      );
+    }
+
+    const { getByTestId } = render(<Component />);
+    const div = getByTestId('date-time-format-range');
+
+    expect(div.textContent).toBe('Jan 1, 1970, 12:00:00 AM – Jan 2, 1970, 12:00:00 AM');
+
+    act(() => {
+      div.click();
+    });
+
+    expect(div.textContent).toBe('Jan 2, 1970, 12:00:00 AM – Jan 3, 1970, 12:00:00 AM');
+  });
+});

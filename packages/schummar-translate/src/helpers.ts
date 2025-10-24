@@ -13,7 +13,7 @@ export function toDate(
   }
 
   if (!(date instanceof Object)) {
-    return { date: date ? new Date(date) : new Date(), options, type: 'instant' };
+    return { date: date !== undefined ? new Date(date) : new Date(), options, type: 'instant' };
   }
 
   if ('epochMilliseconds' in date) {
