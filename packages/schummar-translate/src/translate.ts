@@ -4,7 +4,7 @@ import { MaybePromise } from '.';
 import { Cache } from './cache';
 import { customDateTimeFormat, customDateTimeFormatRange } from './intlHelpers';
 import { mapPotentialArray } from './mapPotentialArray';
-import { FlatDict, ICUArgument, ICUDateArgument } from './types';
+import { FlatDict, ICUArgument, ICUDateArgument, TranslatorDebugOptions } from './types';
 import { isPromise } from './helpers';
 
 export function translate<F = never>({
@@ -14,6 +14,7 @@ export function translate<F = never>({
   values,
   fallback,
   fallbackIgnoresFallbackLocales,
+  debug,
   placeholder,
   locale,
   warn,
@@ -27,6 +28,7 @@ export function translate<F = never>({
   values?: any;
   fallback?: F | ((id: string, sourceTranslation?: string | readonly string[]) => F);
   fallbackIgnoresFallbackLocales?: boolean;
+  debug?: boolean | TranslatorDebugOptions;
   placeholder?: F | ((id: string, sourceTranslation?: string | readonly string[]) => F);
   locale: string;
   warn?: (locale: string, id: string) => void;
@@ -36,6 +38,41 @@ export function translate<F = never>({
 }): string | F | (string | F)[] | F {
   if (fallback !== undefined && fallbackIgnoresFallbackLocales) {
     dicts = dicts.slice(0, 1);
+  }
+
+  const debugOptions: Required<TranslatorDebugOptions> =
+    typeof debug === 'boolean'
+      ? {
+          key: debug,
+          variables: debug,
+          translation: debug,
+        }
+      : {
+          key: debug?.key ?? false,
+          variables: debug?.variables ?? false,
+          translation: debug?.translation ?? false,
+        };
+  const isAnyDebugEnabled = debugOptions.key || debugOptions.translation || debugOptions.variables;
+
+  function wrapWithDebug(translation: string | F) {
+    if (!isAnyDebugEnabled) {
+      return translation;
+    }
+
+    const parts: string[] = [];
+    if (debugOptions.key) {
+      parts.push(id);
+    }
+
+    if (debugOptions.variables) {
+      parts.push(JSON.stringify({ ...providedArgs, ...values }));
+    }
+
+    if (debugOptions.translation) {
+      parts.push(`="${translation}"`);
+    }
+
+    return parts.join(' ');
   }
 
   const dict = dicts.find((dict) => isPromise(dict) || id in dict);
@@ -52,13 +89,14 @@ export function translate<F = never>({
             cache,
             ignoreMissingArgs,
             providedArgs,
+            debug,
           })
         : undefined,
       (sourceTranslation) => {
         if (placeholder instanceof Function) {
-          return placeholder(id, sourceTranslation);
+          return wrapWithDebug(placeholder(id, sourceTranslation));
         }
-        return placeholder ?? '';
+        return wrapWithDebug(placeholder ?? '');
       },
     );
   }
@@ -77,17 +115,25 @@ export function translate<F = never>({
               cache,
               ignoreMissingArgs,
               providedArgs,
+              debug,
             })
           : undefined;
-      return fallback(id, sourceTranslation);
+      return wrapWithDebug(fallback(id, sourceTranslation));
     }
     if (fallback !== undefined) return fallback;
 
     warn?.(locale, id);
+
+    if (isAnyDebugEnabled) {
+      return wrapWithDebug('');
+    }
+
     return id;
   }
 
-  return mapPotentialArray(template, (template) => format({ template, values, locale, cache, ignoreMissingArgs, providedArgs }));
+  return mapPotentialArray(template, (template) =>
+    wrapWithDebug(format({ template, values, locale, cache, ignoreMissingArgs, providedArgs })),
+  );
 }
 
 export function format({

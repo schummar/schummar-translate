@@ -29,6 +29,7 @@ export const getTranslator = async <D extends Dict, ProvidedArgs extends string 
       fallbackIgnoresFallbackLocales: options.fallbackIgnoresFallbackLocales,
       locale,
       warn: options.warn,
+      debug: options.debug,
       cache: store.cache,
       ignoreMissingArgs: options.ignoreMissingArgs,
       providedArgs: options.provideArgs,
