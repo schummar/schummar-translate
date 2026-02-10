@@ -20,30 +20,30 @@ export function applyDebugOutput<F>(
     return translation;
   }
 
-  const parts: string[] = [];
+  let result = '';
   if (debug.key) {
-    parts.push(id);
+    result += `${id} `;
   }
 
-  if (debug.variables) {
+  if (debug.variables && typeof values === 'object' && values !== null && Object.keys(values).length > 0) {
     const stringifiedValues = JSON.stringify({ ...values });
     if (stringifiedValues !== '{}') {
-      parts.push(stringifiedValues);
+      result += `${stringifiedValues} `;
     }
   }
 
-  if (debug.providedArgs) {
+  if (debug.providedArgs && typeof providedArgs === 'object' && Object.keys(values).length > 0) {
     const stringifiedArgs = JSON.stringify({ ...providedArgs });
     if (stringifiedArgs !== '{}') {
-      parts.push(stringifiedArgs);
+      result += `${stringifiedArgs} `;
     }
   }
 
   if (debug.translation) {
-    parts.push(`="${translation}"`);
+    result += `="${translation}" `;
   }
 
-  return parts.join(' ');
+  return result.slice(0, -1);
 }
 
 function getDebugOptions(options: boolean | TranslatorDebugOptions): Required<TranslatorDebugOptions> | false {
