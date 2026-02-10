@@ -4,8 +4,9 @@ import { MaybePromise } from '.';
 import { Cache } from './cache';
 import { customDateTimeFormat, customDateTimeFormatRange } from './intlHelpers';
 import { mapPotentialArray } from './mapPotentialArray';
-import { FlatDict, ICUArgument, ICUDateArgument } from './types';
+import { FlatDict, ICUArgument, ICUDateArgument, TranslatorDebugOptions } from './types';
 import { isPromise } from './helpers';
+import { applyDebugOutput } from './debug';
 
 export function translate<F = never>({
   dicts,
@@ -14,6 +15,7 @@ export function translate<F = never>({
   values,
   fallback,
   fallbackIgnoresFallbackLocales,
+  debug,
   placeholder,
   locale,
   warn,
@@ -27,6 +29,7 @@ export function translate<F = never>({
   values?: any;
   fallback?: F | ((id: string, sourceTranslation?: string | readonly string[]) => F);
   fallbackIgnoresFallbackLocales?: boolean;
+  debug?: boolean | TranslatorDebugOptions;
   placeholder?: F | ((id: string, sourceTranslation?: string | readonly string[]) => F);
   locale: string;
   warn?: (locale: string, id: string) => void;
@@ -52,13 +55,20 @@ export function translate<F = never>({
             cache,
             ignoreMissingArgs,
             providedArgs,
+            debug,
           })
         : undefined,
       (sourceTranslation) => {
-        if (placeholder instanceof Function) {
-          return placeholder(id, sourceTranslation);
-        }
-        return placeholder ?? '';
+        const translation = placeholder instanceof Function ? placeholder(id, sourceTranslation) : (placeholder ?? '');
+        return applyDebugOutput(
+          {
+            translation,
+            id,
+            values,
+            providedArgs,
+          },
+          debug,
+        );
       },
     );
   }
@@ -77,17 +87,55 @@ export function translate<F = never>({
               cache,
               ignoreMissingArgs,
               providedArgs,
+              debug,
             })
           : undefined;
-      return fallback(id, sourceTranslation);
+      const translation = fallback(id, sourceTranslation);
+      return applyDebugOutput(
+        {
+          translation,
+          id,
+          values,
+          providedArgs,
+        },
+        debug,
+      );
     }
-    if (fallback !== undefined) return fallback;
+    if (fallback !== undefined)
+      return applyDebugOutput(
+        {
+          translation: fallback,
+          id,
+          values,
+          providedArgs,
+        },
+        debug,
+      );
 
     warn?.(locale, id);
-    return id;
+
+    return applyDebugOutput(
+      {
+        translation: id,
+        id,
+        values,
+        providedArgs,
+      },
+      debug,
+    );
   }
 
-  return mapPotentialArray(template, (template) => format({ template, values, locale, cache, ignoreMissingArgs, providedArgs }));
+  return mapPotentialArray(template, (template) =>
+    applyDebugOutput(
+      {
+        translation: format({ template, values, locale, cache, ignoreMissingArgs, providedArgs }),
+        id,
+        values,
+        providedArgs,
+      },
+      debug,
+    ),
+  );
 }
 
 export function format({

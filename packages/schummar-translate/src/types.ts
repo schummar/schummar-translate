@@ -85,6 +85,8 @@ export type CreateTranslatorOptions<D extends Dict, ProvidedArgs extends string 
      * @param sourceTranslation translated string in source locale
      */
     fallback?: string | ((id: string, sourceTranslation?: string | readonly string[]) => string);
+    /** Enable debug translations */
+    debug?: boolean | TranslatorDebugOptions;
     ignoreMissingArgs?: boolean | string | ((id: string, template: string) => string);
     /** Receive warning when strings are missing. */
     warn?: (locale: string, id: string) => void;
@@ -110,6 +112,17 @@ export type CreateTranslatorOptions<D extends Dict, ProvidedArgs extends string 
         provideArgs: Record<ProvidedArgs, ICUArgument | ICUDateArgument>;
       })
 >;
+
+export interface TranslatorDebugOptions {
+  /** If `true`, the translation key will be included */
+  key?: boolean;
+  /** If `true`, the translation result will be included */
+  translation?: boolean;
+  /** If `true`, the values passed to the translation template will be included */
+  variables?: boolean;
+  /** If `true`, the provided args passed to the translation template will be included */
+  providedArgs?: boolean;
+}
 
 export interface CreateTranslatorResult<FD extends FlatDict, ProvidedArgs extends string = never> {
   /** Returns a promise for a translator instance */

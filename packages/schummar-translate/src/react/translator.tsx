@@ -65,6 +65,7 @@ export function createTranslator<D extends Dict, ProvidedArgs extends string = n
           placeholder,
           locale,
           warn: options.warn,
+          debug: options.debug,
           cache: store.cache,
           ignoreMissingArgs: options.ignoreMissingArgs,
           providedArgs: options.provideArgs,

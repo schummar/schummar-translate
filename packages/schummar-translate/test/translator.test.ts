@@ -737,3 +737,44 @@ describe('updateOptions', () => {
     expect(t2('key1')).toBe('key1:de');
   });
 });
+
+describe('debug output', () => {
+  test('debug = true', async () => {
+    const { getTranslator } = createTranslator<Dict>({
+      sourceDictionary: dictEn,
+      sourceLocale: 'en',
+      dicts: (locale) => (locale === 'de' ? dictDe : null),
+      debug: true,
+    });
+
+    const _t = await getTranslator('en');
+    expect(_t('key1')).toEqual('key1 ="key1:en"');
+    expect(_t('nested.key2', { value2: 'foo' })).toEqual('nested.key2 {"value2":"foo"} ="key2:en foo"');
+  });
+
+  test('debug = false', async () => {
+    const { getTranslator } = createTranslator<Dict>({
+      sourceDictionary: dictEn,
+      sourceLocale: 'en',
+      dicts: (locale) => (locale === 'de' ? dictDe : null),
+      debug: false,
+    });
+
+    const _t = await getTranslator('en');
+    expect(_t('key1')).toEqual('key1:en');
+    expect(_t('nested.key2', { value2: 'foo' })).toEqual('key2:en foo');
+  });
+
+  test('debug.key = true', async () => {
+    const { getTranslator } = createTranslator<Dict>({
+      sourceDictionary: dictEn,
+      sourceLocale: 'en',
+      dicts: (locale) => (locale === 'de' ? dictDe : null),
+      debug: { key: true },
+    });
+
+    const _t = await getTranslator('en');
+    expect(_t('key1')).toEqual('key1');
+    expect(_t('nested.key2', { value2: 'foo' })).toEqual('nested.key2');
+  });
+});
