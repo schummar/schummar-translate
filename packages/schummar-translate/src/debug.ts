@@ -32,7 +32,7 @@ export function applyDebugOutput<F>(
     }
   }
 
-  if (debug.providedArgs && typeof providedArgs === 'object' && Object.keys(values).length > 0) {
+  if (debug.providedArgs && typeof providedArgs === 'object' && Object.keys(providedArgs).length > 0) {
     const stringifiedArgs = JSON.stringify({ ...providedArgs });
     if (stringifiedArgs !== '{}') {
       result += `${stringifiedArgs} `;

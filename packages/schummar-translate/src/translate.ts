@@ -101,7 +101,16 @@ export function translate<F = never>({
         debug,
       );
     }
-    if (fallback !== undefined) return fallback;
+    if (fallback !== undefined)
+      return applyDebugOutput(
+        {
+          translation: fallback,
+          id,
+          values,
+          providedArgs,
+        },
+        debug,
+      );
 
     warn?.(locale, id);
 
