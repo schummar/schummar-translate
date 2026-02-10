@@ -120,6 +120,8 @@ export interface TranslatorDebugOptions {
   translation?: boolean;
   /** If `true`, the values passed to the translation template will be included */
   variables?: boolean;
+  /** If `true`, the provided args passed to the translation template will be included */
+  providedArgs?: boolean;
 }
 
 export interface CreateTranslatorResult<FD extends FlatDict, ProvidedArgs extends string = never> {

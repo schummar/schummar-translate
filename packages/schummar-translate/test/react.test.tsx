@@ -567,19 +567,19 @@ test('debug output', async () => {
     </App>,
   );
   const div = screen.getByTestId('debug output');
-  expect(div.textContent).toBe('key1 {} ="key1:en"');
+  expect(div.textContent).toBe('key1 ="key1:en"');
 
   act(() => {
     div.click();
   });
 
-  expect(div.textContent).toBe('key1 {} =""');
+  expect(div.textContent).toBe('key1 =""');
 
   await act(async () => {
     await wait(2);
   });
 
-  expect(div.textContent).toBe('key1 {} ="key1:de"');
+  expect(div.textContent).toBe('key1 ="key1:de"');
 });
 
 describe('error in dict loader', () => {

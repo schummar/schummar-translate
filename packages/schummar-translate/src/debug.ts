@@ -26,7 +26,17 @@ export function applyDebugOutput<F>(
   }
 
   if (debug.variables) {
-    parts.push(JSON.stringify({ ...providedArgs, ...values }));
+    const stringifiedValues = JSON.stringify({ ...values });
+    if (stringifiedValues !== '{}') {
+      parts.push(stringifiedValues);
+    }
+  }
+
+  if (debug.providedArgs) {
+    const stringifiedArgs = JSON.stringify({ ...providedArgs });
+    if (stringifiedArgs !== '{}') {
+      parts.push(stringifiedArgs);
+    }
   }
 
   if (debug.translation) {
@@ -43,6 +53,7 @@ function getDebugOptions(options: boolean | TranslatorDebugOptions): Required<Tr
         key: true,
         variables: true,
         translation: true,
+        providedArgs: true,
       };
     }
 
@@ -53,5 +64,6 @@ function getDebugOptions(options: boolean | TranslatorDebugOptions): Required<Tr
     key: options.key ?? false,
     variables: options.variables ?? false,
     translation: options.translation ?? false,
+    providedArgs: options.providedArgs ?? false,
   };
 }

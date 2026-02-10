@@ -748,7 +748,7 @@ describe('debug output', () => {
     });
 
     const _t = await getTranslator('en');
-    expect(_t('key1')).toEqual('key1 {} ="key1:en"');
+    expect(_t('key1')).toEqual('key1 ="key1:en"');
     expect(_t('nested.key2', { value2: 'foo' })).toEqual('nested.key2 {"value2":"foo"} ="key2:en foo"');
   });
 
