@@ -6,6 +6,7 @@ import { customDateTimeFormat, customDateTimeFormatRange } from './intlHelpers';
 import { mapPotentialArray } from './mapPotentialArray';
 import { FlatDict, ICUArgument, ICUDateArgument, TranslatorDebugOptions } from './types';
 import { isPromise } from './helpers';
+import { applyDebugOutput } from './debug';
 
 export function translate<F = never>({
   dicts,
@@ -40,41 +41,6 @@ export function translate<F = never>({
     dicts = dicts.slice(0, 1);
   }
 
-  const debugOptions: Required<TranslatorDebugOptions> =
-    typeof debug === 'boolean'
-      ? {
-          key: debug,
-          variables: debug,
-          translation: debug,
-        }
-      : {
-          key: debug?.key ?? false,
-          variables: debug?.variables ?? false,
-          translation: debug?.translation ?? false,
-        };
-  const isAnyDebugEnabled = debugOptions.key || debugOptions.translation || debugOptions.variables;
-
-  function wrapWithDebug(translation: string | F) {
-    if (!isAnyDebugEnabled) {
-      return translation;
-    }
-
-    const parts: string[] = [];
-    if (debugOptions.key) {
-      parts.push(id);
-    }
-
-    if (debugOptions.variables) {
-      parts.push(JSON.stringify({ ...providedArgs, ...values }));
-    }
-
-    if (debugOptions.translation) {
-      parts.push(`="${translation}"`);
-    }
-
-    return parts.join(' ');
-  }
-
   const dict = dicts.find((dict) => isPromise(dict) || id in dict);
 
   if (isPromise(dict)) {
@@ -93,10 +59,16 @@ export function translate<F = never>({
           })
         : undefined,
       (sourceTranslation) => {
-        if (placeholder instanceof Function) {
-          return wrapWithDebug(placeholder(id, sourceTranslation));
-        }
-        return wrapWithDebug(placeholder ?? '');
+        const translation = placeholder instanceof Function ? placeholder(id, sourceTranslation) : (placeholder ?? '');
+        return applyDebugOutput(
+          {
+            translation,
+            id,
+            values,
+            providedArgs,
+          },
+          debug,
+        );
       },
     );
   }
@@ -118,21 +90,42 @@ export function translate<F = never>({
               debug,
             })
           : undefined;
-      return wrapWithDebug(fallback(id, sourceTranslation));
+      const translation = fallback(id, sourceTranslation);
+      return applyDebugOutput(
+        {
+          translation,
+          id,
+          values,
+          providedArgs,
+        },
+        debug,
+      );
     }
     if (fallback !== undefined) return fallback;
 
     warn?.(locale, id);
 
-    if (isAnyDebugEnabled) {
-      return wrapWithDebug('');
-    }
-
-    return id;
+    return applyDebugOutput(
+      {
+        translation: id,
+        id,
+        values,
+        providedArgs,
+      },
+      debug,
+    );
   }
 
   return mapPotentialArray(template, (template) =>
-    wrapWithDebug(format({ template, values, locale, cache, ignoreMissingArgs, providedArgs })),
+    applyDebugOutput(
+      {
+        translation: format({ template, values, locale, cache, ignoreMissingArgs, providedArgs }),
+        id,
+        values,
+        providedArgs,
+      },
+      debug,
+    ),
   );
 }
 

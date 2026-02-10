@@ -85,6 +85,7 @@ export type CreateTranslatorOptions<D extends Dict, ProvidedArgs extends string 
      * @param sourceTranslation translated string in source locale
      */
     fallback?: string | ((id: string, sourceTranslation?: string | readonly string[]) => string);
+    /** Enable debug translations */
     debug?: boolean | TranslatorDebugOptions;
     ignoreMissingArgs?: boolean | string | ((id: string, template: string) => string);
     /** Receive warning when strings are missing. */
