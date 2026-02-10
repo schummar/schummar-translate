@@ -553,6 +553,35 @@ describe('provided args', () => {
   });
 });
 
+test('debug output', async () => {
+  const { t: _t, TranslationContextProvider } = createTranslator<typeof dictEn>({
+    sourceLocale: 'en',
+    dicts: { en: dictEn, de: async () => dictDe },
+    fallback: () => '-',
+    debug: true,
+  });
+
+  render(
+    <App id={'debug output'} TranslationContextProvider={TranslationContextProvider}>
+      {_t('key1')}
+    </App>,
+  );
+  const div = screen.getByTestId('debug output');
+  expect(div.textContent).toBe('key1 {} ="key1:en"');
+
+  act(() => {
+    div.click();
+  });
+
+  expect(div.textContent).toBe('key1 {} =""');
+
+  await act(async () => {
+    await wait(2);
+  });
+
+  expect(div.textContent).toBe('key1 {} ="key1:de"');
+});
+
 describe('error in dict loader', () => {
   test('sync error', async () => {
     console.warn = vi.fn();
