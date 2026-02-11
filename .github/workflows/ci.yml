@@ -3,6 +3,14 @@ on:
   push:
     branches:
       - master
+
+permissions:
+  id-token: write
+  contents: write
+
+env:
+  VOLTA_FEATURE_PNPM: 1
+
 jobs:
   release:
     name: Release
@@ -14,17 +22,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.x
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.x
-          cache: pnpm
-          registry-url: https://registry.npmjs.org
+      - name: Setup Volta
+        uses: volta-cli/action@v4
 
       - name: Install dependencies
         run: pnpm i --frozen-lockfile
@@ -41,12 +40,12 @@ jobs:
         with:
           files: ./packages/schummar-translate/test-results.xml
 
-      - name: 'Report Coverage'
-        uses:  davelosert/vitest-coverage-report-action@v2
-        if: always() 
+      - name: "Report Coverage"
+        uses: davelosert/vitest-coverage-report-action@v2
+        if: always()
         with:
           working-directory: ./packages/schummar-translate
-      
+
       - name: Build
         run: pnpm build
 
@@ -57,10 +56,8 @@ jobs:
         run: |
           git config user.name "${{ vars.GIT_USER }}"
           git config user.email "${{ vars.GIT_EMAIL }}"
-          
+
       - name: Release
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: pnpm nx release -y

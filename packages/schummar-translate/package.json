@@ -65,9 +65,7 @@
     "lint:tsc-tests": "tsc -p test/tsconfig.json",
     "publint": "publint",
     "test": "vitest run --coverage",
-    "test:watch": "vitest",
-    "prepublishOnly": "runp lint test build :p publint",
-    "release": "release-it --ci -c ../../.release-it-package.ts"
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@formatjs/icu-messageformat-parser": "^2.9.3",
