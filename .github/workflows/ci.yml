@@ -15,7 +15,7 @@ jobs:
     permissions: write-all
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -23,6 +23,7 @@ jobs:
         with:
           cache: true
 
+      - run: vp i -g pnpm
       - run: vp i --frozen-lockfile
       - run: vp run lint
       - run: vp run test
@@ -36,4 +37,4 @@ jobs:
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: vp env exec pnpm nx release -y
+        run: pnpm nx release -y
