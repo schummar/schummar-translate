@@ -17,11 +17,16 @@
     "vite-plus": "^0.2.1"
   },
   "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "11.8.0",
-      "onFail": "download"
-    },
+    "packageManager": [
+      {
+        "name": "pnpm",
+        "version": "11.8.0",
+        "onFail": "download"
+      },
+      {
+        "name": "npm"
+      }
+    ],
     "runtime": {
       "name": "node",
       "version": "26.3.1",
