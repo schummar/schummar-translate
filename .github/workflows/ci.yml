@@ -36,4 +36,4 @@ jobs:
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: vp exec nx release -y
+        run: vp env exec pnpm nx release -y
