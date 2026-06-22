@@ -14,7 +14,7 @@ export const getTranslator = async <D extends Dict, ProvidedArgs extends string 
 ): Promise<Translator<FlattenDict<D>, ProvidedArgs>> => {
   type FD = FlattenDict<D>;
 
-  const dicts = await store.loadAll(locale, ...getPossibleLocales(locale, options));
+  const dicts = await store.loadAll(...getPossibleLocales(locale, options));
   const sourceDict = store.load(options.sourceLocale) as FD;
 
   const t: TranslatorFn<FD, ProvidedArgs> = (id, ...[values, translatorOptions]) => {

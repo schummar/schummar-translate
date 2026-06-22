@@ -1,47 +1,36 @@
 {
   "name": "schummar-translate",
-  "repository": "schummar/schummar-translate",
   "version": "0.0.0",
   "description": "TypeScript powered translation library for React and Node.js.",
-  "readme": "../../README.md",
   "keywords": [
-    "typescript",
-    "react",
-    "node",
-    "translation",
+    "IntelliSense",
+    "autocomplete",
     "i18n",
     "localization",
+    "node",
+    "react",
+    "translation",
     "type checking",
-    "autocomplete",
-    "IntelliSense"
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Marco Schumacher",
+    "email": "marco@schumacher.dev"
+  },
+  "repository": "git+https://github.com/schummar/schummar-translate.git",
+  "files": [
+    "dist",
+    "react.js",
+    "react.d.ts",
+    "README.md",
+    "LICENSE"
   ],
   "type": "module",
   "sideEffects": false,
-  "exports": {
-    ".": {
-      "require": {
-        "types": "./dist/index.d.cts",
-        "default": "./dist/index.cjs"
-      },
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      }
-    },
-    "./react": {
-      "require": {
-        "types": "./dist/react.d.cts",
-        "default": "./dist/react.cjs"
-      },
-      "import": {
-        "types": "./dist/react.d.ts",
-        "default": "./dist/react.js"
-      }
-    }
-  },
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
   "typesVersions": {
     "*": {
       ".": [
@@ -52,25 +41,31 @@
       ]
     }
   },
-  "author": {
-    "name": "Marco Schumacher",
-    "email": "marco@schumacher.dev"
-  },
-  "license": "MIT",
-  "scripts": {
-    "build": "tsup && cp ../../README.md ../../LICENSE ./",
-    "lint": "runp lint:*",
-    "lint:oxlint": "oxlint",
-    "lint:tsc": "tsc --noEmit --emitDeclarationOnly false",
-    "lint:tsc-tests": "tsc -p test/tsconfig.json",
-    "publint": "publint",
-    "test": "vitest run --coverage",
-    "test:watch": "vitest"
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./react": {
+      "import": "./dist/react.mjs",
+      "require": "./dist/react.cjs"
+    },
+    "./package.json": "./package.json"
   },
   "dependencies": {
-    "@formatjs/icu-messageformat-parser": "^2.9.3",
-    "@formatjs/intl-localematcher": "^0.5.7",
-    "intl-messageformat": "^10.7.5"
+    "@formatjs/icu-messageformat-parser": "^3.5.11",
+    "@formatjs/intl-localematcher": "^0.8.10",
+    "intl-messageformat": "^11.2.8"
+  },
+  "devDependencies": {
+    "@formatjs/intl-durationformat": "^0.10.15",
+    "@js-temporal/polyfill": "0.5.1",
+    "@testing-library/react": "16.3.2",
+    "@types/node": "26.0.0",
+    "@types/react": "^19.2.17",
+    "happy-dom": "^20.10.6",
+    "react": "^19.2.7",
+    "react-dom": "19.2.7"
   },
   "peerDependencies": {
     "@formatjs/intl-durationformat": ">=0.2.2",
@@ -84,21 +79,5 @@
     "react": {
       "optional": true
     }
-  },
-  "devDependencies": {
-    "@formatjs/intl-durationformat": "0.7.2",
-    "@js-temporal/polyfill": "0.4.4",
-    "@testing-library/react": "16.0.1",
-    "@types/node": "22.8.7",
-    "@types/react": "18.3.12",
-    "@vitest/coverage-v8": "2.1.4",
-    "jsdom": "25.0.1",
-    "react": "18.3.1",
-    "react-dom": "18.3.1"
-  },
-  "files": [
-    "dist",
-    "react.js",
-    "react.d.ts"
-  ]
+  }
 }

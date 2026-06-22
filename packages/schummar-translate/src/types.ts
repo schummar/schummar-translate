@@ -1,7 +1,7 @@
-import { DurationFormat } from '@formatjs/intl-durationformat';
 import { CacheOptions } from './cache';
 import { GetICUArgs } from './extractICU';
 import { TemporalLike } from './temporal-polyfill';
+import { DurationFormat } from '@formatjs/intl-durationformat';
 
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers
@@ -62,14 +62,6 @@ export type CreateTranslatorOptions<D extends Dict, ProvidedArgs extends string 
     sourceLocale: string;
     /** Locale(s) to fall back to if a string is not available in the active locale */
     fallbackLocale?: string | readonly string[] | ((locale: string) => string | readonly string[]);
-    /** Fall back to less specific language versions. E.g. en-US -> en
-     * @default true
-     */
-    fallbackToLessSpecific?: boolean;
-    /** Fall back to more specific language versions. E.g. en-US -> en -> en-*
-     * @default true
-     */
-    fallbackToMoreSpecific?: boolean;
     /** If a fallback is provided to a translation string
      * - if `fallbackIgnoresFallbackLocales` is true, the fallback will be used if there is no match in the current locale
      * - if `fallbackIgnoresFallbackLocales` is false, the fallback will be used if there is no match in the current or any fallback locales
@@ -79,7 +71,9 @@ export type CreateTranslatorOptions<D extends Dict, ProvidedArgs extends string 
     /** Dictionaries. Either a record with locales as keys or a function that takes a locale and returns a promise of a dictionary
      * @param locale the active locale
      */
-    dicts?: { [locale: string]: Dict | (() => MaybePromise<Dict>) } | ((locale: string) => MaybePromise<Dict | null>);
+    dicts?:
+      | { [locale: string]: Dict | (() => MaybePromise<Dict>) }
+      | ((locale: string) => MaybePromise<Dict | readonly [Dict, ...Dict[]] | null>);
     /** Custom fallback handler. Will be called when a string is not available in the active locale.
      * @param id flat dictionary key
      * @param sourceTranslation translated string in source locale
@@ -169,8 +163,7 @@ export interface TranslatorFn<FD extends FlatDict, ProvidedArgs extends string =
 }
 
 export interface Translator<FD extends FlatDict, ProvidedArgs extends string = never, Options = GetTranslatorOptions, Output = string>
-  extends TranslatorFn<FD, ProvidedArgs, Options, Output>,
-    IntlHelpers<Output> {
+  extends TranslatorFn<FD, ProvidedArgs, Options, Output>, IntlHelpers<Output> {
   /** Translate a dictionary id to a string in the active locale. Without type checking the id. */
   unknown(id: string, values?: Record<string, unknown>, options?: Options): Output extends string ? string | readonly string[] : Output;
 

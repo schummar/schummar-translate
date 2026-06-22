@@ -1,27 +1,32 @@
 {
-  "devDependencies": {
-    "@nx/js": "^21.4.1",
-    "@schummar/runp": "2.0.7",
-    "@swc-node/register": "^1.10.9",
-    "@swc/core": "^1.10.18",
-    "nx": "21.4.1",
-    "oxlint": "^0.15.11",
-    "prettier": "3.3.3",
-    "publint": "0.2.12",
-    "tsup": "8.3.5",
-    "typescript": "5.6.3",
-    "vitest": "2.1.4"
-  },
   "scripts": {
-    "build": "nx run-many --target=build --all",
-    "lint": "nx run-many --target=lint --all",
-    "publint": "nx run-many --target=publint --all",
-    "test": "nx run-many --target=test --all"
+    "build": "vp run -r build",
+    "lint": "vp run _lint",
+    "fix": "vp fmt && vp lint --fix-suggestions",
+    "test": "vp run _test",
+    "test:watch": "vp test --watch"
   },
-  "volta": {
-    "node": "24.13.1",
-    "pnpm": "10.29.2",
-    "npm": "11.9.0"
+  "devDependencies": {
+    "@nx/js": "^23.0.0",
+    "@swc-node/register": "^1.11.1",
+    "@swc/core": "^1.15.41",
+    "@typescript/native-preview": "7.0.0-dev.20260621.1",
+    "nx": "23.0.0",
+    "publint": "^0.3.21",
+    "typescript": "6.0.3",
+    "vite-plus": "^0.2.1"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.8.0",
+      "onFail": "download"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "26.3.1",
+      "onFail": "download"
+    }
   },
   "pnpm": {
     "patchedDependencies": {

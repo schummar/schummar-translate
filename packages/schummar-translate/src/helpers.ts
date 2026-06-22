@@ -1,4 +1,6 @@
 import { TemporalLike } from './temporal-polyfill';
+import type { CreateTranslatorOptions } from './types';
+import { match } from '@formatjs/intl-localematcher';
 
 export function toDate(
   date: Date | number | string | TemporalLike | undefined,
@@ -20,6 +22,7 @@ export function toDate(
     return { date: new Date(date.epochMilliseconds), options, type: 'instant' };
   } else {
     const isPlain = !date.timeZone;
+    // oxlint-disable-next-line typescript/no-base-to-string
     let iso = date.toString().replace(/\[.*\]/, '') + (isPlain ? 'Z' : '');
     let type: 'instant' | 'plainDateTime' | 'plainDate' | 'plainTime' = 'instant';
 
@@ -70,42 +73,38 @@ export function castArray<T>(x: T | readonly T[] = []): readonly T[] {
 
 export function getPossibleLocales(
   locale: string,
-  {
-    fallbackToLessSpecific = true,
-    fallbackToMoreSpecific = true,
-    fallbackLocale,
-  }: {
-    fallbackToLessSpecific?: boolean;
-    fallbackToMoreSpecific?: boolean;
-    fallbackLocale?: string | readonly string[] | ((locale: string) => string | readonly string[]);
-  } = {},
+  { sourceLocale, dicts, fallbackLocale }: Pick<CreateTranslatorOptions<any, any>, 'sourceLocale' | 'dicts' | 'fallbackLocale'>,
 ): readonly string[] {
-  const requestedLocales = [locale];
+  const requestedLocales = new Set([locale]);
 
-  if (fallbackToLessSpecific) {
-    let prefix = locale;
+  if (typeof dicts !== 'function') {
+    let availableLocales = Object.keys(dicts ?? {}).concat(sourceLocale);
+    let matchingLocale: string;
 
-    while (prefix.includes('-')) {
-      const index = prefix.lastIndexOf('-');
-      prefix = prefix.slice(0, index);
-      requestedLocales.push(prefix);
+    while ((matchingLocale = match([locale], availableLocales, '', { algorithm: 'best fit' }))) {
+      requestedLocales.add(matchingLocale);
+      availableLocales = availableLocales.filter((l) => l !== matchingLocale);
     }
   }
 
-  if (fallbackToMoreSpecific) {
-    const prefix = locale.split('-')[0];
-    requestedLocales.push(`${prefix}-XX`);
-  }
-
   if (fallbackLocale instanceof Function) {
-    requestedLocales.push(...castArray(fallbackLocale(locale)));
-  } else if (fallbackLocale) {
-    requestedLocales.push(...castArray(fallbackLocale));
+    fallbackLocale = fallbackLocale(locale);
+  }
+  if (fallbackLocale) {
+    for (const x of castArray(fallbackLocale)) {
+      requestedLocales.add(x);
+    }
   }
 
-  return requestedLocales;
+  return Array.from(requestedLocales);
 }
 
 export function isPromise(x: unknown): x is Promise<unknown> {
   return typeof x === 'object' && x !== null && 'then' in x && typeof x.then === 'function';
+}
+
+type Falsy = false | 0 | '' | null | undefined | 0n;
+
+export default function isTruthy<T>(x: T): x is Exclude<T, Falsy> {
+  return Boolean(x);
 }

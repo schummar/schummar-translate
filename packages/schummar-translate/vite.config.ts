@@ -1,13 +1,32 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vite-plus';
 
 export default defineConfig({
   test: {
-    environment: 'jsdom',
+    environment: 'happy-dom',
     setupFiles: ['./test/_setup.ts'],
-    coverage: {
-      reporter: ['text', 'json-summary', 'json'],
-      reportOnFailure: true,
+  },
+
+  pack: {
+    entry: {
+      index: 'src/index.ts',
+      react: 'src/react/index.ts',
     },
-    reporters: process.env.CI ? ['dot', 'github-actions', ['junit', { outputFile: 'test-results.xml' }]] : ['default'],
+    clean: true,
+    dts: true,
+    sourcemap: true,
+    format: ['esm', 'cjs'],
+    publint: true,
+    exports: true,
+    copy: { from: ['../../README.md', '../../LICENSE'], to: './' },
+  },
+
+  run: {
+    tasks: {
+      build: {
+        command: 'vp pack',
+        input: [{ auto: true }, '!node_modules/**/*', '!dist/**/*', '!README.md', '!LICENSE'],
+        output: ['dist/**/*'],
+      },
+    },
   },
 });

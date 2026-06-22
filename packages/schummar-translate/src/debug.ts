@@ -40,6 +40,7 @@ export function applyDebugOutput<F>(
   }
 
   if (debug.translation) {
+    // oxlint-disable-next-line typescript/restrict-template-expressions
     result += `="${translation}" `;
   }
 

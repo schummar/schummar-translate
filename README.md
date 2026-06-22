@@ -110,7 +110,7 @@ The are two versions of this function, depending on the used import. When import
 - `sourceDictionary` takes the source dictionary as seen above. If not provided, the dictionary for the source language will be loaded as any other. Also, if not provided, you will have to explicitly set the dictionary type: `createTranslator<typeof mySourceDict>(...)`.
 - `sourceLocale` is the locale of the source dictionary as [ISO-639-1 code](https://de.wikipedia.org/wiki/Liste_der_ISO-639-1-Codes).
 - `fallbackLocale` provides a locale that will be used as fallback if a translation key is not available for some locale.
-- `dicts` provides all languages except the source language. It can either be an object with the locales as key and a dictionary or promise of a dictionary as value. Or it can be a function returning a dictionary or promise of a dictionary for a given locale. The last can be used to lazy load locales (expect source locale), for example with dynamic imports: `` dicts: (locale: string) => import(`./langs/${locale}`).then(mod => mod.default) `` or getting it from a cdn via `fetch`.
+- `dicts` provides all languages except the source language. It can either be an object with the locales as key and a dictionary or promise of a dictionary as value. Or it can be a function returning a dictionary or promise of a dictionary for a given locale. The last can be used to lazy load locales (expect source locale), for example with dynamic imports: ``dicts: (locale: string) => import(`./langs/${locale}`).then(mod => mod.default)`` or getting it from a cdn via `fetch`.
 - `warn` lets you display warnings (e.g. to `console.warn`) when a translation key is missing in the active locale and no fallback is used.
 - `fallback` lets you define you a static or dynamic string that will be displayed whenever a translation key is missing for the active locale.
 - `fallbackElement` the same as `fallback` but also allows to pass a `ReactNode` to display more complex (e.g styled) fallbacks for translations embedded in JSX.
@@ -165,7 +165,7 @@ type Options = {
 - `fallback` allows to override the fallback that was passed to `createTranslator` for just this instance.
 - `placeholder` allows to override the placeholder that was passed to `createTranslator` for just this instance.
 
-`t.unknown` does exactly the same as `t` but without type checking. This can be useful if if the translation is not necessarily available. E.g. `` t.unknown(`types.${currentType`, undefined, { fallback: currentType }) ``.
+`t.unknown` does exactly the same as `t` but without type checking. This can be useful if if the translation is not necessarily available. E.g. ``t.unknown(`types.${currentType`, undefined, { fallback: currentType })``.
 
 ### t.format
 

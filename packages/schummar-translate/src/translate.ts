@@ -1,12 +1,12 @@
-import { MessageFormatElement, parse, TYPE } from '@formatjs/icu-messageformat-parser';
-import { IntlMessageFormat } from 'intl-messageformat';
 import { MaybePromise } from '.';
 import { Cache } from './cache';
+import { applyDebugOutput } from './debug';
+import { isPromise } from './helpers';
 import { customDateTimeFormat, customDateTimeFormatRange } from './intlHelpers';
 import { mapPotentialArray } from './mapPotentialArray';
 import { FlatDict, ICUArgument, ICUDateArgument, TranslatorDebugOptions } from './types';
-import { isPromise } from './helpers';
-import { applyDebugOutput } from './debug';
+import { MessageFormatElement, parse, TYPE } from '@formatjs/icu-messageformat-parser';
+import { IntlMessageFormat } from 'intl-messageformat';
 
 export function translate<F = never>({
   dicts,
@@ -23,8 +23,8 @@ export function translate<F = never>({
   ignoreMissingArgs,
   providedArgs,
 }: {
-  dicts: MaybePromise<FlatDict>[];
-  sourceDict?: MaybePromise<FlatDict> | null;
+  dicts: MaybePromise<FlatDict | null>[];
+  sourceDict?: MaybePromise<FlatDict | null>;
   id: string;
   values?: any;
   fallback?: F | ((id: string, sourceTranslation?: string | readonly string[]) => F);
@@ -36,12 +36,12 @@ export function translate<F = never>({
   cache: Cache;
   ignoreMissingArgs: boolean | string | ((id: string, template: string) => string) | undefined;
   providedArgs: Record<string, ICUArgument | ICUDateArgument> | undefined;
-}): string | F | (string | F)[] | F {
+}): string | F | (string | F)[] {
   if (fallback !== undefined && fallbackIgnoresFallbackLocales) {
     dicts = dicts.slice(0, 1);
   }
 
-  const dict = dicts.find((dict) => isPromise(dict) || id in dict);
+  const dict = dicts.find((dict) => dict !== null && (isPromise(dict) || id in dict));
 
   if (isPromise(dict)) {
     return mapPotentialArray(
@@ -101,7 +101,8 @@ export function translate<F = never>({
         debug,
       );
     }
-    if (fallback !== undefined)
+
+    if (fallback !== undefined) {
       return applyDebugOutput(
         {
           translation: fallback,
@@ -111,6 +112,7 @@ export function translate<F = never>({
         },
         debug,
       );
+    }
 
     warn?.(locale, id);
 
@@ -164,6 +166,7 @@ export function format({
           const instance = cache.get(Intl.DateTimeFormat, locals, options);
 
           return {
+            // oxlint-disable-next-line typescript/no-misused-spread
             ...instance,
             format: (date) => customDateTimeFormat(cache, locale, options, date),
             formatRange: (startDate, endDate) =>

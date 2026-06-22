@@ -1,2 +1,7 @@
 packages:
- - packages/*
+  - packages/*
+
+allowBuilds:
+  '@swc/core': false
+  esbuild: false
+  nx: false

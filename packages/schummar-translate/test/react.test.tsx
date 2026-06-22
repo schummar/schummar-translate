@@ -1,12 +1,10 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import React, { act, ReactNode, useState } from 'react';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { FlattenDict } from '../src';
 import { createTranslator, HookTranslator, MaybePromise } from '../src/react';
 import { dictDe, dictEn, dictEs, wait } from './_helpers';
+import { fireEvent, render, screen } from '@testing-library/react';
+import React, { act, ReactNode, useState } from 'react';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vite-plus/test';
 
 type D = typeof dictEn;
-type FD = FlattenDict<D>;
 
 let { t, useTranslator, TranslationContextProvider } = createTranslator({
   sourceDictionary: dictEn,
@@ -584,7 +582,7 @@ test('debug output', async () => {
 
 describe('error in dict loader', () => {
   test('sync error', async () => {
-    console.warn = vi.fn();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     const { t: _t, TranslationContextProvider } = createTranslator({
       sourceLocale: 'en',
@@ -603,19 +601,20 @@ describe('error in dict loader', () => {
     const div = screen.getByTestId('error');
 
     expect(div.textContent).toBe('key1:en');
-    expect(console.warn).toHaveBeenCalledWith('Failed to load dictionary for locale "de"');
+    expect(console.warn).toHaveBeenCalledExactlyOnceWith('Failed to load dictionary for locale "de"', Error('dicts error: de'));
   });
 
   test('async error', async () => {
-    console.warn = vi.fn();
+    vi.useFakeTimers();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     const { t: _t, TranslationContextProvider } = createTranslator({
       sourceLocale: 'en',
       sourceDictionary: dictEn,
       fallbackLocale: 'en',
       placeholder: '...',
-      dicts(locale) {
-        return Promise.reject(new Error(`dicts error: ${locale}`));
+      async dicts(locale) {
+        throw new Error(`dicts error: ${locale}`);
       },
     });
 
@@ -624,13 +623,17 @@ describe('error in dict loader', () => {
         {_t('key1')}
       </App>,
     );
+
     const div = screen.getByTestId('error');
+
+    expect(div.textContent).toBe('...');
+
     await act(async () => {
-      await wait(100);
+      await vi.runAllTimersAsync();
     });
 
     expect(div.textContent).toBe('key1:en');
-    expect(console.warn).toHaveBeenCalledWith('Failed to load dictionary for locale "de"');
+    expect(console.warn).toHaveBeenCalledExactlyOnceWith('Failed to load dictionary for locale "de"', Error('dicts error: de'));
   });
 
   describe('get keys', () => {
@@ -717,12 +720,12 @@ describe('bugs', () => {
     const { getByTestId } = render(<Component />);
     const div = getByTestId('date-time-format-range');
 
-    expect(div.textContent).toBe('Jan 1, 1970, 12:00:00 AM – Jan 2, 1970, 12:00:00 AM');
+    expect(div.textContent).toMatchInlineSnapshot(`"Jan 1, 1970, 12:00:00 AM – Jan 2, 1970, 12:00:00 AM"`);
 
     act(() => {
       div.click();
     });
 
-    expect(div.textContent).toBe('Jan 2, 1970, 12:00:00 AM – Jan 3, 1970, 12:00:00 AM');
+    expect(div.textContent).toMatchInlineSnapshot(`"Jan 2, 1970, 12:00:00 AM – Jan 3, 1970, 12:00:00 AM"`);
   });
 });

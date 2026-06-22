@@ -1,6 +1,4 @@
-import { Temporal } from '@js-temporal/polyfill';
-import { describe, expect, expectTypeOf, test } from 'vitest';
-import { createTranslator, getPossibleLocales } from '../src';
+import { createTranslator } from '../src';
 import { Cache } from '../src/cache';
 import type { GetICUArgs } from '../src/extractICU';
 import { flattenDict } from '../src/flattenDict';
@@ -14,6 +12,8 @@ import {
   type GetTranslatorOptions,
 } from '../src/types';
 import { dictDe, dictEn, dictEnCa } from './_helpers';
+import { Temporal } from '@js-temporal/polyfill';
+import { describe, expect, expectTypeOf, test } from 'vite-plus/test';
 
 type EnDict = typeof dictEn;
 interface Dict extends EnDict {}
@@ -293,7 +293,7 @@ test('dateTimeFormatRange', async () => {
   const de = await getTranslator('de');
 
   expect(en.dateTimeFormatRange(date, date2, { dateStyle: 'long', timeStyle: 'short' })).toMatchInlineSnapshot(
-    '"February 2, 2000 at 3:04 AM – February 2, 2001 at 3:04 AM"',
+    `"February 2, 2000 at 3:04 AM – February 2, 2001 at 3:04 AM"`,
   );
   expect(de.dateTimeFormatRange(date, date2, { dateStyle: 'long', timeStyle: 'short' })).toMatchInlineSnapshot(
     '"2. Februar 2000 um 03:04 – 2. Februar 2001 um 03:04"',
@@ -369,11 +369,11 @@ test('clear', async () => {
 
   await getTranslator('en');
   await getTranslator('en');
-  expect(count).toBe(2);
+  expect(count).toBe(1);
 
   clearDicts();
   await getTranslator('en');
-  expect(count).toBe(4);
+  expect(count).toBe(2);
 });
 
 test('cache', async () => {
@@ -418,23 +418,6 @@ describe('fallback order', () => {
     const _t = await getTranslator('en-CA');
 
     expect(_t('key1')).toBe('key1:en');
-    expect(_t('deOnly')).toBe('deOnly:de');
-  });
-
-  test('without fallbackToLessSpecific', async () => {
-    const { getTranslator } = createTranslator({
-      sourceLocale: 'de',
-      sourceDictionary: dictDe,
-      dicts: {
-        en: dictEn,
-        'en-CA': dictEnCa,
-      },
-      fallbackLocale: 'de',
-      fallbackToLessSpecific: false,
-    });
-    const _t = await getTranslator('en-CA');
-
-    expect(_t('key1')).toBe('key1:de');
     expect(_t('deOnly')).toBe('deOnly:de');
   });
 
@@ -483,7 +466,7 @@ describe('ignoreMissingArgs', () => {
     const _t = await getTranslator('en');
 
     expect(_t('nested.key2', {} as any)).toMatchInlineSnapshot(
-      `"Wrong format: Error: The intl string context variable "value2" was not provided to the string "undefined""`,
+      `"Wrong format: [formatjs Error: MISSING_VALUE] The intl string context variable "value2" was not provided to the string "undefined""`,
     );
   });
 
@@ -529,7 +512,7 @@ describe('select types', () => {
     expect(_t('select', { value: 'option2' })).toBe('text text2 text');
     // @ts-expect-error only listed options are allowed
     expect(_t('select', { value: 'foo' })).toMatchInlineSnapshot(
-      `"Wrong format: Error: Invalid values for "value": "foo". Options are "0", "1""`,
+      `"Wrong format: [formatjs Error: INVALID_VALUE] Invalid values for "value": "foo". Options are "0", "1""`,
     );
   });
 
@@ -544,7 +527,7 @@ describe('select types', () => {
     const _t = await getTranslator('en');
     //@ts-expect-error for options1, nested is required
     expect(_t('selectWithNested', { value: 'option1' })).toMatchInlineSnapshot(
-      `"Wrong format: Error: The intl string context variable "nested" was not provided to the string "undefined""`,
+      `"Wrong format: [formatjs Error: MISSING_VALUE] The intl string context variable "nested" was not provided to the string "undefined""`,
     );
     expect(_t('selectWithNested', { value: 'option1', nested: 'nestedText' })).toBe('text text1 nestedText text');
     expect(_t('selectWithNested', { value: 'option2' })).toBe('text text2 text');
@@ -554,34 +537,34 @@ describe('select types', () => {
     const _t = await getTranslator('en');
     //@ts-expect-error for option1, nested1 is required
     expect(_t('selectWithOtherNested', { value: 'option1' })).toMatchInlineSnapshot(
-      `"Wrong format: Error: The intl string context variable "nested1" was not provided to the string "undefined""`,
+      `"Wrong format: [formatjs Error: MISSING_VALUE] The intl string context variable "nested1" was not provided to the string "undefined""`,
     );
     expect(_t('selectWithOtherNested', { value: 'option1', nested1: 'n1' })).toBe('text text1 n1 text');
     //@ts-expect-error for option1, nested1 is required
     expect(_t('selectWithOtherNested', { value: 'option1', nested3: 'n3' })).toMatchInlineSnapshot(
-      `"Wrong format: Error: The intl string context variable "nested1" was not provided to the string "undefined""`,
+      `"Wrong format: [formatjs Error: MISSING_VALUE] The intl string context variable "nested1" was not provided to the string "undefined""`,
     );
     expect(_t('selectWithOtherNested', { value: 'option1', nested1: 'n1', nested2: 'n2', nested3: 'n3' })).toBe('text text1 n1 text');
 
     //@ts-expect-error for option2, nested2 is required
     expect(_t('selectWithOtherNested', { value: 'option2' })).toMatchInlineSnapshot(
-      `"Wrong format: Error: The intl string context variable "nested2" was not provided to the string "undefined""`,
+      `"Wrong format: [formatjs Error: MISSING_VALUE] The intl string context variable "nested2" was not provided to the string "undefined""`,
     );
     expect(_t('selectWithOtherNested', { value: 'option2', nested2: 'n2' })).toBe('text text2 n2 text');
     //@ts-expect-error for option2, nested2 is required
     expect(_t('selectWithOtherNested', { value: 'option2', nested3: 'n3' })).toMatchInlineSnapshot(
-      `"Wrong format: Error: The intl string context variable "nested2" was not provided to the string "undefined""`,
+      `"Wrong format: [formatjs Error: MISSING_VALUE] The intl string context variable "nested2" was not provided to the string "undefined""`,
     );
     expect(_t('selectWithOtherNested', { value: 'option2', nested1: 'n1', nested2: 'n2', nested3: 'n3' })).toBe('text text2 n2 text');
 
     // @ts-expect-error for other, nested3 is required
     expect(_t('selectWithOtherNested', { value: 'foo' as OtherString })).toMatchInlineSnapshot(
-      `"Wrong format: Error: The intl string context variable "nested3" was not provided to the string "undefined""`,
+      `"Wrong format: [formatjs Error: MISSING_VALUE] The intl string context variable "nested3" was not provided to the string "undefined""`,
     );
     expect(_t('selectWithOtherNested', { value: 'foo' as OtherString, nested3: 'n3' })).toBe('text text3 n3 text');
     // @ts-expect-error for other, nested3 is required
     expect(_t('selectWithOtherNested', { value: 'foo' as OtherString, nested1: 'n1' })).toMatchInlineSnapshot(
-      `"Wrong format: Error: The intl string context variable "nested3" was not provided to the string "undefined""`,
+      `"Wrong format: [formatjs Error: MISSING_VALUE] The intl string context variable "nested3" was not provided to the string "undefined""`,
     );
     expect(_t('selectWithOtherNested', { value: 'foo' as OtherString, nested1: 'n1', nested2: 'n2', nested3: 'n3' })).toBe(
       'text text3 n3 text',
@@ -589,7 +572,7 @@ describe('select types', () => {
 
     // @ts-expect-error for string, all nested args are required
     expect(_t('selectWithOtherNested', { value: 'foo' as string })).toMatchInlineSnapshot(
-      `"Wrong format: Error: The intl string context variable "nested3" was not provided to the string "undefined""`,
+      `"Wrong format: [formatjs Error: MISSING_VALUE] The intl string context variable "nested3" was not provided to the string "undefined""`,
     );
     // @ts-expect-error for string, all nested args are required
     expect(_t('selectWithOtherNested', { value: 'foo' as string, nested3: 'n3' })).toBe('text text3 n3 text');
@@ -732,7 +715,6 @@ describe('updateOptions', () => {
 
     updateOptions({ fallbackLocale: 'de' });
     const t2 = await getTranslator('es');
-    console.log(getPossibleLocales('es'));
     expect(t1('key1')).toBe('key1:en');
     expect(t2('key1')).toBe('key1:de');
   });

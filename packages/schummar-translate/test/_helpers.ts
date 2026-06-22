@@ -1,7 +1,7 @@
 import { mergeDicts } from '../src';
 
 export const wait = async (ticks = 1): Promise<void> => {
-  for (let i = 0; i < ticks; i++) await new Promise((r) => setImmediate(r));
+  for (let i = 0; i < ticks; i++) await new Promise((r) => setTimeout(r));
 };
 
 export const dictEn1 = {

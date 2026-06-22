@@ -1,5 +1,5 @@
-import { ElementType, ReactNode } from 'react';
 import { CreateTranslatorOptions, Dict, FlatDict, Translator, type FlattenDict } from '../types';
+import { ElementType, ReactNode } from 'react';
 
 export type ReactCreateTranslatorOptions<D extends Dict, ProvidedArgs extends string = never> = CreateTranslatorOptions<D, ProvidedArgs> & {
   /** Display while a locale is loading */
@@ -24,7 +24,7 @@ export interface ReactCreateTranslatorResult<D extends Dict, FD extends FlatDict
     locale?: string;
     options?: Partial<ReactCreateTranslatorOptions<FD, ProvidedArgs>>;
     children?: ReactNode;
-  }) => JSX.Element;
+  }) => React.JSX.Element;
 }
 
 export interface HookTranslatorOptions {
@@ -34,8 +34,11 @@ export interface HookTranslatorOptions {
   placeholder?: string;
 }
 
-export interface HookTranslator<D extends Dict, FD extends FlatDict = FlattenDict<D>, ProvidedArgs extends string = never>
-  extends Translator<FD, ProvidedArgs, HookTranslatorOptions, string> {
+export interface HookTranslator<
+  D extends Dict,
+  FD extends FlatDict = FlattenDict<D>,
+  ProvidedArgs extends string = never,
+> extends Translator<FD, ProvidedArgs, HookTranslatorOptions, string> {
   /** Current options */
   options: ReactCreateTranslatorOptions<D, ProvidedArgs>;
 
@@ -54,8 +57,11 @@ export interface InlineTranslatorOptions {
   component?: ElementType;
 }
 
-export interface InlineTranslator<D extends Dict, FD extends FlatDict = FlattenDict<D>, ProvidedArgs extends string = never>
-  extends Translator<FD, ProvidedArgs, InlineTranslatorOptions, ReactNode> {
+export interface InlineTranslator<
+  D extends Dict,
+  FD extends FlatDict = FlattenDict<D>,
+  ProvidedArgs extends string = never,
+> extends Translator<FD, ProvidedArgs, InlineTranslatorOptions, ReactNode> {
   /** Render something using the currently active locale
    * @param renderFn your custom render function
    * @param dependencies if provided, will memoize the result of renderFn as long as dependencies stay the same (shallow compare)
