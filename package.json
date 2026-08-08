@@ -11,7 +11,7 @@
     "@swc-node/register": "^1.11.1",
     "@swc/core": "^1.15.41",
     "@typescript/native-preview": "7.0.0-dev.20260621.1",
-    "nx": "23.0.0",
+    "nx": "23.0.2",
     "publint": "^0.3.21",
     "typescript": "6.0.3",
     "vite-plus": "^0.2.1"
