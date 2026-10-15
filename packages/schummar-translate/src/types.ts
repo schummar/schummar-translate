@@ -25,10 +25,16 @@ export type FlatKeys<D extends Dict> =
           [K in keyof D as D[K] extends Dict ? `${string & K}.${FlatKeys<D[K]>}` : K]: 1;
         };
 
-export type DeepValue<D extends Dict, K extends FlatKeys<D>> = K extends `${infer Head}.${infer Rest}`
-  ? DeepValue<D[Head] & Dict, Rest & FlatKeys<D[Head] & Dict>>
-  : D[K] extends string | readonly string[]
-    ? D[K]
+export type DeepValue<D extends Dict, K extends FlatKeys<D>> = DeepValueOf<D, K>;
+
+type DeepValueOf<D, K> = K extends `${infer Head}.${infer Rest}`
+  ? Head extends keyof D
+    ? DeepValueOf<D[Head], Rest>
+    : ''
+  : K extends keyof D
+    ? D[K] extends string | readonly string[]
+      ? D[K]
+      : ''
     : '';
 
 export type FlattenDict<D extends Dict> = {
@@ -40,6 +46,9 @@ export type Flatten<T> = T extends object
       [P in keyof T]: T[P];
     }
   : T;
+
+// Distributing over the generic key defers `keyof FD & TKey` until the key is known.
+type MatchingKeys<FD, TKey> = TKey extends unknown ? keyof FD & TKey : never;
 
 type Tagged<BaseType, Tags extends Record<string, any>> = BaseType & { __tags?: Tags };
 
@@ -134,15 +143,19 @@ export type Values<T extends string | readonly string[], ProvidedArgs extends st
     ? [value?: Record<string, unknown>, options?: Options]
     : string[] extends T
       ? [value?: Record<string, unknown>, options?: Options]
-      : // for unions, extract arguments for each union member individually
-        (T extends any ? (k: GetICUArgs<T, { ProvidedArgs: ProvidedArgs } & DefaultGetICUArgsOptions>) => void : never) extends (
-            k: infer Args,
-          ) => void
-        ? OnlyOptional<Args> extends true
-          ? // if no arguments are found, allow omitting values
-            [values?: Flatten<Args>, options?: Options]
-          : [values: Flatten<Args>, options?: Options]
-        : never;
+      : [T] extends [never]
+        ? [values?: unknown, options?: Options]
+        : [Extract<T, `${string}{${string}` | readonly string[]>] extends [never]
+          ? [values?: Flatten<EmptyObject>, options?: Options]
+          : // for unions, extract arguments for each union member individually
+            (T extends any ? (k: GetICUArgs<T, { ProvidedArgs: ProvidedArgs } & DefaultGetICUArgsOptions>) => void : never) extends (
+                k: infer Args,
+              ) => void
+            ? OnlyOptional<Args> extends true
+              ? // if no arguments are found, allow omitting values
+                [values?: Flatten<Args>, options?: Options]
+              : [values: Flatten<Args>, options?: Options]
+            : never;
 
 export interface GetTranslatorOptions {
   /** Override fallback to use if string is not available in active locale */
@@ -168,8 +181,8 @@ export interface Translator<FD extends FlatDict, ProvidedArgs extends string = n
   unknown(id: string, values?: Record<string, unknown>, options?: Options): Output extends string ? string | readonly string[] : Output;
 
   /** Translate a dictionary id to a string in the active locale. Without type checking the id. */
-  dynamic<TKey extends string, TResolved extends string = TKey & keyof FD>(
-    id: TKey & keyof FD extends never ? keyof FD : TKey,
+  dynamic<TKey extends string, TResolved extends string = MatchingKeys<FD, TKey>>(
+    id: MatchingKeys<FD, TKey> extends never ? keyof FD : TKey,
     ...values: Values<FD[TResolved], ProvidedArgs, Options>
   ): Tagged<
     FD[TResolved] extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output,
@@ -182,7 +195,7 @@ export interface Translator<FD extends FlatDict, ProvidedArgs extends string = n
   locale: Output;
 
   keys(): Output extends string ? (keyof FD)[] : Output;
-  keys<TPrefix extends string>(prefix: TPrefix): Output extends string ? (keyof FD & (TPrefix | `${TPrefix}.${string}`))[] : Output;
+  keys<TPrefix extends string>(prefix: TPrefix): Output extends string ? MatchingKeys<FD, TPrefix | `${TPrefix}.${string}`>[] : Output;
 
   /** Format the given template directly. */
   format<T extends string>(template: T, ...values: Values<T, ProvidedArgs, never>): Output;

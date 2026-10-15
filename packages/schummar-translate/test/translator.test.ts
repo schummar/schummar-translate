@@ -7,7 +7,9 @@ import {
   ICUDateArgument,
   ICUNumberArgument,
   OtherString,
+  type DeepValue,
   type EmptyObject,
+  type FlatKeys,
   type FlattenDict,
   type GetTranslatorOptions,
 } from '../src/types';
@@ -32,6 +34,9 @@ test('simple', async () => {
   const de = await getTranslator('de');
 
   expectTypeOf(en<'key1'>).parameters.toEqualTypeOf<[id: 'key1', values?: EmptyObject, options?: GetTranslatorOptions]>();
+  expectTypeOf(en.dynamic<'key1' | 'key4'>).parameters.toEqualTypeOf<
+    [id: 'key1' | 'key4', values?: EmptyObject, options?: GetTranslatorOptions]
+  >();
   expect(en('key1')).toBe('key1:en');
   expect(de('key1')).toBe('key1:de');
 });
@@ -689,6 +694,7 @@ describe('provided args', () => {
 
     test('with prefix', async () => {
       const _t = await getTranslator('en');
+      expectTypeOf(_t.keys('nested')).toEqualTypeOf<('nested.key2' | 'nested.key3')[]>();
       expect(_t.keys('nested')).toEqual(['nested.key2', 'nested.key3']);
     });
 
@@ -758,5 +764,38 @@ describe('debug output', () => {
     const _t = await getTranslator('en');
     expect(_t('key1')).toEqual('key1');
     expect(_t('nested.key2', { value2: 'foo' })).toEqual('nested.key2');
+  });
+});
+
+describe('flat dictionary types', () => {
+  type D = {
+    a: 'a';
+    nested: { b: 'b {x}'; deeper: { c: readonly ['c1', 'c2'] } };
+    'flat.key': 'f';
+    record: Record<string, string>;
+  };
+
+  test('FlatKeys', () => {
+    expectTypeOf<FlatKeys<D>>().toEqualTypeOf<'a' | 'nested.b' | 'nested.deeper.c' | 'flat.key' | `record.${string}`>();
+    expectTypeOf<FlatKeys<any>>().toEqualTypeOf<string>();
+  });
+
+  test('DeepValue', () => {
+    expectTypeOf<DeepValue<D, 'a'>>().toEqualTypeOf<'a'>();
+    expectTypeOf<DeepValue<D, 'nested.b'>>().toEqualTypeOf<'b {x}'>();
+    expectTypeOf<DeepValue<D, 'nested.deeper.c'>>().toEqualTypeOf<readonly ['c1', 'c2']>();
+    expectTypeOf<DeepValue<D, `record.${string}`>>().toEqualTypeOf<string>();
+    // keys that contain dots are split at the first one, so they cannot be resolved
+    expectTypeOf<DeepValue<D, 'flat.key'>>().toEqualTypeOf<''>();
+  });
+
+  test('FlattenDict', () => {
+    expectTypeOf<FlattenDict<D>>().toEqualTypeOf<{
+      a: 'a';
+      'nested.b': 'b {x}';
+      'nested.deeper.c': readonly ['c1', 'c2'];
+      'flat.key': '';
+      [key: `record.${string}`]: string;
+    }>();
   });
 });
