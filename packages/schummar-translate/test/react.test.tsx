@@ -2,7 +2,7 @@ import { createTranslator, HookTranslator, MaybePromise } from '../src/react';
 import { dictDe, dictEn, dictEs, wait } from './_helpers';
 import { fireEvent, render, screen } from '@testing-library/react';
 import React, { act, ReactNode, useState } from 'react';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vite-plus/test';
+import { afterEach, beforeEach, describe, expect, expectTypeOf, test, vi } from 'vite-plus/test';
 
 type D = typeof dictEn;
 
@@ -728,4 +728,9 @@ describe('bugs', () => {
 
     expect(div.textContent).toMatchInlineSnapshot(`"Jan 2, 1970, 12:00:00 AM – Jan 3, 1970, 12:00:00 AM"`);
   });
+});
+
+test('inline translator returns ReactNode', () => {
+  expectTypeOf(t('key1')).toEqualTypeOf<ReactNode>();
+  expectTypeOf(t.dynamic('nested.key2', { value2: 1 })).toEqualTypeOf<ReactNode>();
 });

@@ -37,6 +37,8 @@ test('simple', async () => {
   expectTypeOf(en.dynamic<'key1' | 'key4'>).parameters.toEqualTypeOf<
     [id: 'key1' | 'key4', values?: EmptyObject, options?: GetTranslatorOptions]
   >();
+  expectTypeOf(en('key1')).toEqualTypeOf<string>();
+  expectTypeOf(en('arr', { pOne: 1, pTwo: 2 })).toEqualTypeOf<readonly string[]>();
   expect(en('key1')).toBe('key1:en');
   expect(de('key1')).toBe('key1:de');
 });

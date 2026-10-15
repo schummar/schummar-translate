@@ -50,8 +50,6 @@ export type Flatten<T> = T extends object
 // Distributing over the generic key defers `keyof FD & TKey` until the key is known.
 type MatchingKeys<FD, TKey> = TKey extends unknown ? keyof FD & TKey : never;
 
-type Tagged<BaseType, Tags extends Record<string, any>> = BaseType & { __tags?: Tags };
-
 export type DurationFormatOptions = Partial<ReturnType<DurationFormat['resolvedOptions']>>;
 export type DurationInput = Parameters<DurationFormat['format']>[0];
 
@@ -167,12 +165,7 @@ export interface TranslatorFn<FD extends FlatDict, ProvidedArgs extends string =
   <TKey extends string>(
     id: TKey extends keyof FD ? TKey : keyof FD,
     ...values: Values<FD[TKey], ProvidedArgs, Options>
-  ): Tagged<
-    FD[TKey] extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output,
-    {
-      sourceString: FD[TKey];
-    }
-  >;
+  ): FD[TKey] extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output;
 }
 
 export interface Translator<FD extends FlatDict, ProvidedArgs extends string = never, Options = GetTranslatorOptions, Output = string>
@@ -184,13 +177,7 @@ export interface Translator<FD extends FlatDict, ProvidedArgs extends string = n
   dynamic<TKey extends string, TResolved extends string = MatchingKeys<FD, TKey>>(
     id: MatchingKeys<FD, TKey> extends never ? keyof FD : TKey,
     ...values: Values<FD[TResolved], ProvidedArgs, Options>
-  ): Tagged<
-    FD[TResolved] extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output,
-    {
-      matchingKeys: TResolved;
-      sourceString: FD[TResolved];
-    }
-  >;
+  ): FD[TResolved] extends readonly string[] ? (Output extends string ? readonly string[] : Output) : Output;
 
   locale: Output;
 
