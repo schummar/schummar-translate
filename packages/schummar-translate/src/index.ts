@@ -6,6 +6,7 @@ export type {
   CreateTranslatorResult,
   DeepValue,
   Dict,
+  Dictionary,
   FlatDict,
   FlatKeys,
   FlattenDict,

@@ -43,6 +43,20 @@ export const { t, useTranslator, getTranslator } = createTranslator({
 });
 ```
 
+## Type check translations against the source dictionary
+
+`Dictionary<D>` checks a translation against the source dictionary: missing or extra keys are errors. ICU arguments are not checked.
+
+```ts
+// de.ts
+import type { Dictionary } from 'schummar-translate';
+import type en from './en.ts'; // export default { welcomeMessage: 'Welcome, {name}!' } as const;
+
+export default {
+  welcomeMessage: 'Willkommen, {name}!',
+} as const satisfies Dictionary<typeof en>;
+```
+
 ## Use it everywhere in your app
 
 ```tsx

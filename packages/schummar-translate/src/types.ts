@@ -61,6 +61,14 @@ export type EmptyObject = Record<never, never>;
 export type Dict = { [id: string]: Dict | string | readonly string[] };
 export type FlatDict = Record<string, string | readonly string[]>;
 
+/**
+ * Shape of a translation of the source dictionary `D`: the same keys, with any string in place of each source string. Use it as
+ * `export default { ... } as const satisfies Dictionary<typeof en>`. ICU arguments are not checked.
+ */
+export type Dictionary<D> = {
+  [K in keyof D]: D[K] extends string ? string : D[K] extends readonly string[] ? readonly string[] : Dictionary<D[K]>;
+};
+
 export type CreateTranslatorOptions<D extends Dict, ProvidedArgs extends string = never> = Flatten<
   {
     /** The source dictionary. It's type determines the available ids. */
