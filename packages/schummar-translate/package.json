@@ -23,6 +23,8 @@
     "dist",
     "react.js",
     "react.d.ts",
+    "lint.js",
+    "lint.d.ts",
     "README.md",
     "LICENSE"
   ],
@@ -35,6 +37,10 @@
     ".": {
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
+    },
+    "./lint": {
+      "import": "./dist/lint.mjs",
+      "require": "./dist/lint.cjs"
     },
     "./react": {
       "import": "./dist/react.mjs",
@@ -50,10 +56,12 @@
   "devDependencies": {
     "@formatjs/intl-durationformat": "^0.10.15",
     "@js-temporal/polyfill": "0.5.1",
+    "@oxlint/plugins": "1.94.0",
     "@testing-library/react": "16.3.2",
     "@types/node": "26.0.0",
     "@types/react": "^19.2.17",
     "happy-dom": "^20.10.6",
+    "oxlint": "1.94.0",
     "react": "^19.2.7",
     "react-dom": "19.2.7"
   },

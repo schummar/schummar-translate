@@ -45,7 +45,7 @@ export const { t, useTranslator, getTranslator } = createTranslator({
 
 ## Type check translations against the source dictionary
 
-`Dictionary<D>` checks a translation against the source dictionary: missing or extra keys are errors. ICU arguments are not checked.
+`Dictionary<D>` checks a translation against the source dictionary: missing or extra keys are errors. ICU arguments are not checked by the type, see the lint rule below.
 
 ```ts
 // de.ts
@@ -56,6 +56,37 @@ export default {
   welcomeMessage: 'Willkommen, {name}!',
 } as const satisfies Dictionary<typeof en>;
 ```
+
+### Lint rule for ICU arguments
+
+`schummar-translate/lint` is a lint plugin for [oxlint](https://oxc.rs/docs/guide/usage/linter/js-plugins) and ESLint. Its rule `matching-args` finds every `... satisfies Dictionary<typeof en>`, loads the source dictionary `en` is imported from, and reports each translation string whose ICU arguments differ from its source string: missing, unexpected or misspelled arguments, a different kind (`{count}` for `{count, plural, ...}`, `date` for `time`, tags), select options that differ from the source, and invalid ICU syntax. Plural categories may differ between languages.
+
+```json
+// .oxlintrc.json
+{
+  "jsPlugins": ["schummar-translate/lint"],
+  "rules": {
+    "schummar-translate/matching-args": "error"
+  }
+}
+```
+
+```js
+// eslint.config.js, with a TypeScript parser such as @typescript-eslint/parser
+import translate from 'schummar-translate/lint';
+
+export default [
+  {
+    files: ['**/*.ts'],
+    plugins: { 'schummar-translate': translate },
+    rules: { 'schummar-translate/matching-args': 'error' },
+  },
+];
+```
+
+Set `["error", { "selectOptions": false }]` to allow a translation's selects to have other option keys than the source's.
+
+The source dictionary is read on every run, so an editor's linter never sees a stale copy. It can be imported by a relative path (without extension, `.ts` is assumed), with an explicit `.ts`, `.js` or `.mjs` extension, or by a package specifier resolved like Node's `require`, and as a default or named export. It has to be self-contained: `export default { ... }` or `export const en = { ... }`, with no imports of its own. Reading a `.ts` dictionary needs Node 22.13 or later.
 
 ## Use it everywhere in your app
 

@@ -10,6 +10,7 @@ export default defineConfig({
     entry: {
       index: 'src/index.ts',
       react: 'src/react/index.ts',
+      lint: 'src/lint/index.ts',
     },
     clean: true,
     dts: true,

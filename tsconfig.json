@@ -6,6 +6,7 @@
     "esModuleInterop": true,
     "declaration": true,
     "emitDeclarationOnly": true,
+    "allowImportingTsExtensions": true,
 
     "strict": true,
     "noImplicitReturns": true,
