@@ -31,16 +31,6 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.cts",
-  "typesVersions": {
-    "*": {
-      ".": [
-        "dist/index.d.ts"
-      ],
-      "./react": [
-        "dist/react.d.ts"
-      ]
-    }
-  },
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
